@@ -1,0 +1,744 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html, body{
+    height: 100%;
+}
+
+body {
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+
+/* header */
+header {
+    background: linear-gradient(90deg,rgba(175, 135, 255, 1) 0%, rgba(61, 0, 145, 1) 50%, rgba(3, 0, 0, 1) 100%);
+    padding: 1em 0;
+    border-bottom: 1px solid black;
+    position:fixed;
+    top:0;
+    width: 100%;
+    z-index: 10000;  /* Por esto no se ve la x de la hamburguesa  */
+}
+
+.primerDiv {
+    width: 95%;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.logo img {
+    width: 5em;
+}
+
+.logo h1 {
+    font-size: 1.8rem;
+    color: white;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+}
+
+
+/* nav */
+nav {
+    display: flex;
+    gap: 1em;
+}
+
+.boton {
+    background: transparent;
+    border: 2px solid white;
+    padding: 8px 20px;
+    border-radius: 1em;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.boton:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* MAIN */
+main{
+    flex:1;
+
+}
+
+/* grid principal */
+.grid-partidos {
+    width: 90%;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-top: 10em;
+}
+
+/* === TARJETA BASE === */
+.card {
+    display: flex;
+    border-radius: 1em;
+    overflow: hidden;
+    border: 3px solid #00000096;
+    box-shadow: 10px 10px 2px #8c00dd20;
+    height: 180px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+.card .info {
+    width: 65%;
+    border-right: 2px solid black;
+    display: flex;
+    flex-direction: column;
+}
+
+.card figure {
+    width: 35%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    padding: 1em;
+}
+
+.card figure img {
+    width: 70%;
+    object-fit: contain;
+}
+
+/* === TEXTOS === */
+.card h2 {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 0.3em;
+    color: white;
+    padding: 0.5em;
+    border-bottom: 2px solid black;
+    text-align: center;
+}
+
+.card p {
+    padding:0.5em;
+    font-weight: bolder;
+}
+
+/* From Uiverse.io by 00Kubi */ 
+.cyber-checkbox {
+  --checkbox-size: 24px;
+  --checkbox-color: #000000;
+  --checkbox-check-color: #ffffff;
+  --checkbox-hover-color: #000000;
+  --checkbox-spark-offset: -20px;
+
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cyber-checkbox input {
+  display: none;
+}
+
+.cyber-checkbox__mark {
+  position: relative;
+  display: inline-block;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+}
+
+.cyber-checkbox__box {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--checkbox-color);
+  border-radius: 4px;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.cyber-checkbox__check {
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  stroke: var(--checkbox-check-color);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  transform: scale(0);
+  transition: transform 0.2s ease;
+}
+
+.cyber-checkbox__effects {
+  position: absolute;
+  inset: var(--checkbox-spark-offset);
+  pointer-events: none;
+}
+
+.cyber-checkbox__spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  background: var(--checkbox-color);
+  border-radius: 50%;
+  opacity: 0;
+  transform-origin: center center;
+}
+
+/* Hover */
+.cyber-checkbox:hover .cyber-checkbox__box {
+  border-color: var(--checkbox-hover-color);
+  box-shadow: 0 0 0 2px rgba(92, 103, 255, 0.1);
+}
+
+/* Checked */
+.cyber-checkbox input:checked + .cyber-checkbox__mark .cyber-checkbox__box {
+  background: var(--checkbox-color);
+  border-color: var(--checkbox-color);
+}
+
+.cyber-checkbox input:checked + .cyber-checkbox__mark .cyber-checkbox__check {
+  transform: scale(1);
+}
+
+/* Spark Animation */
+.cyber-checkbox input:checked + .cyber-checkbox__mark .cyber-checkbox__spark {
+  animation: spark 0.4s ease-out;
+}
+
+.cyber-checkbox__spark:nth-child(1) {
+  transform: rotate(0deg) translateX(var(--checkbox-spark-offset));
+}
+.cyber-checkbox__spark:nth-child(2) {
+  transform: rotate(90deg) translateX(var(--checkbox-spark-offset));
+}
+.cyber-checkbox__spark:nth-child(3) {
+  transform: rotate(180deg) translateX(var(--checkbox-spark-offset));
+}
+.cyber-checkbox__spark:nth-child(4) {
+  transform: rotate(270deg) translateX(var(--checkbox-spark-offset));
+}
+
+@keyframes spark {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg) translateX(var(--checkbox-spark-offset));
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) rotate(0deg)
+      translateX(calc(var(--checkbox-spark-offset) * 1.5));
+  }
+}
+
+/* Active */
+.cyber-checkbox:active .cyber-checkbox__box {
+  transform: scale(0.9);
+}
+
+/* Focus */
+.cyber-checkbox input:focus + .cyber-checkbox__mark .cyber-checkbox__box {
+  box-shadow: 0 0 0 4px rgba(92, 103, 255, 0.2);
+}
+
+.cyber-checkbox__particles {
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+}
+
+.cyber-checkbox__particles div {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--checkbox-color);
+  opacity: 0;
+}
+
+/* Particle animations for check */
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-1 {
+  animation: particle-1 0.4s ease-out forwards;
+}
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-2 {
+  animation: particle-2 0.4s ease-out forwards 0.1s;
+}
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-3 {
+  animation: particle-3 0.4s ease-out forwards 0.15s;
+}
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-4 {
+  animation: particle-4 0.4s ease-out forwards 0.05s;
+}
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-5 {
+  animation: particle-5 0.4s ease-out forwards 0.12s;
+}
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-6 {
+  animation: particle-6 0.4s ease-out forwards 0.08s;
+}
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-7 {
+  animation: particle-7 0.4s ease-out forwards 0.18s;
+}
+.cyber-checkbox input:checked + .cyber-checkbox__mark .particle-8 {
+  animation: particle-8 0.4s ease-out forwards 0.15s;
+}
+
+/* Particle animations for uncheck */
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-1 {
+  animation: particle-out-1 0.4s ease-out forwards;
+}
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-2 {
+  animation: particle-out-2 0.4s ease-out forwards 0.1s;
+}
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-3 {
+  animation: particle-out-3 0.4s ease-out forwards 0.15s;
+}
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-4 {
+  animation: particle-out-4 0.4s ease-out forwards 0.05s;
+}
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-5 {
+  animation: particle-out-5 0.4s ease-out forwards 0.12s;
+}
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-6 {
+  animation: particle-out-6 0.4s ease-out forwards 0.08s;
+}
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-7 {
+  animation: particle-out-7 0.4s ease-out forwards 0.18s;
+}
+.cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-8 {
+  animation: particle-out-8 0.4s ease-out forwards 0.15s;
+}
+
+/* Particle keyframes for check */
+@keyframes particle-1 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-20px, -20px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-2 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(20px, -20px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-3 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(20px, 20px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-4 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-20px, 20px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-5 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-30px, 0px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-6 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(30px, 0px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-7 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0px, -30px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-8 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0px, 30px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Particle keyframes for uncheck */
+@keyframes particle-out-1 {
+  0% {
+    transform: translate(-20px, -20px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-out-2 {
+  0% {
+    transform: translate(20px, -20px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-out-3 {
+  0% {
+    transform: translate(20px, 20px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-out-4 {
+  0% {
+    transform: translate(-20px, 20px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-out-5 {
+  0% {
+    transform: translate(-30px, 0px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-out-6 {
+  0% {
+    transform: translate(30px, 0px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-out-7 {
+  0% {
+    transform: translate(0px, -30px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-out-8 {
+  0% {
+    transform: translate(0px, 30px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+}
+
+
+.voto{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bolder;
+    font-size: 2vw;
+    height: 100%;
+}
+
+/* === COLORES PARTIDOS=== */
+.pp      { background: #5eadf8; }
+.pp h2   { background: #1d5ea8; }
+
+.psoe    { background: #fd7671; }
+.psoe h2 { background: #b3201e; }
+
+.vox     { background: #8cfa80; }
+.vox h2  { background: #4aa63b; }
+
+.podemos    { background: #d57bfc; }
+.podemos h2 { background: #6d2d8e; }
+
+.sumar      { background: #fa7aa3; }
+.sumar h2   { background: #c73765; }
+
+.cs        { background: #ffb347; }
+.cs h2     { background: #d97900; }
+
+
+/* footer */
+footer {
+    margin-top: 40px;
+    background: linear-gradient(270deg,rgba(175, 135, 255, 1) 0%, rgba(61, 0, 145, 1) 50%, rgba(3, 0, 0, 1) 100%);
+    padding: 1em 0;
+    border-top: 1px solid black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+footer figure {
+    display: flex;
+    gap: 1em;
+    margin-right: 1.5em;
+}
+
+footer figure img {
+    width: 5em;
+}
+
+footer .boton{
+    margin-left: 3em;
+}
+
+.icons-social-media {
+  align-items: center;
+  margin-top: 10px;
+  padding: 5px;
+  width: 32px;
+  cursor: pointer !important;
+  transition: 300ms all ease-in-out;
+  position: relative;
+}
+
+.icons-social-media:hover {
+  translate: -0px -10px;
+}
+
+.social{
+    display: flex;
+}
+
+#instagram,#linkedin,#github, #x {
+  transition: 300ms all ease-in-out;
+}
+
+#instagram:hover {
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
+
+#x:hover {
+  background: linear-gradient(135deg, #000000 0%, #3a3a3a 100%);
+}
+
+#linkedin:hover {
+  background: linear-gradient(135deg, #0077B5 0%, #005983 100%);
+}
+
+#github:hover {
+  background: linear-gradient(135deg, #333333 0%, #6e5494 100%);
+}
+
+/* Detalles perfectos */
+header, nav .boton, footer {
+    transition: all 0.35s ease;
+}
+
+
+/* RESPONSIVE */
+/* Móviles */
+@media (max-width: 780px) {
+
+    .primerDiv {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    nav{
+        display: flex;
+        flex-direction: column;
+        font-size: 2vw;
+    }
+
+    /* main */
+    .grid-partidos {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        height: auto;
+        flex-direction: column;
+    }
+
+    .card .info, .card figure {
+        width: 100%;
+        border-right: none;
+    }
+
+    .voto{
+        padding: 1em;
+        border-bottom: 2px solid black;
+        font-size: 1em;
+    }
+
+    
+    /* Footer en columna */
+    footer {
+        flex-direction: column;
+        gap: 1.5em;
+        text-align: center;
+    }
+
+    footer .boton{
+        margin-left: 0;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    footer figure {
+        margin-right: 0;
+    }
+
+    
+}
+
+/* Móviles pequeños */
+@media (max-width: 500px) {
+    .logo img {
+        width: 45px;
+    }
+
+    .logo h1 {
+        font-size: 1.3rem;
+    }
+
+    nav {
+        font-size: 0.7em;
+    }
+
+    .voto{
+        font-size: 0.8em;
+    }
+
+    footer figure img {
+        height: 35px;
+    }
+}
