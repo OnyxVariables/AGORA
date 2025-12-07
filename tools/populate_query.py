@@ -23,8 +23,12 @@ def parse_csv(csvFilename):
     
     lines = entireFile.split('\n')[2:]
     fields = []
+
+    is_semicolon = lines[0].find(";") # CSV might be separated by semicolons instead of commas, depending on the app used to export the xlsx
     for line in lines:
         match = re.search(r"(\d*),(\d*),(\d*),\d*,(.*)", line)
+        if is_semicolon:
+            match = re.search(r"(\d*);(\d*);(\d*);\d*;(.*)", line)
 
         if not match:
             continue
