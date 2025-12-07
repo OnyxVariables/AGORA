@@ -1,2 +1,6 @@
 *.csv
 *.txt
+
+tools/*.sql
+
+!requirements.txt
