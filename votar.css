@@ -663,7 +663,66 @@ header, nav .boton, footer {
 }
 
 
+/* ----- MODAL PRIVACIDAD ----- */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);  /* borroso */
+    -webkit-backdrop-filter: blur(3px); /* para Safari */
+    padding-bottom: 10em;
+    margin-bottom: 10em;
+}
+
+.modal-contenido {
+    background: white;
+    width: 90%;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    max-height: 90vh; /* límite de altura */
+    overflow-y: auto; /* scroll si es necesario */
+    animation: aparecer 0.3s ease;
+    margin-top: 9em;
+    height: 80vh;
+}
+
+.modal-contenido h2 {
+    color: #3d0091;
+    margin-bottom: 1em;
+    text-align: center;
+}
+
+.modal-texto p {
+    margin-bottom: 1em;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.cerrar {
+    float: right;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+@keyframes aparecer {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
 /* RESPONSIVE */
+@media (max-width: 900px) {
+    .modal-contenido{
+      height: 81vh;
+    }
+}
+
 /* Móviles */
 @media (max-width: 780px) {
 
@@ -711,6 +770,7 @@ header, nav .boton, footer {
         margin-left: 0;
         width: 90%;
         margin: 0 auto;
+        margin-top: 1em;
     }
 
     footer figure {
@@ -723,11 +783,11 @@ header, nav .boton, footer {
 /* Móviles pequeños */
 @media (max-width: 500px) {
     .logo img {
-        width: 45px;
+        width: 4em;
     }
 
     .logo h1 {
-        font-size: 1.3rem;
+        font-size: 1.5rem;
     }
 
     nav {
@@ -736,9 +796,5 @@ header, nav .boton, footer {
 
     .voto{
         font-size: 0.8em;
-    }
-
-    footer figure img {
-        height: 35px;
     }
 }

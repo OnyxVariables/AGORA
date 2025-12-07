@@ -9,6 +9,21 @@ body {
     background: #fafafa;
 }
 
+/* Truco para ocupar el 100% de altura del viewport en altura */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.contenedorUsuario {
+    flex: 1;
+}
+/* Hasta aqui */
+
 
 /* header */
 header {
@@ -134,7 +149,7 @@ input[type="checkbox"]:checked ~ .middle {
     z-index: 9998;
     transition: right 0.35s ease;
     overflow-y: auto;
-    margin-top: 3em;
+    margin-top: 5.5em;
 }
 
 .sidebar.open {
@@ -200,115 +215,91 @@ input[type="checkbox"]:checked ~ .middle {
 }
 
 
-/* main */
-main {
+/* MAIN */
+.contenedorUsuario {
     width: 90%;
-    margin: 40px auto;
-    gap: 25px;
+    max-width: 1100px;
+    margin: 8em auto 3em auto;   /* margen por el header fijo */
     display: grid;
-    grid-auto-rows: 1fr;
-    padding-top: 7em; /* ajusta según la altura real del header */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2em;
+    margin-top: 10em;
 }
 
-
-/* articles */
-article {
-    display: flex;
+/* Tarjetas de datos */
+.contenedorUsuario .tarjeta {
+    background: #fff;
+    padding: 2em;
     border-radius: 1em;
-    overflow: hidden;
-    border: 3px solid #00000096;
     box-shadow: 10px 10px 2px #8c00dd20;
-    height: 100%;
+    border:3px solid black;
+    
 }
 
-article > div {
-    width: 65%;
-    border-right: 2px solid black;
+.contenedorUsuario .tarjeta:hover {
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
 }
 
-article figure {
-    width: 35%;
+.contenedorUsuario .tarjeta h2 {
+    color: #3d0091;
+    margin-bottom: 1em;
+    font-size: 1.3rem;
+    text-decoration: underline;
+}
+
+.contenedorUsuario .tarjeta .info p {
+    margin-bottom: 0.7em;
+    font-size: 0.95rem;
+}
+
+/* FORMULARIO */
+.contenedorUsuario .formulario {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white;
-    padding: 1em;
+    flex-direction: column;
+    gap: 1em;
 }
 
-article figure img {
-    width: 50%;
-    height: auto;
+.contenedorUsuario .formulario h2 {
+    color: #3d0091;
+    margin-bottom: 1em;
 }
 
-article h2 {
-    font-size: 2rem;
-    font-weight: bold;
+.contenedorUsuario .formulario form {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
 }
 
-/* colores de partido */
-article:nth-of-type(1) {
-    background: #5eadf8;
+.contenedorUsuario .formulario input {
+    padding: 0.8em 1em;
+    border: 1px solid #aaa;
+    border-radius: 0.5em;
+    font-size: 1rem;
 }
 
-article:nth-of-type(1) h2 {
-    background: #1d5ea8;
+.contenedorUsuario .formulario button {
+    background: #3d0091;
     color: white;
-    padding: 0.5em;
+    padding: 0.8em;
+    border: none;
+    border-radius: 1em;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background .2s ease;
 }
 
-article:nth-of-type(2) {
-    background: #fd7671;
+.contenedorUsuario .formulario button:hover {
+    background: #6b2ffb;
+    border:1px solid black
 }
-
-article:nth-of-type(2) h2 {
-    background: #b3201e;
-    color: white;
-    padding: 0.5em;
-}
-
-article:nth-of-type(3) {
-    background: #8cfa80;
-}
-
-article:nth-of-type(3) h2 {
-    background: #4aa63b;
-    color: white;
-    padding: 0.5em;
-}
-
-article:nth-of-type(4) {
-    background: #d57bfc;
-}
-
-article:nth-of-type(4) h2 {
-    background: #6d2d8e;
-    color: white;
-    padding: 0.5em;
-}
-
-article:nth-of-type(5) {
-    background: #fa7aa3;
-}
-
-article:nth-of-type(5) h2 {
-    background: #c73765;
-    color: white;
-    padding: 0.5em;
-}
-
-article:nth-of-type(1) p,
-article:nth-of-type(2) p,
-article:nth-of-type(3) p,
-article:nth-of-type(4) p,
-article:nth-of-type(5) p {
-    padding: 1em;
-    border-top: 2px solid black;
+.contenedorUsuario svg{
+    margin-top: 3em;
 }
 
 
 /* footer */
 footer {
-    margin-top: 40px;
     background: linear-gradient(270deg,rgba(175, 135, 255, 1) 0%, rgba(61, 0, 145, 1) 50%, rgba(3, 0, 0, 1) 100%);
     padding: 1em 0;
     border-top: 1px solid black;
@@ -370,34 +361,8 @@ footer .boton{
 }
 
 /* Detalles perfectos */
-header, nav .boton, article, article figure img, footer {
+header, nav .boton, section, footer {
     transition: all 0.35s ease;
-}
-
-article:hover {
-    transform: translateY(-5px);
-    box-shadow: 12px 12px 12px #00000030;
-}
-
-article figure img:hover {
-    transform: scale(1.08);
-}
-
-article {
-    align-items: stretch; /* fuerza columnas del mismo alto */
-}
-
-article figure {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden; /* evita desbordes */
-}
-
-article figure img {
-    width: 70%;
-    height: 100%;
-    object-fit: contain; /* evita que una imagen haga más grande un article */
 }
 
 /* ----- MODAL PRIVACIDAD ----- */
@@ -454,6 +419,16 @@ article figure img {
 
 
 /* RESPONSIVE */
+@media (max-width: 1137px) {
+    .contenedorUsuario .tarjeta:last-child {
+        grid-column: 1 / -1; /* ocupa todas las columnas, truco de LOLA 17/11/25 */
+    }
+
+        .contenedorUsuario svg{
+        display: none;
+    }
+}
+
 /* Tablets y pantallas medianas */
 @media (max-width: 900px) {
 
@@ -470,17 +445,9 @@ article figure img {
         padding: 0.4em 0.8em;
     }
 
-    /* Articles más proporcionales */
-    article h2 {
-        font-size: 1.6rem;
-    }
-
-    article > div {
-        width: 60%;
-    }
-
-    article figure {
-        width: 40%;
+    /* MAIN */
+    .contenedorUsuario{
+        margin-top: 8em;
     }
 
     .modal-contenido{
@@ -513,42 +480,7 @@ article figure img {
         text-align: center;
     }
 
-
-    /* Articles: de 2 columnas a 1 columna */
-    article {
-        flex-direction: column;
-    }
-
-    article > div,
-    article figure {
-        width: 100%;
-    }
-
-    article figure {
-        padding: 1em;
-        background: white !important;
-        flex-grow: 1;
-    }
-
-    article figure img {
-        width: 70%;
-        height: auto;
-        object-fit: contain;
-    }
-
-    article:nth-of-type(1) p,
-    article:nth-of-type(2) p,
-    article:nth-of-type(3) p,
-    article:nth-of-type(4) p,
-    article:nth-of-type(5) p {
-        padding: 1em;
-        border-bottom: 2px solid black;
-    }
-
-    article > div {
-        border-right: none;
-    }
-
+    
     /* Footer en columna */
     footer {
         flex-direction: column;
@@ -578,13 +510,16 @@ article figure img {
 
 /* Móviles pequeños */
 @media (max-width: 380px) {
+    .logo img {
+        width: 45px;
+    }
 
     .logo h1 {
         font-size: 1.3rem;
     }
 
-    article h2 {
-        font-size: 1.4rem;
+     /* SIDEBAR */
+    .sidebar{
+        margin-top: 4.9em;
     }
-
 }

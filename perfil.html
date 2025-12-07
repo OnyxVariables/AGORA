@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Información sobre los partidos</title>
-    <link rel="stylesheet" href="home.css">
+    <title>Información del usuario</title>
+    <link rel="stylesheet" href="perfil.css">
     <link rel="icon" href="img/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="home.js" defer></script>
+    <script src="perfil.js" defer></script>
 </head>
 <body>
 
     <!-- HEADER -->
     <header>
         <div class="primerDiv">
-
-            <!-- LOGO -->
             <figure class="logo">
                 <img src="img/LogoAgora.png" alt="Logo">
                 <h1>AGORA</h1>
             </figure>
 
-            <!-- HAMBURGUESA (solo móvil) -->
             <label class="bar">
                 <input type="checkbox" id="check">
                 <span class="top"></span>
@@ -29,9 +27,8 @@
                 <span class="bottom"></span>
             </label>
 
-            <!-- NAV escritorio -->
             <nav>
-                <a class="boton" href="perfil.html"><i class="fa-solid fa-user"></i> NICKNAME</a>
+                <a class="boton" href="home.html"><i class="fa-solid fa-user"></i> INICIO</a>
                 <a class="boton" href="votar.html"><i class="fa-solid fa-envelope"></i> VOTAR</a>
                 <a class="boton" href="resultados.html"><i class="fa-solid fa-chart-line"></i> RESULTADOS</a>
                 <a class="boton" href="login.html"><i class="fa-solid fa-right-from-bracket"></i> SALIR</a>
@@ -39,76 +36,52 @@
         </div>
     </header>
 
-    <!-- SIDEBAR MÓVIL -->
+    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
         <div class="input">
-            <!-- Nickname -->
-            <button class="value" onclick="location.href='perfil.html'">
-                <i class="fa-solid fa-user"></i>
-                Nickname
-            </button>
-
-            <!-- Votar -->
-            <button class="value" onclick="location.href='votar.html'">
-                <i class="fa-solid fa-envelope"></i>
-                Votar
-            </button>
-
-            <!-- Resultados -->
-            <button class="value" onclick="location.href='resultados.html'">
-                <i class="fa-solid fa-chart-line"></i>
-                Resultados
-            </button>
-
-            <!-- Cerrar Sesión -->
-            <button class="value" onclick="location.href='login.html'">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Cerrar Sesión
-            </button>
+            <button class="value" onclick="location.href='home.html'"><i class="fa-solid fa-user"></i> Inicio</button>
+            <button class="value" onclick="location.href='votar.html'"><i class="fa-solid fa-envelope"></i> Votar</button>
+            <button class="value" onclick="location.href='resultados.html'"><i class="fa-solid fa-chart-line"></i> Resultados</button>
+            <button class="value" onclick="location.href='login.html'"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
         </div>
     </div>
 
-    <!-- MAIN -->
-    <main>
-        <article>
-            <div>
-                <h2>PP</h2>
-                <p>Lorem ipsum dolor sit amet...</p>
-            </div>
-            <figure><img src="img/PP.jpg" alt="PP"></figure>
-        </article>
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="contenedorUsuario">
 
-        <article>
-            <div>
-                <h2>PSOE</h2>
-                <p>Lorem ipsum dolor sit amet...</p>
-            </div>
-            <figure><img src="img/PSOE.png" alt="PSOE"></figure>
-        </article>
+        <section class="tarjeta">
+            <h2>Datos del Usuario</h2>
 
-        <article>
-            <div>
-                <h2>VOX</h2>
-                <p>Lorem ipsum dolor sit amet...</p>
+            <div class="info">
+                <p><strong>Nombre:</strong> Oliver</p>
+                <p><strong>Apellidos:</strong> Gamboa Mesa</p>
+                <p><strong>DNI:</strong> 123456789Y</p>
+                <p><strong>Nickname: </strong><span id="nicknameMostrado">Sin nickname</span></p>
+                <svg id="svg1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M96 96C60.7 96 32 124.7 32 160L32 480C32 515.3 60.7 544 96 544L544 544C579.3 544 608 515.3 608 480L608 160C608 124.7 579.3 96 544 96L96 96zM176 352L240 352C284.2 352 320 387.8 320 432C320 440.8 312.8 448 304 448L112 448C103.2 448 96 440.8 96 432C96 387.8 131.8 352 176 352zM152 256C152 225.1 177.1 200 208 200C238.9 200 264 225.1 264 256C264 286.9 238.9 312 208 312C177.1 312 152 286.9 152 256zM392 208L504 208C517.3 208 528 218.7 528 232C528 245.3 517.3 256 504 256L392 256C378.7 256 368 245.3 368 232C368 218.7 378.7 208 392 208zM392 304L504 304C517.3 304 528 314.7 528 328C528 341.3 517.3 352 504 352L392 352C378.7 352 368 341.3 368 328C368 314.7 378.7 304 392 304z"/></svg>
             </div>
-            <figure><img src="img/VOX.png" alt="VOX"></figure>
-        </article>
+        </section>
 
-        <article>
-            <div>
-                <h2>PODEMOS</h2>
-                <p>Lorem ipsum dolor sit amet...</p>
-            </div>
-            <figure><img src="img/Podemos.png" alt="PODEMOS"></figure>
-        </article>
+        <section class="tarjeta">
+            <h2>Datos de Empadronamiento</h2>
 
-        <article>
-            <div>
-                <h2>SUMAR</h2>
-                <p>Lorem ipsum dolor sit amet...</p>
+            <div class="info">
+                <p><strong>Municipio:</strong> Marbella</p>
+                <p><strong>Provincia:</strong> Málaga</p>
+                <p><strong>Comunidad autónoma: </strong>Andalucía</p>
+                <p><strong>Nación: </strong>España</p>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M576 112C576 103.7 571.7 96 564.7 91.6C557.7 87.2 548.8 86.8 541.4 90.5L416.5 152.1L244 93.4C230.3 88.7 215.3 89.6 202.1 95.7L77.8 154.3C69.4 158.2 64 166.7 64 176L64 528C64 536.2 68.2 543.9 75.1 548.3C82 552.7 90.7 553.2 98.2 549.7L225.5 489.8L396.2 546.7C409.9 551.3 424.7 550.4 437.8 544.2L562.2 485.7C570.6 481.7 576 473.3 576 464L576 112zM208 146.1L208 445.1L112 490.3L112 191.3L208 146.1zM256 449.4L256 148.3L384 191.8L384 492.1L256 449.4zM432 198L528 150.6L528 448.8L432 494L432 198z"/></svg>
             </div>
-            <figure><img src="img/SUMAR.png" alt="SUMAR"></figure>
-        </article>
+        </section>
+
+        <section class="tarjeta">
+            <h2>Ponte un nickname</h2>
+            <form class="formulario" id="formNickname" action="#">
+                <input type="text" placeholder=" xxxxxxxx" id="nicknameInput" name="nickname">
+                <button type="submit">Enviar</button>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M112 320C112 205.1 205.1 112 320 112C383.1 112 439.6 140.1 477.8 184.5C486.4 194.6 501.6 195.7 511.6 187.1C521.6 178.5 522.8 163.3 514.2 153.3C467.3 98.6 397.7 64 320 64C178.6 64 64 178.6 64 320L64 360C64 373.3 74.7 384 88 384C101.3 384 112 373.3 112 360L112 320zM570.5 267.1C567.8 254.1 555 245.8 542.1 248.6C529.2 251.4 520.8 264.1 523.6 277C526.5 290.9 528.1 305.3 528.1 320.1L528.1 360.1C528.1 373.4 538.8 384.1 552.1 384.1C565.4 384.1 576.1 373.4 576.1 360.1L576.1 320.1C576.1 302 574.2 284.3 570.6 267.2zM320 144C301 144 282.6 147 265.5 152.6C250.3 157.6 246.8 176.3 257.2 188.5C264.3 196.8 276 199.3 286.6 196.4C297.2 193.5 308.4 192 320 192C390.7 192 448 249.3 448 320L448 344.9C448 370.1 446.5 395.2 443.6 420.2C441.9 434.8 453 448 467.8 448C479.6 448 489.7 439.4 491.1 427.7C494.4 400.3 496.1 372.7 496.1 345L496.1 320.1C496.1 222.9 417.3 144.1 320.1 144.1zM214.7 212.7C205.6 202.1 189.4 201.3 180.8 212.3C157.7 242.1 144 279.4 144 320L144 344.9C144 369.1 141.4 393.3 136.2 416.8C132.8 432.4 144.1 447.9 160.1 447.9C170.6 447.9 180 440.9 182.3 430.6C188.7 402.5 192 373.8 192 344.8L192 319.9C192 292.7 200.5 267.5 214.9 246.8C222.1 236.4 222.9 222.2 214.7 212.6zM320 224C267 224 224 267 224 320L224 344.9C224 380.8 219.4 416.4 210.2 451C206.4 465.3 216.9 480 231.7 480C241.2 480 249.6 473.8 252.1 464.6C262.6 425.6 268 385.4 268 344.9L268 320C268 291.3 291.3 268 320 268C348.7 268 372 291.3 372 320L372 344.9C372 381.2 368.5 417.3 361.6 452.8C358.9 466.7 369.3 480 383.4 480C393.6 480 402.4 473 404.4 463C412.1 424.2 416 384.7 416 344.9L416 320C416 267 373 224 320 224zM344 320C344 306.7 333.3 296 320 296C306.7 296 296 306.7 296 320L296 344.9C296 404.8 285 464.2 263.5 520.1L257.6 535.4C252.8 547.8 259 561.7 271.4 566.4C283.8 571.1 297.7 565 302.4 552.6L308.3 537.3C331.9 475.9 344 410.7 344 344.9L344 320z"/></svg>
+            </form>
+        </section>
+
     </main>
 
     <!-- FOOTER -->

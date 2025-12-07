@@ -35,3 +35,26 @@ btnEnviar.addEventListener("click", () => {
     // Redirigir al home
     window.location.href = "home.html";
 });
+
+// MODAL DE PRIVACIDAD
+    const modal = document.getElementById("modal-privacidad");
+    const enlace = document.querySelector("footer .boton");
+    const cerrar = document.querySelector(".modal .cerrar");
+
+    // Abrir modal
+    enlace.addEventListener("click", (e) => {
+        e.preventDefault();
+        modal.style.display = "block";
+    });
+
+    // Cerrar modal con la X
+    cerrar.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    // Cerrar modal si clicas fuera
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
