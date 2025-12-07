@@ -141,15 +141,16 @@ input[type="checkbox"]:checked ~ .middle {
 .sidebar {
     position: fixed;
     right: -100000px; /* oculto al inicio */
-    width: 40%;
+    width: 60%;
     display:flex;
-    justify-content: center;
+    justify-content: end;
     height: 100vh;
     background: #0d1117;
     z-index: 9998;
     transition: right 0.35s ease;
     overflow-y: auto;
     margin-top: 5.5em;
+    max-width: 300px;
 }
 
 .sidebar.open {
@@ -162,6 +163,7 @@ input[type="checkbox"]:checked ~ .middle {
   width: 200px;
   background-color: #0d1117;
   justify-content: flex-start; /* Ahora los botones van arriba */
+  align-items: end;
   border-radius: 10px;
   transition: 1s;
   padding: 10px;
@@ -169,7 +171,7 @@ input[type="checkbox"]:checked ~ .middle {
 }
 
 .value {
-    font-size: 15px;
+    font-size: 1.2rem;
     background-color: transparent;
     border: none;
     padding: 10px;
@@ -500,12 +502,6 @@ header, nav .boton, section, footer {
     }
 
     
-}
-
-@media (max-width: 395px) {
-    .input{
-        padding: 2px;
-    }
 }
 
 /* Móviles pequeños */
