@@ -18,7 +18,7 @@ def get_csv():
 
 def parse_csv(csvFilename):
     entireFile = ""
-    with open(csvFilename) as f:
+    with open(csvFilename, encoding="utf8") as f:
         entireFile = f.read()
     
     lines = entireFile.split('\n')[2:]
@@ -60,8 +60,8 @@ def get_autonomous_communities(url):
     autonomousCommunities = []
     for i in range(0, dataLength, 2):
         autonomousCommunities.append({
-            "id": int(re.search(r"<td>(.*)\s*</td>", str(data[i])).group(1)),
-            "name": re.search(r"<td>(.*)\s*</td>", str(data[i + 1])).group(1).strip(),
+            "id": int(data[i].get_text(strip = True)),
+            "name": data[i + 1].get_text(strip = True),
         })
     
     return autonomousCommunities
@@ -77,11 +77,11 @@ def get_provinces(url, fields):
 
     provinces = []
     for i in range(0, dataLength, 2):
-        id = int(re.search(r"<td>(.*)\s*</td>", str(data[i])).group(1))
+        id = int(data[i].get_text(strip = True))
         provinces.append({
             "id": id,
             "autonomousCommunityId": int(kv[id]),
-            "name": re.search(r"<td>(.*)\s*</td>", str(data[i + 1])).group(1).strip(),
+            "name": data[i + 1].get_text(strip = True),
         })
     
     return provinces
@@ -109,10 +109,10 @@ def populate_province(provinces):
     return query
 
 
-def populate_municipality(municipalies):
+def populate_municipality(municipalities):
     query = "INSERT INTO municipality(ineId, provinceId, name) VALUES\n"
-    for municipaly in municipalies:
-        query += f"({municipaly["id"]},{municipaly["provinceId"]},\"{municipaly["name"]}\"),\n"
+    for municipality in municipalities:
+        query += f"({municipality["id"]},{municipality["provinceId"]},\"{municipality["name"]}\"),\n"
 
     query = query[:query.rfind(',')]
     query += ";"
@@ -120,15 +120,22 @@ def populate_municipality(municipalies):
     return query
 
 
+
 def populate_user(numMunicipalities):
     fake = Faker()
+
+    def generate_dni():
+        letters = "TRWAGMYFPDXBNJZSQVHLCKE"
+        randNum = fake.numerify("########")
+
+        return randNum + letters[int(randNum) % len(letters)]
     
     query = "INSERT INTO user(name, nicknamePassword, roleId, dni, municipalityId) VALUES\n"
     for _ in range(10000):
         name = fake.name().replace("'", "''")
         nicknamePassword = f"{fake.md5()}{fake.user_name().replace("'", "''")}"
         roleId = 1 if random.randint(1, 10000) < 10 else 2
-        dni = fake.random_number(digits=8)
+        dni = generate_dni()
         municipalityId = random.randint(1, numMunicipalities)
 
         query += f"(\"{name}\", \"{nicknamePassword}\", {roleId}, \"{dni}\", {municipalityId}),\n"
