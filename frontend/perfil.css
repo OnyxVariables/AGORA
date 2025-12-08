@@ -61,6 +61,16 @@ header {
     letter-spacing: 0.1em;
 }
 
+a.boton svg,
+button svg{
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    vertical-align: -0.125em; /* Igual que Font Awesome */
+    display: inline-block;
+    font-size: 1.2em;
+}
+
 
 /* nav */
 nav {
@@ -94,7 +104,6 @@ input[type="checkbox"] {
 .bar {
   display: none; /* solo se ve en móvil */
   position: relative;
-  cursor: pointer;
   width: 50px;
   height: 40px;
   z-index: 9999;
@@ -140,7 +149,7 @@ input[type="checkbox"]:checked ~ .middle {
 /* Sidebar tipo moodle */
 .sidebar {
     position: fixed;
-    right: -100000px; /* oculto al inicio */
+    right: -500px; /* oculto al inicio */
     width: 60%;
     display:flex;
     justify-content: end;
@@ -236,6 +245,10 @@ input[type="checkbox"]:checked ~ .middle {
     box-shadow: 10px 10px 2px #8c00dd20;
     border:3px solid black;
     
+}
+
+span{
+    font-weight: bolder;
 }
 
 .contenedorUsuario .tarjeta:hover {
@@ -338,27 +351,23 @@ footer .boton{
   translate: -0px -10px;
 }
 
-.social{
-    display: flex;
-}
-
-#instagram,#linkedin,#github, #x {
+.instagram,.linkedin,.github, .x {
   transition: 300ms all ease-in-out;
 }
 
-#instagram:hover {
+.instagram:hover {
   background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
 }
 
-#x:hover {
+.x:hover {
   background: linear-gradient(135deg, #000000 0%, #3a3a3a 100%);
 }
 
-#linkedin:hover {
+.linkedin:hover {
   background: linear-gradient(135deg, #0077B5 0%, #005983 100%);
 }
 
-#github:hover {
+.github:hover {
   background: linear-gradient(135deg, #333333 0%, #6e5494 100%);
 }
 
@@ -394,6 +403,7 @@ header, nav .boton, section, footer {
     animation: aparecer 0.3s ease;
     margin-top: 9em;
     height: 80vh;
+    border: 3px solid black;
 }
 
 .modal-contenido h2 {
@@ -402,7 +412,7 @@ header, nav .boton, section, footer {
     text-align: center;
 }
 
-.modal-texto p {
+.modal-contenido p {
     margin-bottom: 1em;
     font-size: 0.95rem;
     line-height: 1.5;

@@ -46,6 +46,16 @@ header {
     letter-spacing: 0.1em;
 }
 
+a.boton svg,
+button svg{
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    vertical-align: -0.125em; /* Igual que Font Awesome */
+    display: inline-block;
+    font-size: 1.2em;
+}
+
 
 /* nav */
 nav {
@@ -79,7 +89,6 @@ input[type="checkbox"] {
 .bar {
   display: none; /* solo se ve en móvil */
   position: relative;
-  cursor: pointer;
   width: 50px;
   height: 40px;
   z-index: 9999;
@@ -125,7 +134,7 @@ input[type="checkbox"]:checked ~ .middle {
 /* Sidebar tipo moodle */
 .sidebar {
     position: fixed;
-    right: -100000px; /* oculto al inicio */
+    right: -500px; /* oculto al inicio */
     width: 60%;
     display:flex;
     justify-content: end;
@@ -134,7 +143,7 @@ input[type="checkbox"]:checked ~ .middle {
     z-index: 9998;
     transition: right 0.35s ease;
     overflow-y: auto;
-    margin-top: 3em;
+    margin-top: 5.5em;
     max-width: 300px;
 }
 
@@ -214,7 +223,7 @@ main {
 
 
 /* articles */
-article {
+.partido {
     display: flex;
     border-radius: 1em;
     overflow: hidden;
@@ -235,76 +244,92 @@ article figure {
     align-items: center;
     background: white;
     padding: 1em;
+    overflow: hidden; /* evita desbordes */
 }
 
-article figure img {
+.partido figure img {
     width: 50%;
     height: auto;
+    object-fit: contain; /* evita que una imagen haga más grande un article */
 }
 
-article h2 {
+.partido h2 {
     font-size: 2rem;
     font-weight: bold;
 }
 
-/* colores de partido */
-article:nth-of-type(1) {
+/* colores de partido por clases */
+.pp {
     background: #5eadf8;
 }
 
-article:nth-of-type(1) h2 {
+.pp h2 {
     background: #1d5ea8;
     color: white;
     padding: 0.5em;
 }
 
-article:nth-of-type(2) {
+.psoe {
     background: #fd7671;
 }
 
-article:nth-of-type(2) h2 {
+.psoe h2 {
     background: #b3201e;
     color: white;
     padding: 0.5em;
 }
 
-article:nth-of-type(3) {
+.vox {
     background: #8cfa80;
 }
 
-article:nth-of-type(3) h2 {
+.vox h2 {
     background: #4aa63b;
     color: white;
     padding: 0.5em;
 }
 
-article:nth-of-type(4) {
+.podemos {
     background: #d57bfc;
 }
 
-article:nth-of-type(4) h2 {
+.podemos h2 {
     background: #6d2d8e;
     color: white;
     padding: 0.5em;
 }
 
-article:nth-of-type(5) {
+.sumar {
     background: #fa7aa3;
 }
 
-article:nth-of-type(5) h2 {
+.sumar h2 {
     background: #c73765;
     color: white;
     padding: 0.5em;
 }
 
-article:nth-of-type(1) p,
-article:nth-of-type(2) p,
-article:nth-of-type(3) p,
-article:nth-of-type(4) p,
-article:nth-of-type(5) p {
+.pp p,
+.psoe p,
+.vox p,
+.podemos p,
+.sumar p {
     padding: 1em;
     border-top: 2px solid black;
+}
+
+/* Detalles perfectos con hover */
+header, nav .boton, article, article figure img, footer {
+    transition: all 0.35s ease;
+}
+
+article:hover {
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+article figure img:hover {
+    transform: scale(1.08);
 }
 
 
@@ -347,60 +372,26 @@ footer .boton{
   translate: -0px -10px;
 }
 
-.social{
-    display: flex;
-}
-
-#instagram,#linkedin,#github, #x {
+.instagram,.linkedin,.github, .x {
   transition: 300ms all ease-in-out;
 }
 
-#instagram:hover {
+.instagram:hover {
   background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
 }
 
-#x:hover {
+.x:hover {
   background: linear-gradient(135deg, #000000 0%, #3a3a3a 100%);
 }
 
-#linkedin:hover {
+.linkedin:hover {
   background: linear-gradient(135deg, #0077B5 0%, #005983 100%);
 }
 
-#github:hover {
+.github:hover {
   background: linear-gradient(135deg, #333333 0%, #6e5494 100%);
 }
 
-/* Detalles perfectos */
-header, nav .boton, article, article figure img, footer {
-    transition: all 0.35s ease;
-}
-
-article:hover {
-    transform: translateY(-5px);
-    box-shadow: 12px 12px 12px #00000030;
-}
-
-article figure img:hover {
-    transform: scale(1.08);
-}
-
-article {
-    align-items: stretch; /* fuerza columnas del mismo alto */
-}
-
-article figure {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden; /* evita desbordes */
-}
-
-article figure img {
-    width: 70%;
-    height: 100%;
-    object-fit: contain; /* evita que una imagen haga más grande un article */
-}
 
 /* ----- MODAL PRIVACIDAD ----- */
 .modal {
@@ -429,6 +420,7 @@ article figure img {
     animation: aparecer 0.3s ease;
     margin-top: 9em;
     height: 80vh;
+    border: 3px solid black;
 }
 
 .modal-contenido h2 {
@@ -437,7 +429,7 @@ article figure img {
     text-align: center;
 }
 
-.modal-texto p {
+.modal-contenido p {
     margin-bottom: 1em;
     font-size: 0.95rem;
     line-height: 1.5;
@@ -472,8 +464,13 @@ article figure img {
         padding: 0.4em 0.8em;
     }
 
+    /* MAIN */
+    main{
+        margin-top: 0;
+    }
+
     /* Articles más proporcionales */
-    article h2 {
+    .partido h2 {
         font-size: 1.6rem;
     }
 
@@ -488,18 +485,11 @@ article figure img {
     .modal-contenido{
         margin-top: 7em;
         height: 85vh;
-        
     }
 }
 
 /* Móviles */
 @media (max-width: 780px) {
-
-    .primerDiv {
-        display: flex;
-        justify-content: space-between;
-    }
-
     nav {
         display: none;
     }
@@ -517,7 +507,7 @@ article figure img {
 
 
     /* Articles: de 2 columnas a 1 columna */
-    article {
+    .partido {
         flex-direction: column;
     }
 
@@ -538,11 +528,7 @@ article figure img {
         object-fit: contain;
     }
 
-    article:nth-of-type(1) p,
-    article:nth-of-type(2) p,
-    article:nth-of-type(3) p,
-    article:nth-of-type(4) p,
-    article:nth-of-type(5) p {
+    .partido p{
         padding: 1em;
         border-bottom: 2px solid black;
     }
@@ -579,7 +565,7 @@ article figure img {
         font-size: 1.3rem;
     }
 
-    article h2 {
+    .partido h2 {
         font-size: 1.4rem;
     }
 
