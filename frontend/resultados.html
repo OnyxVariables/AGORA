@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="resultados.css">
     <link rel="icon" href="img/favicon.ico">
     <script src="home.js" defer></script>
+    <script src="map.js" defer></script>
 </head>
 <body>
 
@@ -22,7 +23,7 @@
 
             <!-- HAMBURGUESA (solo móvil) -->
             <label class="bar">
-                <input type="checkbox" id="check">
+                <input type="checkbox" id="check" class="menu-checkbox">
                 <span class="top"></span>
                 <span class="middle"></span>
                 <span class="bottom"></span>
@@ -67,51 +68,69 @@
         </div>
     </aside>
 
-
-
-
-
-
-
-
-
-
-
-
-    
-
     <!-- MAIN -->
     <main>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
-        <p>aadsffdsasafd</p>
+        <!-- Primera section -->
+        <section class="section1">
+            <article class="article1">
+                <h2>Elecciones Generales</h2>
+                <select name="id" id="id" class="select">
+                    <!-- Lo suyo sería hacer consulta a la base de datos pero para ver como queda el diseño me sirve -->
+                    <option value="" disabled selected>ID:</option>
+                    <option value="2026">2026</option>
+                    <option value="2030">2030</option>
+                    <option value="2034">2034</option>
+                </select>
+            </article>
+            <article class="article2">
+                <p>Pincha en el mapa para ver estadísticas</p>
+            </article>
+        </section>
+
+        <!-- Segunda section -->
+        <section class="section2">
+            <label for="nickname">Buscar por nickname: </label>
+            <input type="text" name="nickname" id="nickname" placeholder="  ..." class="nickname">
+        </section>
+
+        <!-- Tercera section -->
+        <section class="section3">
+            <!-- Articulo filtrado -->
+            <form class="filtrado">
+                <!-- Nacion -->
+                <div class="types">
+                    <label for="nacion">Nación</label>
+                    <input type="checkbox" class="checkbox" name="nacion" id="nacion">
+                </div>
+                <!-- Comunidad autonoma -->
+                <div class="types">
+                    <label for="comunidadAutonoma">Comunidad</label>
+                    <input type="checkbox" class="checkbox" name="comunidadAutonoma" id="comunidadAutonoma">
+                </div>
+                <!-- Provincia -->
+                <div class="types">
+                    <label for="provincia">Provincia</label>
+                    <input type="checkbox" class="checkbox" name="provincia" id="provincia">
+                </div>
+                <!-- Municipio -->
+                <div class="types">
+                    <label for="municipio">Municipio</label>
+                    <input type="checkbox" class="checkbox" name="municipio" id="municipio">
+                </div>
+            </form>
+        </section>
+
+        <!-- Cuarta section -->
+        <section class="section4">
+            <!-- Aticulo mapa -->
+            <article class="map">
+                <div id="map-container">
+                    <!-- Aquí viene el mapa, dame tiempo -->
+                </div>
+            </article>
+        </section>
+
     </main>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <!-- FOOTER -->

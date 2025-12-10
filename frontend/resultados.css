@@ -79,7 +79,7 @@ nav {
 }
 
 /* Checkbox oculto */
-input[type="checkbox"] {
+.menu-checkbox {
   -webkit-appearance: none;
   display: none;
   visibility: hidden;
@@ -212,6 +212,103 @@ input[type="checkbox"]:checked ~ .middle {
 
 
 /* MAIN */
+main{
+    padding-top: 10em;
+    width: 95%;
+    margin: 0 auto;
+}
+
+/* section 1 */
+.section1{
+    background-color: #d0bfff;
+    padding: 1em;
+    border-radius: 1em;
+    border: 3px solid black;
+    box-shadow: 10px 10px 2px #8c00dd20;
+}
+
+.article1{
+    display: flex;
+    justify-content: space-between;
+    text-decoration: underline;
+}
+
+.select{
+    width: 10%;
+    border-radius: 0.5em;
+}
+
+.article2{
+    background-color: white;
+    margin-top: 1em;
+    text-align: center;
+    padding: 0.5em;
+    border-radius: 1em;
+    border: 2px solid black;
+}
+
+/* section 2 */
+.section2{
+    background-color: #eebefa;
+    padding: 1em;
+    border-radius: 1em;
+    margin-top: 2em;
+    border: 3px solid black;
+    font-weight: bold;
+    box-shadow: 10px 10px 2px #8c00dd20;
+}
+
+.nickname{
+    border-radius: 0.5em;
+    font-weight: bold;
+    padding: 0.3em;
+}
+
+
+/* section 3 */
+.section3{
+    background-color: #eebefa;
+    width: 20%;
+    border-radius: 1em;
+    padding: 1em;
+    border: 3px solid black;
+    margin-top: 2em;
+    box-shadow: 10px 10px 2px #8c00dd20;
+}
+
+.filtrado{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5em;
+    font-weight: 600;
+}
+
+.types{
+    border: 2px solid black;
+    border-radius: 0.5em;
+    padding: 0.5em;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    background-color: white;
+}
+
+/* Hovers */
+.section1:hover,
+.section2:hover,
+.section3:hover{
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+.section1, .section2, .section3{
+    transition: all 0.35s ease;
+}
+
+
+/* ESTILOS MAPA */
 
 
 
@@ -364,6 +461,18 @@ footer .boton{
         margin-top: 7em;
         height: 85vh;
     }
+
+    .section3{
+        width: 100%;
+        display: flex;
+    }
+
+    .filtrado{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+    }
 }
 
 /* Móviles */
@@ -382,9 +491,6 @@ footer .boton{
         width: 100%;
         text-align: center;
     }
-
-
-    /******************** MAIN ***********************/
     
 
     /* Footer en columna */
@@ -406,6 +512,28 @@ footer .boton{
     }
 
     
+}
+
+@media (max-width: 575px) {
+    .select{
+        width: 20%;
+    }
+
+    .filtrado{
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 419px) {
+    .article1 h2{
+        font-size: 1.2em;
+    }
+
+    .section2 input{
+        margin-top: 0.5em;
+    }
+
 }
 
 /* Móviles pequeños */
