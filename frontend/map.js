@@ -108,7 +108,7 @@ async function loadGeoData(level){
         case 'nation': file='data/spain_nation.json'; break;
         case 'ccaa': file='data/spain_ccaa.json'; break;
         case 'province': file='data/spain_provinces.json'; break;
-        case 'municipality': file='data/spain_municipalities.json'; break;
+        // case 'municipality': file='data/spain_municipalities.json'; break;
     }
 
     const res = await fetch(file);
@@ -178,6 +178,15 @@ function drawMap(){
             path.style.fill = "#ff4141ff";
         } else {
             path.style.fill = "#ccc";
+        }
+
+        // Mover Canarias donde yo quiera, es la única solución que vi
+        if (["Islas Canarias"].includes(feature.properties.name)) {
+            path.setAttribute('transform', 'translate(200,-500)');
+        }
+
+        if (["Las Palmas", "Santa Cruz de Tenerife"].includes(feature.properties.name)) {
+            path.setAttribute('transform', 'translate(200,-500)'); // ajusta valores a tu gusto
         }
 
         //Hover y seleccion
