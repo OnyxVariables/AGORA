@@ -97,25 +97,26 @@
         <section class="section3">
             <!-- Articulo filtrado -->
             <form class="filtrado">
-                <!-- Nacion -->
+                <!-- Nacion --> 
+                <!-- Quise utilizar checkbox pero era complicarse mucho la vida para hacer que solo se pueda marcar uno a la vez -->
                 <div class="types">
-                    <label for="nacion">Nación</label>
-                    <input type="checkbox" class="checkbox" name="nacion" id="nacion">
+                    <label for="level">Nación</label>
+                    <input type="radio" class="checkbox" name="level" id="nation" value="nation" checked>
                 </div>
                 <!-- Comunidad autonoma -->
                 <div class="types">
-                    <label for="comunidadAutonoma">Comunidad</label>
-                    <input type="checkbox" class="checkbox" name="comunidadAutonoma" id="comunidadAutonoma">
+                    <label for="level">Comunidad</label>
+                    <input type="radio" class="checkbox" name="level" id="ccaa" value="ccaa">
                 </div>
                 <!-- Provincia -->
                 <div class="types">
-                    <label for="provincia">Provincia</label>
-                    <input type="checkbox" class="checkbox" name="provincia" id="provincia">
+                    <label for="level">Provincia</label>
+                    <input type="radio" class="checkbox" name="level" id="province" value="province">
                 </div>
                 <!-- Municipio -->
                 <div class="types">
-                    <label for="municipio">Municipio</label>
-                    <input type="checkbox" class="checkbox" name="municipio" id="municipio">
+                    <label for="level">Municipio</label>
+                    <input type="radio" class="checkbox" name="level" id="municipality" value="municipality">
                 </div>
             </form>
         </section>
@@ -125,7 +126,7 @@
             <!-- Aticulo mapa -->
             <article class="map">
                 <div id="map-container">
-                    <!-- Aquí viene el mapa, dame tiempo -->
+                    <svg id="map" viewBox="0 0 1000 1000"></svg>
                 </div>
             </article>
         </section>

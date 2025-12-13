@@ -1,0 +1,223 @@
+// Colores por CCAA
+const ccaaColors = {
+    "Andalucía": "#4CAF50",
+    "Aragon": "#FF9800",
+    "Asturias": "#2196F3",
+    "Cantabria": "#c4cf5eff",
+    "Castilla y León": "#E91E63",
+    "Castilla la Mancha": "#795548",
+    "Cataluña": "#3F51B5",
+    "Ceuta": "#009688",
+    "Comunidad Valenciana": "#F44336",
+    "Extremadura": "#8BC34A",
+    "Galicia": "#FF9800",
+    "Islas Baleares": "#FF5722",
+    "Islas Canarias": "#673AB7",
+    "La Rioja": "#607D8B",
+    "Comunidad de Madrid": "#FFC107",
+    "Melilla": "#00BCD4",
+    "Murcia": "#CDDC39",
+    "Navarra, Comunidad Foral de": "#FFEB3B",
+    "País Vasco": "#8E24AA"
+};
+
+// Relación provincia / CCAA
+const provinceToCCAA = {
+    "Almería": "Andalucía",
+    "Cádiz": "Andalucía",
+    "Córdoba": "Andalucía",
+    "Granada": "Andalucía",
+    "Huelva": "Andalucía",
+    "Jaén": "Andalucía",
+    "Málaga": "Andalucía",
+    "Sevilla": "Andalucía",
+    "Huesca": "Aragon",
+    "Teruel": "Aragon",
+    "Zaragoza": "Aragon",
+    "Asturias": "Asturias",
+    "Cantabria": "Cantabria",
+    "Ávila": "Castilla y León",
+    "Burgos": "Castilla y León",
+    "León": "Castilla y León",
+    "Palencia": "Castilla y León",
+    "Salamanca": "Castilla y León",
+    "Segovia": "Castilla y León",
+    "Soria": "Castilla y León",
+    "Valladolid": "Castilla y León",
+    "Zamora": "Castilla y León",
+    "Albacete": "Castilla la Mancha",
+    "Ciudad Real": "Castilla la Mancha",
+    "Cuenca": "Castilla la Mancha",
+    "Guadalajara": "Castilla la Mancha",
+    "Toledo": "Castilla la Mancha",
+    "Barcelona": "Cataluña",
+    "Gerona": "Cataluña",
+    "Lérida": "Cataluña",
+    "Tarragona": "Cataluña",
+    "Ceuta": "Ceuta",
+    "Valencia": "Comunidad Valenciana",
+    "Alicante": "Comunidad Valenciana",
+    "Castellón": "Comunidad Valenciana",
+    "Badajoz": "Extremadura",
+    "Cáceres": "Extremadura",
+    "La Coruña": "Galicia",
+    "Lugo": "Galicia",
+    "Orense": "Galicia",
+    "Pontevedra": "Galicia",
+    "Baleares": "Islas Baleares",
+    "Las Palmas": "Islas Canarias",
+    "Santa Cruz de Tenerife": "Islas Canarias",
+    "La Rioja": "La Rioja",
+    "Madrid": "Comunidad de Madrid",
+    "Melilla": "Melilla",
+    "Murcia": "Murcia",
+    "Navarra": "Navarra, Comunidad Foral de",
+    "Álava": "País Vasco",
+    "Gipuzkoa": "País Vasco",
+    "Bizkaia": "País Vasco"
+};
+
+function hexToRgb(hex){
+    hex = hex.replace('#','');
+    return {r:parseInt(hex.substring(0,2),16), g:parseInt(hex.substring(2,4),16), b:parseInt(hex.substring(4,6),16)};
+}
+
+function rgbToHex(r,g,b){ //padStart es parecido a trim () pero no modifica la cadena original y lo hace hasta alcanzar la lngitud especificada
+    return "#" + r.toString(16).padStart(2,'0') + g.toString(16).padStart(2,'0') + b.toString(16).padStart(2,'0'); 
+}
+
+function generateProvinceColor(baseHex,index,total){
+    const rgb = hexToRgb(baseHex);
+    const factor = 1 - 0.3*index/total;
+    return rgbToHex(Math.round(rgb.r*factor), Math.round(rgb.g*factor), Math.round(rgb.b*factor));
+}
+
+
+const map = document.getElementById("map");
+const svgWidth = map.clientWidth;
+const svgHeight = map.clientHeight;
+let currentLevel = 'nation';
+let geoData = [];
+
+async function loadGeoData(level){
+    let file='';
+    switch(level){
+        case 'nation': file='data/spain_nation.json'; break;
+        case 'ccaa': file='data/spain_ccaa.json'; break;
+        case 'province': file='data/spain_provinces.json'; break;
+        case 'municipality': file='data/spain_municipalities.json'; break;
+    }
+
+    const res = await fetch(file);
+    const data = await res.json();
+    geoData = data.features;
+}
+
+function getBBox(features){
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    features.forEach(f=>{
+        let coords = f.geometry.type==="Polygon"?f.geometry.coordinates:f.geometry.coordinates.flat();
+        coords.forEach(ring=>{
+            ring.forEach(([lon,lat])=>{
+                if(lon<minX) minX=lon;
+                if(lat<minY) minY=lat;
+                if(lon>maxX) maxX=lon;
+                if(lat>maxY) maxY=lat;
+            });
+        });
+    });
+    return [minX,minY,maxX,maxY];
+}
+
+function project([lon,lat],bbox){
+    const [minX,minY,maxX,maxY]=bbox;
+    const scaleX=svgWidth/(maxX-minX), scaleY=svgHeight/(maxY-minY);
+    const scale=Math.min(scaleX,scaleY)*0.9;
+    const x=(lon-minX)*scale + (svgWidth-(maxX-minX)*scale)/2;
+    const y=svgHeight-((lat-minY)*scale + (svgHeight-(maxY-minY)*scale)/2);
+    return [x,y];
+}
+
+function convertToSVGPath(geometry,bbox){
+    if(geometry.type==="Polygon"){
+        return geometry.coordinates.map(ring=>"M"+ring.map(c=>project(c,bbox).join(",")).join(" L")+" Z").join(" ");
+    }else{
+        return geometry.coordinates.map(polygon=>polygon.map(ring=>"M"+ring.map(c=>project(c,bbox).join(",")).join(" L")+" Z").join(" ")).join(" ");
+    }
+}
+
+function drawMap(){
+    map.innerHTML = '';
+    if(geoData.length === 0) return;
+
+    const bbox = getBBox(geoData);
+
+    geoData.forEach(feature => {
+        const pathData = convertToSVGPath(feature.geometry, bbox);
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute('d', pathData);
+
+        // Colores por nivel
+        if(currentLevel === "ccaa"){
+            const name = feature.properties.name;
+            path.style.fill = ccaaColors[name] || "#ccc";
+        } else if(currentLevel === "province"){
+            const provinceName = feature.properties.name;
+            const ccaa = provinceToCCAA[provinceName];
+            const baseColor = ccaaColors[ccaa] || "#ccc";
+
+            const provincesInCCAA = geoData.filter(f => provinceToCCAA[f.properties.name] === ccaa);
+            const index = provincesInCCAA.indexOf(feature);
+            path.style.fill = generateProvinceColor(baseColor, index, provincesInCCAA.length);
+
+        } else if(currentLevel === "nation"){
+            path.style.fill = "#ff4141ff";
+        } else {
+            path.style.fill = "#ccc";
+        }
+
+        //Hover y seleccion
+        path.addEventListener('mouseenter', () => hoverFeature(path));
+        path.addEventListener('mouseleave', () => resetHover());
+        path.addEventListener('click', () => selectFeature(path));
+
+        map.appendChild(path);
+    });
+}
+
+function hoverFeature(path){
+    map.querySelectorAll('path').forEach(p => {
+        if(p === path) {
+            p.style.filter = "brightness(1.2)";
+        } else {
+            p.style.filter = "brightness(0.7)";
+        }
+    });
+}
+
+function resetHover(){
+    map.querySelectorAll('path').forEach(p => p.style.filter = "brightness(1)");
+}
+
+function hoverFeature(path){
+    document.querySelectorAll('path').forEach(p => {
+        if(p === path) {
+            p.style.filter = "brightness(1.2)";
+        } else {
+            p.style.filter = "brightness(0.7)";
+        }
+    });
+} 
+
+async function changeLevel(level){
+    currentLevel = level;
+    await loadGeoData(level);
+    drawMap();
+}
+
+document.querySelectorAll('input[name="level"]').forEach(radio=>{
+    radio.addEventListener('change',e=>changeLevel(e.target.value));
+});
+
+
+changeLevel(currentLevel);
