@@ -336,7 +336,7 @@ main{
 }
 
 #map-container {
-    transform: translateX(10%) translateY(-20%); /* mueve mapa 10% a la derecha, -5% hacia arriba */
+    transform: translateX(10%) translateY(-20%);
 }
 
 

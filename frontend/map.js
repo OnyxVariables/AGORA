@@ -77,6 +77,8 @@ const provinceToCCAA = {
     "Bizkaia": "País Vasco"
 };
 
+
+//Funciones para colores
 function hexToRgb(hex){
     hex = hex.replace('#','');
     return {r:parseInt(hex.substring(0,2),16), g:parseInt(hex.substring(2,4),16), b:parseInt(hex.substring(4,6),16)};
@@ -93,6 +95,7 @@ function generateProvinceColor(baseHex,index,total){
 }
 
 
+//Logica
 const map = document.getElementById("map");
 const svgWidth = map.clientWidth;
 const svgHeight = map.clientHeight;
@@ -113,6 +116,7 @@ async function loadGeoData(level){
     geoData = data.features;
 }
 
+//Escalo los polígonos para que se vean bien o sino no sabría que tamaño tendría cada uno ni en que posicion ponerlos
 function getBBox(features){
     let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
     features.forEach(f=>{
@@ -199,15 +203,7 @@ function resetHover(){
     map.querySelectorAll('path').forEach(p => p.style.filter = "brightness(1)");
 }
 
-function hoverFeature(path){
-    document.querySelectorAll('path').forEach(p => {
-        if(p === path) {
-            p.style.filter = "brightness(1.2)";
-        } else {
-            p.style.filter = "brightness(0.7)";
-        }
-    });
-} 
+
 
 async function changeLevel(level){
     currentLevel = level;
