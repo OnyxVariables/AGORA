@@ -77,6 +77,17 @@ const provinceToCCAA = {
     "Bizkaia": "País Vasco"
 };
 
+// Coordenadas exactas de todas las islas (solo ejemplo, deberías poner todas las de tu JSON)
+const canariasCoords = [
+    [-15.4315, 28.2916], // Tenerife
+    [-14.0155, 28.6706], // Gran Canaria
+    [-16.6291, 28.4606], // La Palma
+    [-13.8419, 28.1216], // Fuerteventura
+    [-13.5947, 27.9223], // Lanzarote
+    [-16.7594, 27.9881], // La Gomera
+    [-17.8795, 27.7560]  // El Hierro
+];
+
 
 //Funciones para colores
 function hexToRgb(hex){
@@ -90,7 +101,7 @@ function rgbToHex(r,g,b){ //padStart es parecido a trim () pero no modifica la c
 
 function generateProvinceColor(baseHex,index,total){
     const rgb = hexToRgb(baseHex);
-    const factor = 1 - 0.3*index/total;
+    const factor = 1 - 0.5*index/total;
     return rgbToHex(Math.round(rgb.r*factor), Math.round(rgb.g*factor), Math.round(rgb.b*factor));
 }
 
@@ -150,11 +161,18 @@ function convertToSVGPath(geometry,bbox){
     }
 }
 
-function drawMap(){
+
+function drawMap() {
     map.innerHTML = '';
-    if(geoData.length === 0) return;
+    if (geoData.length === 0) return;
 
     const bbox = getBBox(geoData);
+
+    //Grupo especial para Canarias para mover posiciones (SOLO ccaa y province)
+    const canariasGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    canariasGroup.setAttribute("transform", "translate(150,-650)");
+
+    let hasCanarias = false;
 
     geoData.forEach(feature => {
         const pathData = convertToSVGPath(feature.geometry, bbox);
@@ -162,56 +180,100 @@ function drawMap(){
         path.setAttribute('d', pathData);
 
         // Colores por nivel
-        if(currentLevel === "ccaa"){
-            const name = feature.properties.name;
-            path.style.fill = ccaaColors[name] || "#ccc";
-        } else if(currentLevel === "province"){
-            const provinceName = feature.properties.name;
-            const ccaa = provinceToCCAA[provinceName];
+        if (currentLevel === "ccaa") {
+            path.style.fill = ccaaColors[feature.properties.name] || "#ccc";
+        }
+        else if (currentLevel === "province") {
+            const province = feature.properties.name;
+            const ccaa = provinceToCCAA[province];
             const baseColor = ccaaColors[ccaa] || "#ccc";
 
-            const provincesInCCAA = geoData.filter(f => provinceToCCAA[f.properties.name] === ccaa);
-            const index = provincesInCCAA.indexOf(feature);
-            path.style.fill = generateProvinceColor(baseColor, index, provincesInCCAA.length);
+            const provinces = geoData.filter(
+                f => provinceToCCAA[f.properties.name] === ccaa
+            );
+            const index = provinces.indexOf(feature);
 
-        } else if(currentLevel === "nation"){
+            path.style.fill = generateProvinceColor(baseColor, index, provinces.length);
+        }
+        else {
             path.style.fill = "#ff4141ff";
-        } else {
-            path.style.fill = "#ccc";
         }
 
-        // Mover Canarias donde yo quiera, es la única solución que vi
-        if (["Islas Canarias"].includes(feature.properties.name)) {
-            path.setAttribute('transform', 'translate(200,-500)');
-        }
-
-        if (["Las Palmas", "Santa Cruz de Tenerife"].includes(feature.properties.name)) {
-            path.setAttribute('transform', 'translate(200,-500)'); // ajusta valores a tu gusto
-        }
-
-        //Hover y seleccion
+        //Hover / selección
         path.addEventListener('mouseenter', () => hoverFeature(path));
         path.addEventListener('mouseleave', () => resetHover());
         path.addEventListener('click', () => selectFeature(path));
 
-        map.appendChild(path);
+        //Canarias SOLO si NO es nation
+        if ((currentLevel !== "nation" && (feature.properties?.name === "Islas Canarias" || feature.properties?.name === "Las Palmas" || feature.properties?.name === "Santa Cruz de Tenerife")) || (currentLevel === "nation" && isCanariasByCoords(feature))) {
+            canariasGroup.appendChild(path);
+            hasCanarias = true;
+        } else {
+            map.appendChild(path);
+        }
     });
+
+    //Marco SOLO para ccaa y province
+    if (hasCanarias && currentLevel !== "nation") {
+        const PADDING = 20;
+
+        // Añadir primero el grupo al SVG
+        map.appendChild(canariasGroup);
+        const bboxCanarias = canariasGroup.getBBox();
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", bboxCanarias.x - PADDING);
+        rect.setAttribute("y", bboxCanarias.y - PADDING);
+        rect.setAttribute("width", bboxCanarias.width + PADDING * 2);
+        rect.setAttribute("height", bboxCanarias.height + PADDING * 2);
+        rect.setAttribute("fill", "none");
+        rect.setAttribute("stroke", "black");
+        rect.setAttribute("stroke-width", "2");
+        rect.setAttribute("rx", 16);
+        rect.setAttribute("ry", 16);
+
+        canariasGroup.insertBefore(rect, canariasGroup.firstChild);
+
+
+
+        // --- Comprobar coordenadas de Canarias para Nacion ---
+        geoData.forEach((feature, i) => {
+            if (!feature.geometry || !feature.geometry.coordinates) return;
+
+            const coords = feature.geometry.type === "Polygon" ? feature.geometry.coordinates.flat() : feature.geometry.coordinates.flat(2);
+            const isCanarias = coords.some(([lon, lat]) => lon >= -18 && lon <= -13 && lat >= 27 && lat <= 29);
+
+            if (isCanarias) {
+                console.log(`Feature ${i} podría ser Canarias:`);
+                console.log(JSON.stringify(feature.geometry.coordinates));
+            }
+        });
+    }
+
+
+
+    // Ajuste viewbox
+    const finalBBox = map.getBBox();
+    map.setAttribute('viewBox', `${finalBBox.x} ${finalBBox.y} ${finalBBox.width} ${finalBBox.height}`);
+
+    map.style.transform = "translate(0px, -180px)";
 }
+
 
 function hoverFeature(path){
     map.querySelectorAll('path').forEach(p => {
         if(p === path) {
             p.style.filter = "brightness(1.2)";
         } else {
-            p.style.filter = "brightness(0.7)";
+            p.style.filter = "brightness(0.5)";
         }
     });
 }
 
+
 function resetHover(){
     map.querySelectorAll('path').forEach(p => p.style.filter = "brightness(1)");
 }
-
 
 
 async function changeLevel(level){
@@ -223,6 +285,8 @@ async function changeLevel(level){
 document.querySelectorAll('input[name="level"]').forEach(radio=>{
     radio.addEventListener('change',e=>changeLevel(e.target.value));
 });
+
+
 
 
 changeLevel(currentLevel);

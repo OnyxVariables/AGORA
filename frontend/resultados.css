@@ -318,25 +318,12 @@ main{
   transition: all 0.2s;
 }
 
-#map-container {
-          
-       
-    height: 80vh;         
-    margin: 20px auto;    
-    display: flex;
-    justify-content: center; 
-    align-items: center;     
-    position: relative;    
-}
-
 #map {
-    overflow: visible; /* Tengo que usarlo o sino se recorta el svg y no encuentro el problema */
-    width: 80%;
-    display: block;
+    pointer-events: none; /* pa que no tape el section3, con z-index no funciona */
 }
 
-#map-container {
-    transform: translateX(15%) translateY(-10%);
+#map path {
+    pointer-events: auto; /* pa que funcione los hovers */
 }
 
 
@@ -489,6 +476,15 @@ footer .boton{
         align-items: center;
         justify-content: space-around;
     }
+
+    
+
+    #map-container{
+        transform: translate(0px, 220px);
+
+    }
+
+    
 }
 
 /* Móviles */
