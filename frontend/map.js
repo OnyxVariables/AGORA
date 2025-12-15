@@ -395,7 +395,7 @@ function drawMap() {
         canariasGroup.setAttribute("transform", "translate(1, -650)"); //Esta mierda si funciona
     } else {
         // Posición cuando es ccaa o province
-        canariasGroup.setAttribute("transform", "translate(150,-650)");
+        canariasGroup.setAttribute("transform", "translate(1,-650)");
     }
 }
 
