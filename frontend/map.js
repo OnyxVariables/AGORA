@@ -150,10 +150,78 @@ function convertToSVGPath(geometry,bbox){
     }
 }
 
-
+//Función tocha, es la que dibuja el mapa
 function drawMap() {
     map.innerHTML = '';
     if (geoData.length === 0) return;
+  
+    let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    map.appendChild(defs);
+
+
+    //gradiente para fill
+    const gradientId = "africa-fill-gradient";
+    let fillGradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    fillGradient.setAttribute("id", gradientId);
+    
+    fillGradient.setAttribute("x1", "0");
+    fillGradient.setAttribute("y1", "0");
+    fillGradient.setAttribute("x2", "0");
+    fillGradient.setAttribute("y2", "1"); 
+
+    //Como va a ser el difumigado
+    const fillStop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    fillStop1.setAttribute("offset", "0%");
+    fillStop1.setAttribute("stop-color", "#D1D1D1");
+    fillStop1.setAttribute("stop-opacity", "1");
+
+    const fillStop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    fillStop2.setAttribute("offset", "50%"); 
+    fillStop2.setAttribute("stop-color", "#D1D1D1");
+    fillStop2.setAttribute("stop-opacity", "0.5"); 
+
+    const fillStop3 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    fillStop3.setAttribute("offset", "85%"); 
+    fillStop3.setAttribute("stop-color", "white");
+    fillStop3.setAttribute("stop-opacity", "0"); 
+
+    fillGradient.appendChild(fillStop1);
+    fillGradient.appendChild(fillStop2);
+    fillGradient.appendChild(fillStop3);
+    defs.appendChild(fillGradient);
+
+
+    // 2. GRADIENTE PARA EL BORDE (si quería darle diferentes colores tengo que duplicar codigo pero para stroke)
+    const strokeGradientId = "africa-stroke-gradient";
+    const strokeGradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    strokeGradient.setAttribute("id", strokeGradientId);
+    strokeGradient.setAttribute("x1", "0");
+    strokeGradient.setAttribute("y1", "0");
+    strokeGradient.setAttribute("x2", "0");
+    strokeGradient.setAttribute("y2", "1");
+
+    const strokeStop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    strokeStop1.setAttribute("offset", "0%");
+    strokeStop1.setAttribute("stop-color", "black");
+    strokeStop1.setAttribute("stop-opacity", "1");
+    
+    const strokeStop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    strokeStop2.setAttribute("offset", "50%");
+    strokeStop2.setAttribute("stop-color", "black");
+    strokeStop2.setAttribute("stop-opacity", "1");
+
+    const strokeStop3 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    strokeStop3.setAttribute("offset", "80%");
+    strokeStop3.setAttribute("stop-color", "white");
+    strokeStop3.setAttribute("stop-opacity", "0");
+
+    strokeGradient.appendChild(strokeStop1);
+    strokeGradient.appendChild(strokeStop2);
+    strokeGradient.appendChild(strokeStop3);
+    defs.appendChild(strokeGradient);
+
+
+
 
     const bbox = getBBox(geoData);
 
@@ -176,10 +244,17 @@ function drawMap() {
         path.setAttribute('d', pathData);
 
         // Colores por nivel
-        if (feature.properties.name === "Africa Norte" || feature.properties.name === "Portugal") {
-            path.style.fill = "grey";
-            path.style.stroke = "black";
+        if (feature.properties.name === "Africa Norte") {
             path.style.pointerEvents = "none";
+            path.style.fill = `url(#${gradientId})`; //Aplico gradiente a fill
+            path.style.stroke = `url(#${strokeGradientId})`; //Aplico gradiente a stroke
+            path.style.strokeWidth="1";
+        }
+        else if (feature.properties.name === "Portugal") {
+            path.style.fill = "#D1D1D1";
+            path.style.pointerEvents = "none"
+            path.style.stroke= "black";
+            path.style.strokeWidth="1";
         }
         else if (currentLevel === "ccaa") {
             path.style.fill = ccaaColors[feature.properties.name] || "#ccc";
