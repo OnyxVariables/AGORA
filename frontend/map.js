@@ -256,6 +256,12 @@ function drawMap() {
             path.style.stroke= "black";
             path.style.strokeWidth="1";
         }
+        else if (feature.properties.name === "Francia Sur") {
+            path.style.fill = "#D1D1D1";
+            path.style.pointerEvents = "none"
+            path.style.stroke= "black";
+            path.style.strokeWidth="1";
+        }
         else if (currentLevel === "ccaa") {
             path.style.fill = ccaaColors[feature.properties.name] || "#ccc";
         }

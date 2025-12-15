@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+    const CORTE_LAT = 42.0;  // ajusta según necesites
+    const PROPERTY_NAME = "Francia Sur";
+
+    // Carga
+    fetch('data/france.json').then(res => res.json()).then(FRANCIA => {
+        const resultado = {
+            type: "FeatureCollection",
+            features: []
+        };
+        
+        FRANCIA.features.forEach(feature => {
+        const geom = feature.geometry;
+
+        function filtrarRings(rings) {
+            return rings.map(ring =>ring.filter(([lon, lat]) => lat <= 45 && lat >= CORTE_LAT)).filter(ring => ring.length >= 3); //Coordenadas que quiero y con al menos 3 puntos para formar polígonos
+        }
+
+        if (geom.type === "Polygon") {
+            const coords = filtrarRings(geom.coordinates);
+            if (coords.length) {
+                resultado.features.push({
+                    type: "Feature",
+                    properties: { name: PROPERTY_NAME },
+                    geometry: {
+                        type: "Polygon",
+                        coordinates: coords
+                    }
+                });
+            }
+        }
+
+        if (geom.type === "MultiPolygon") {
+            const polys = geom.coordinates.map(p => filtrarRings(p)).filter(p => p.length);
+            
+            if (polys.length) {
+                resultado.features.push({
+                    type: "Feature",
+                    properties: { name: PROPERTY_NAME },
+                    geometry: {
+                    type: "MultiPolygon",
+                    coordinates: polys
+                }
+            });
+            }
+        }
+    });
+
+    console.log(JSON.stringify(resultado, null, 2));
+    // Aquí ya tienes un FeatureCollection solo con la franja sur
+  });
+</script>
+    
+</body>
+</html>
