@@ -13,12 +13,12 @@ const ccaaColors = {
     "Galicia": "#FF9800",
     "Islas Baleares": "#FF5722",
     "Islas Canarias": "#673AB7",
-    "La Rioja": "#607D8B",
+    "La Rioja": "#6f16ffff",
     "Comunidad de Madrid": "#FFC107",
     "Melilla": "#00BCD4",
     "Murcia": "#CDDC39",
     "Navarra, Comunidad Foral de": "#FFEB3B",
-    "País Vasco": "#8E24AA"
+    "País Vasco": "#c800ffff"
 };
 
 // Relación provincia / CCAA
@@ -176,7 +176,7 @@ function drawMap() {
         path.setAttribute('d', pathData);
 
         // Colores por nivel
-        if (feature.properties.name === "Africa Norte") {
+        if (feature.properties.name === "Africa Norte" || feature.properties.name === "Portugal") {
             path.style.fill = "grey";
             path.style.stroke = "black";
             path.style.pointerEvents = "none";
