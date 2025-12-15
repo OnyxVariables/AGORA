@@ -176,7 +176,12 @@ function drawMap() {
         path.setAttribute('d', pathData);
 
         // Colores por nivel
-        if (currentLevel === "ccaa") {
+        if (feature.properties.name === "Africa Norte") {
+            path.style.fill = "grey";
+            path.style.stroke = "black";
+            path.style.pointerEvents = "none";
+        }
+        else if (currentLevel === "ccaa") {
             path.style.fill = ccaaColors[feature.properties.name] || "#ccc";
         }
         else if (currentLevel === "province") {
