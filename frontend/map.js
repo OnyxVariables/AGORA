@@ -159,7 +159,7 @@ function drawMap() {
     map.appendChild(defs);
 
 
-    //gradiente para fill
+    //gradiente para fill (Marruecos)
     const gradientId = "africa-fill-gradient";
     let fillGradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
     fillGradient.setAttribute("id", gradientId);
@@ -191,7 +191,7 @@ function drawMap() {
     defs.appendChild(fillGradient);
 
 
-    // 2. GRADIENTE PARA EL BORDE (si quería darle diferentes colores tengo que duplicar codigo pero para stroke)
+    // 2. GRADIENTE PARA EL BORDE (si quería darle diferentes colores tengo que duplicar codigo pero para stroke)(Marruecos)
     const strokeGradientId = "africa-stroke-gradient";
     const strokeGradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
     strokeGradient.setAttribute("id", strokeGradientId);
@@ -219,6 +219,71 @@ function drawMap() {
     strokeGradient.appendChild(strokeStop2);
     strokeGradient.appendChild(strokeStop3);
     defs.appendChild(strokeGradient);
+
+
+
+    //gradiente para fill (France)
+    const gradientIdFrance = "france-fill-gradient";
+    let fillGradientFrance = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    fillGradientFrance.setAttribute("id", gradientIdFrance);
+    
+    fillGradientFrance.setAttribute("x1", "0");
+    fillGradientFrance.setAttribute("y1", "1");
+    fillGradientFrance.setAttribute("x2", "0");
+    fillGradientFrance.setAttribute("y2", "0"); 
+    fillGradientFrance.setAttribute("gradientTransform", "rotate(40)");
+
+    //Como va a ser el difumigado
+    const fillStop4 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    fillStop4.setAttribute("offset", "70%");
+    fillStop4.setAttribute("stop-color", "#D1D1D1");
+    fillStop4.setAttribute("stop-opacity", "1");
+
+    const fillStop5 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    fillStop5.setAttribute("offset", "85%"); 
+    fillStop5.setAttribute("stop-color", "#D1D1D1");
+    fillStop5.setAttribute("stop-opacity", "0.5"); 
+
+    const fillStop6 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    fillStop6.setAttribute("offset", "100%"); 
+    fillStop6.setAttribute("stop-color", "#D1D1D1");
+    fillStop6.setAttribute("stop-opacity", "0"); 
+
+    fillGradientFrance.appendChild(fillStop4);
+    fillGradientFrance.appendChild(fillStop5);
+    fillGradientFrance.appendChild(fillStop6);
+    defs.appendChild(fillGradientFrance);
+
+
+    // 2. GRADIENTE PARA EL BORDE (si quería darle diferentes colores tengo que duplicar codigo pero para stroke)(France)
+    const strokeGradientIdFrance = "france-stroke-gradient";
+    const strokeGradientFrance = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    strokeGradientFrance.setAttribute("id", strokeGradientIdFrance);
+    strokeGradientFrance.setAttribute("x1", "0");
+    strokeGradientFrance.setAttribute("y1", "1");
+    strokeGradientFrance.setAttribute("x2", "0");
+    strokeGradientFrance.setAttribute("y2", "0");
+    strokeGradientFrance.setAttribute("gradientTransform", "rotate(40)");
+
+    const strokeStop4 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    strokeStop4.setAttribute("offset", "70%");
+    strokeStop4.setAttribute("stop-color", "black");
+    strokeStop4.setAttribute("stop-opacity", "1");
+    
+    const strokeStop5 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    strokeStop5.setAttribute("offset", "95%");
+    strokeStop5.setAttribute("stop-color", "black");
+    strokeStop5.setAttribute("stop-opacity", "0.5");
+
+    const strokeStop6 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    strokeStop6.setAttribute("offset", "100%");
+    strokeStop6.setAttribute("stop-color", "white");
+    strokeStop6.setAttribute("stop-opacity", "0");
+
+    strokeGradientFrance.appendChild(strokeStop4);
+    strokeGradientFrance.appendChild(strokeStop5);
+    strokeGradientFrance.appendChild(strokeStop6);
+    defs.appendChild(strokeGradientFrance);
 
 
 
@@ -257,9 +322,9 @@ function drawMap() {
             path.style.strokeWidth="1";
         }
         else if (feature.properties.name === "Francia Sur") {
-            path.style.fill = "#D1D1D1";
             path.style.pointerEvents = "none"
-            path.style.stroke= "black";
+            path.style.fill = `url(#${gradientIdFrance})`; //Aplico gradiente a fill
+            path.style.stroke = `url(#${strokeGradientIdFrance})`; //Aplico gradiente a stroke
             path.style.strokeWidth="1";
         }
         else if (currentLevel === "ccaa") {
