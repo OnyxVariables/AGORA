@@ -293,13 +293,6 @@ function drawMap() {
     // Grupo especial para Canarias para mover posiciones (SOLO ccaa, province y nation)
     const canariasGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-    //Mover según nivel
-    if (currentLevel === "nation") {
-        canariasGroup.setAttribute("transform", "translate(150,-650)"); //Esta mierda si funciona
-    } else {
-        // Posición cuando es ccaa o province
-        canariasGroup.setAttribute("transform", "translate(150,-650)");
-    }
 
     let hasCanarias = false;
 
@@ -395,7 +388,15 @@ function drawMap() {
     const finalBBox = map.getBBox();
     map.setAttribute('viewBox', `${finalBBox.x} ${finalBBox.y} ${finalBBox.width} ${finalBBox.height}`);
 
-    map.style.transform = "translate(0px, -180px)";
+    map.style.transform = "translate(0px, -150px)";
+
+    //Mover según nivel
+    if (currentLevel === "nation") {
+        canariasGroup.setAttribute("transform", "translate(1, -650)"); //Esta mierda si funciona
+    } else {
+        // Posición cuando es ccaa o province
+        canariasGroup.setAttribute("transform", "translate(150,-650)");
+    }
 }
 
 
