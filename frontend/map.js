@@ -396,14 +396,14 @@ function drawMap() {
     const finalBBox = map.getBBox();
     map.setAttribute('viewBox', `${finalBBox.x} ${finalBBox.y} ${finalBBox.width} ${finalBBox.height}`);
 
-    map.style.transform = "translate(0px, -150px)";
+    map.style.transform = "translate(-50px, -150px)";
 
     //Mover según nivel
     if (currentLevel === "nation") {
-        canariasGroup.setAttribute("transform", "translate(1, -650)"); //Esta mierda si funciona
+        canariasGroup.setAttribute("transform", "translate(100, -650)"); //Esta mierda si funciona
     } else {
         // Posición cuando es ccaa o province
-        canariasGroup.setAttribute("transform", "translate(1,-650)");
+        canariasGroup.setAttribute("transform", "translate(100,-650)");
     }
 }
 
@@ -418,7 +418,7 @@ function hoverFeature(path) {
 
             if (pNation === nation && pName === name) {
                 p.style.filter = "brightness(1.4)";
-            } else if (pNation === nation && (pName === "SpainLand" || pName === "Canarias")) {
+            } else if (pNation === nation && (pName === "Spain" || pName === "Canarias")) {
                 p.style.filter = "brightness(1.4)";
             } else {
                 p.style.filter = "brightness(0.5)";

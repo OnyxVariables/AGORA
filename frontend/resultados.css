@@ -276,6 +276,7 @@ main{
     border: 3px solid black;
     margin-top: 2em;
     box-shadow: 10px 10px 2px #8c00dd20;
+    z-index: 100;
 }
 
 .filtrado{
@@ -318,12 +319,53 @@ main{
   transition: all 0.2s;
 }
 
+#map-container {
+    position: relative;
+    margin: 0 auto;
+}
+
 #map {
     pointer-events: none; /* pa que no tape el section3, con z-index no funciona */
 }
 
 #map path {
     pointer-events: auto; /* pa que funcione los hovers */
+}
+
+.ocean {
+    position: absolute;
+    color: #003366;
+    font-weight: bold;
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+
+.agua {
+    position: relative; /* Pa que el ::before funcione */
+    border-radius: 1em;
+}
+
+.agua::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #a0d8f1;
+    border-radius: 1em;
+    z-index: -1;
+}
+
+.section3::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 22%;
+    height: 240px;
+    background-color:#fafafa;
+    z-index: -1;
 }
 
 

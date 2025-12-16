@@ -93,42 +93,47 @@
             <input type="text" name="nickname" id="nickname" placeholder="  ..." class="nickname">
         </section>
 
-        <!-- Tercera section -->
-        <section class="section3">
-            <!-- Articulo filtrado -->
-            <form class="filtrado">
-                <!-- Nacion --> 
-                <!-- Quise utilizar checkbox pero era complicarse mucho la vida para hacer que solo se pueda marcar uno a la vez -->
-                <div class="types">
-                    <label for="level">Nación</label>
-                    <input type="radio" class="checkbox" name="level" id="nation" value="nation" checked>
-                </div>
-                <!-- Comunidad autonoma -->
-                <div class="types">
-                    <label for="level">Comunidad</label>
-                    <input type="radio" class="checkbox" name="level" id="ccaa" value="ccaa">
-                </div>
-                <!-- Provincia -->
-                <div class="types">
-                    <label for="level">Provincia</label>
-                    <input type="radio" class="checkbox" name="level" id="province" value="province">
-                </div>
-                <!-- Municipio -->
-                <div class="types">
-                    <label for="level">Municipio</label>
-                    <input type="radio" class="checkbox" name="level" id="municipality" value="municipality">
-                </div>
-            </form>
-        </section>
+        <section class="agua">
+            <!-- Tercera section -->
+            <section class="section3">
+                <!-- Articulo filtrado -->
+                <form class="filtrado">
+                    <!-- Nacion --> 
+                    <!-- Quise utilizar checkbox pero era complicarse mucho la vida para hacer que solo se pueda marcar uno a la vez -->
+                    <div class="types">
+                        <label for="level">Nación</label>
+                        <input type="radio" class="checkbox" name="level" id="nation" value="nation" checked>
+                    </div>
+                    <!-- Comunidad autonoma -->
+                    <div class="types">
+                        <label for="level">Comunidad</label>
+                        <input type="radio" class="checkbox" name="level" id="ccaa" value="ccaa">
+                    </div>
+                    <!-- Provincia -->
+                    <div class="types">
+                        <label for="level">Provincia</label>
+                        <input type="radio" class="checkbox" name="level" id="province" value="province">
+                    </div>
+                    <!-- Municipio -->
+                    <div class="types">
+                        <label for="level">Municipio</label>
+                        <input type="radio" class="checkbox" name="level" id="municipality" value="municipality">
+                    </div>
+                </form>
+            </section>
 
-        <!-- Cuarta section -->
-        <section class="section4">
-            <!-- Aticulo mapa -->
-            <article class="map">
-                <div id="map-container">
-                    <svg id="map" viewBox="500 100 1000 1000"> <path id="mapa"></path> </svg>
-                </div>
-            </article>
+            <!-- Cuarta section -->
+            <section class="section4">
+                <!-- Aticulo mapa -->
+                <article class="map">
+                    <div id="map-container">
+                        <svg id="map" viewBox="500 100 1000 1000"> <path id="mapa"></path> </svg>
+                    </div>
+                    <div class="ocean" style="top: 23%; left: 10%;">OCÉANO ATLÁNTICO</div>
+                    <div class="ocean" style="top: 42%; left: 80%;">MAR MEDITERRÁNEO</div>
+                    <div class="ocean" style="top: 2%; left: 55%;">MAR CANTÁBRICO</div>
+                </article>
+            </section>
         </section>
 
     </main>
