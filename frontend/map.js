@@ -341,9 +341,11 @@ function drawMap() {
             path.dataset.provinceColor = provinceColor;
             path.dataset.ccaaColor = baseColor;
         }
-        else {
-            // Nivel nation
+        else if (currentLevel === "nation"){
             path.style.fill = "#ff4141ff";
+            if(feature.properties.name === "SpainLand" && feature.properties.name === "Canarias"){
+                path.dataset.nation = "Spain"; //Es lo que cojo en hover filtrado por nation
+            }
         }
 
         // Hover / seleccion
@@ -405,8 +407,27 @@ function drawMap() {
     }
 }
 
-
 function hoverFeature(path) {
+    if (currentLevel === "nation") {
+        const nation = path.dataset.nation; //Spain
+        const name = path.getAttribute("data-name"); //SpainLand y Canarias
+
+        map.querySelectorAll('path').forEach(p => {
+            const pNation = p.dataset.nation;
+            const pName = p.getAttribute("data-name");
+
+            if (pNation === nation && pName === name) {
+                p.style.filter = "brightness(1.4)";
+            } else if (pNation === nation && (pName === "SpainLand" || pName === "Canarias")) {
+                p.style.filter = "brightness(1.4)";
+            } else {
+                p.style.filter = "brightness(0.5)";
+            }
+        });
+        return;
+    }
+    
+
     if (currentLevel === "province") {
         const hoveredProvince = path;
         const provinceName = hoveredProvince.getAttribute('data-name');
