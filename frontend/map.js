@@ -81,10 +81,14 @@ const provinceToCCAA = {
 //Funciones para colores
 function hexToRgb(hex){
     hex = hex.replace('#','');
-    return {r:parseInt(hex.substring(0,2),16), g:parseInt(hex.substring(2,4),16), b:parseInt(hex.substring(4,6),16)};
+    return {
+        r:parseInt(hex.substring(0,2),16), 
+        g:parseInt(hex.substring(2,4),16), 
+        b:parseInt(hex.substring(4,6),16)
+    };
 }
 
-function rgbToHex(r,g,b){ //padStart es parecido a trim () pero no modifica la cadena original y lo hace hasta alcanzar la lngitud especificada
+function rgbToHex(r,g,b){
     return "#" + r.toString(16).padStart(2,'0') + g.toString(16).padStart(2,'0') + b.toString(16).padStart(2,'0'); 
 }
 
@@ -96,11 +100,7 @@ function generateProvinceColor(baseHex,index,total){
 
 
 //Logica
-const map = document.getElementById("map");
-const svgWidth = map.clientWidth;
-const svgHeight = map.clientHeight;
 let currentLevel = 'nation';
-let geoData = [];
 
 async function loadGeoData(level){
     let file='';
@@ -113,7 +113,7 @@ async function loadGeoData(level){
 
     const res = await fetch(file);
     const data = await res.json();
-    geoData = data.features;
+    return data.features;
 }
 
 //Escalo los polígonos para que se vean bien o sino no sabría que tamaño tendría cada uno ni en que posicion ponerlos
@@ -133,159 +133,88 @@ function getBBox(features){
     return [minX,minY,maxX,maxY];
 }
 
-function project([lon,lat],bbox){
-    const [minX,minY,maxX,maxY]=bbox;
-    const scaleX=svgWidth/(maxX-minX), scaleY=svgHeight/(maxY-minY);
-    const scale=Math.min(scaleX,scaleY)*0.9;
-    const x=(lon-minX)*scale + (svgWidth-(maxX-minX)*scale)/2;
-    const y=svgHeight-((lat-minY)*scale + (svgHeight-(maxY-minY)*scale)/2);
+function project([lon,lat], bbox, svgWidth, svgHeight){
+    const [minX,minY,maxX,maxY] = bbox;
+    const scaleX = svgWidth / (maxX - minX);
+    const scaleY = svgHeight / (maxY - minY);
+    const scale = Math.min(scaleX, scaleY) * 0.9;
+
+    const x = (lon - minX) * scale + (svgWidth - (maxX - minX) * scale) / 2;
+    const y = svgHeight - ((lat - minY) * scale + (svgHeight - (maxY - minY) * scale) / 2);
+
     return [x,y];
 }
 
-function convertToSVGPath(geometry,bbox){
-    if(geometry.type==="Polygon"){
-        return geometry.coordinates.map(ring=>"M"+ring.map(c=>project(c,bbox).join(",")).join(" L")+" Z").join(" ");
-    }else{
-        return geometry.coordinates.map(polygon=>polygon.map(ring=>"M"+ring.map(c=>project(c,bbox).join(",")).join(" L")+" Z").join(" ")).join(" ");
+function convertToSVGPath(geometry, bbox, svgWidth, svgHeight){
+    if (geometry.type === "Polygon") {
+        return geometry.coordinates.map(ring =>"M" + ring.map(c => project(c, bbox, svgWidth, svgHeight).join(",")).join(" L") + " Z").join(" ");
+    } else {
+        return geometry.coordinates.map(polygon =>polygon.map(ring =>"M" + ring.map(c => project(c, bbox, svgWidth, svgHeight).join(",")).join(" L") + " Z").join(" ")).join(" ");
     }
 }
 
+function createLinearGradient(defs, id, stops, options = {}) {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    g.setAttribute("id", id);
+
+    g.setAttribute("x1", options.x1 ?? "0");
+    g.setAttribute("y1", options.y1 ?? "0");
+    g.setAttribute("x2", options.x2 ?? "0");
+    g.setAttribute("y2", options.y2 ?? "1");
+
+    if (options.transform) {
+        g.setAttribute("gradientTransform", options.transform);
+    }
+
+    stops.forEach(s => {
+        const stop = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+        stop.setAttribute("offset", s.offset);
+        stop.setAttribute("stop-color", s.color);
+        stop.setAttribute("stop-opacity", s.opacity);
+        g.appendChild(stop);
+    });
+
+    defs.appendChild(g);
+}
+
 //Función tocha, es la que dibuja el mapa
-function drawMap() {
+function drawMap(geoData) {
+    const map = document.getElementById("map");
+    const svgWidth = map.clientWidth;
+    const svgHeight = map.clientHeight;
     map.innerHTML = '';
     if (geoData.length === 0) return;
   
     let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
     map.appendChild(defs);
 
+    // Gradiente fill para Marruecos
+    createLinearGradient(defs, "africa-fill-gradient", [
+        { offset: "0%", color: "#D1D1D1", opacity: 1 },
+        { offset: "50%", color: "#D1D1D1", opacity: 0.5 },
+        { offset: "85%", color: "white", opacity: 0 }
+    ]);
 
-    //gradiente para fill (Marruecos)
-    const gradientId = "africa-fill-gradient";
-    let fillGradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-    fillGradient.setAttribute("id", gradientId);
-    
-    fillGradient.setAttribute("x1", "0");
-    fillGradient.setAttribute("y1", "0");
-    fillGradient.setAttribute("x2", "0");
-    fillGradient.setAttribute("y2", "1"); 
+    // Gradiente stroke para Marruecos
+    createLinearGradient(defs, "africa-stroke-gradient", [
+        { offset: "0%", color: "black", opacity: 1 },
+        { offset: "50%", color: "black", opacity: 1 },
+        { offset: "80%", color: "white", opacity: 0 }
+    ]);
 
-    //Como va a ser el difumigado
-    const fillStop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    fillStop1.setAttribute("offset", "0%");
-    fillStop1.setAttribute("stop-color", "#D1D1D1");
-    fillStop1.setAttribute("stop-opacity", "1");
+    // Gradiente fill para Francia
+    createLinearGradient(defs, "france-fill-gradient", [
+        { offset: "70%", color: "#D1D1D1", opacity: 1 },
+        { offset: "85%", color: "#D1D1D1", opacity: 0.5 },
+        { offset: "100%", color: "#D1D1D1", opacity: 0 }
+    ], { x1: "0", y1: "1", x2: "0", y2: "0", transform: "rotate(40)" });
 
-    const fillStop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    fillStop2.setAttribute("offset", "50%"); 
-    fillStop2.setAttribute("stop-color", "#D1D1D1");
-    fillStop2.setAttribute("stop-opacity", "0.5"); 
-
-    const fillStop3 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    fillStop3.setAttribute("offset", "85%"); 
-    fillStop3.setAttribute("stop-color", "white");
-    fillStop3.setAttribute("stop-opacity", "0"); 
-
-    fillGradient.appendChild(fillStop1);
-    fillGradient.appendChild(fillStop2);
-    fillGradient.appendChild(fillStop3);
-    defs.appendChild(fillGradient);
-
-
-    // 2. GRADIENTE PARA EL BORDE (si quería darle diferentes colores tengo que duplicar codigo pero para stroke)(Marruecos)
-    const strokeGradientId = "africa-stroke-gradient";
-    const strokeGradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-    strokeGradient.setAttribute("id", strokeGradientId);
-    strokeGradient.setAttribute("x1", "0");
-    strokeGradient.setAttribute("y1", "0");
-    strokeGradient.setAttribute("x2", "0");
-    strokeGradient.setAttribute("y2", "1");
-
-    const strokeStop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    strokeStop1.setAttribute("offset", "0%");
-    strokeStop1.setAttribute("stop-color", "black");
-    strokeStop1.setAttribute("stop-opacity", "1");
-    
-    const strokeStop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    strokeStop2.setAttribute("offset", "50%");
-    strokeStop2.setAttribute("stop-color", "black");
-    strokeStop2.setAttribute("stop-opacity", "1");
-
-    const strokeStop3 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    strokeStop3.setAttribute("offset", "80%");
-    strokeStop3.setAttribute("stop-color", "white");
-    strokeStop3.setAttribute("stop-opacity", "0");
-
-    strokeGradient.appendChild(strokeStop1);
-    strokeGradient.appendChild(strokeStop2);
-    strokeGradient.appendChild(strokeStop3);
-    defs.appendChild(strokeGradient);
-
-
-
-    //gradiente para fill (France)
-    const gradientIdFrance = "france-fill-gradient";
-    let fillGradientFrance = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-    fillGradientFrance.setAttribute("id", gradientIdFrance);
-    
-    fillGradientFrance.setAttribute("x1", "0");
-    fillGradientFrance.setAttribute("y1", "1");
-    fillGradientFrance.setAttribute("x2", "0");
-    fillGradientFrance.setAttribute("y2", "0"); 
-    fillGradientFrance.setAttribute("gradientTransform", "rotate(40)");
-
-    //Como va a ser el difumigado
-    const fillStop4 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    fillStop4.setAttribute("offset", "70%");
-    fillStop4.setAttribute("stop-color", "#D1D1D1");
-    fillStop4.setAttribute("stop-opacity", "1");
-
-    const fillStop5 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    fillStop5.setAttribute("offset", "85%"); 
-    fillStop5.setAttribute("stop-color", "#D1D1D1");
-    fillStop5.setAttribute("stop-opacity", "0.5"); 
-
-    const fillStop6 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    fillStop6.setAttribute("offset", "100%"); 
-    fillStop6.setAttribute("stop-color", "#D1D1D1");
-    fillStop6.setAttribute("stop-opacity", "0"); 
-
-    fillGradientFrance.appendChild(fillStop4);
-    fillGradientFrance.appendChild(fillStop5);
-    fillGradientFrance.appendChild(fillStop6);
-    defs.appendChild(fillGradientFrance);
-
-
-    // 2. GRADIENTE PARA EL BORDE (si quería darle diferentes colores tengo que duplicar codigo pero para stroke)(France)
-    const strokeGradientIdFrance = "france-stroke-gradient";
-    const strokeGradientFrance = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-    strokeGradientFrance.setAttribute("id", strokeGradientIdFrance);
-    strokeGradientFrance.setAttribute("x1", "0");
-    strokeGradientFrance.setAttribute("y1", "1");
-    strokeGradientFrance.setAttribute("x2", "0");
-    strokeGradientFrance.setAttribute("y2", "0");
-    strokeGradientFrance.setAttribute("gradientTransform", "rotate(40)");
-
-    const strokeStop4 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    strokeStop4.setAttribute("offset", "70%");
-    strokeStop4.setAttribute("stop-color", "black");
-    strokeStop4.setAttribute("stop-opacity", "1");
-    
-    const strokeStop5 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    strokeStop5.setAttribute("offset", "95%");
-    strokeStop5.setAttribute("stop-color", "black");
-    strokeStop5.setAttribute("stop-opacity", "0.5");
-
-    const strokeStop6 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    strokeStop6.setAttribute("offset", "100%");
-    strokeStop6.setAttribute("stop-color", "white");
-    strokeStop6.setAttribute("stop-opacity", "0");
-
-    strokeGradientFrance.appendChild(strokeStop4);
-    strokeGradientFrance.appendChild(strokeStop5);
-    strokeGradientFrance.appendChild(strokeStop6);
-    defs.appendChild(strokeGradientFrance);
-
-
+    // Gradiente stroke para Francia
+    createLinearGradient(defs, "france-stroke-gradient", [
+        { offset: "70%", color: "black", opacity: 1 },
+        { offset: "95%", color: "black", opacity: 0.5 },
+        { offset: "100%", color: "white", opacity: 0 }
+    ], { x1: "0", y1: "1", x2: "0", y2: "0", transform: "rotate(40)" });
 
 
     const bbox = getBBox(geoData);
@@ -297,7 +226,7 @@ function drawMap() {
     let hasCanarias = false;
 
     geoData.forEach(feature => {
-        const pathData = convertToSVGPath(feature.geometry, bbox);
+        const pathData = convertToSVGPath(feature.geometry,bbox,svgWidth,svgHeight);
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.setAttribute('d', pathData);
 
@@ -307,8 +236,8 @@ function drawMap() {
         // Colores por nivel
         if (feature.properties.name === "Africa Norte") {
             path.style.pointerEvents = "none";
-            path.style.fill = `url(#${gradientId})`; //Aplico gradiente a fill
-            path.style.stroke = `url(#${strokeGradientId})`; //Aplico gradiente a stroke
+            path.style.fill = `url(#africa-fill-gradient)`; //Aplico gradiente a fill
+            path.style.stroke = `url(#africa-stroke-gradient)`; //Aplico gradiente a stroke
             path.style.strokeWidth="1";
         }
         else if (feature.properties.name === "Portugal") {
@@ -319,8 +248,8 @@ function drawMap() {
         }
         else if (feature.properties.name === "Francia Sur") {
             path.style.pointerEvents = "none"
-            path.style.fill = `url(#${gradientIdFrance})`; //Aplico gradiente a fill
-            path.style.stroke = `url(#${strokeGradientIdFrance})`; //Aplico gradiente a stroke
+            path.style.fill = `url(#france-fill-gradient)`; //Aplico gradiente a fill
+            path.style.stroke = `url(#france-stroke-gradient)`; //Aplico gradiente a stroke
             path.style.strokeWidth="1";
         }
         else if (currentLevel === "ccaa") {
@@ -341,16 +270,13 @@ function drawMap() {
             path.dataset.provinceColor = provinceColor;
             path.dataset.ccaaColor = baseColor;
         }
-        else if (currentLevel === "nation"){
+        else {
             path.style.fill = "#ff4141ff";
-            if(feature.properties.name === "SpainLand" && feature.properties.name === "Canarias"){
-                path.dataset.nation = "Spain"; //Es lo que cojo en hover filtrado por nation
-            }
         }
 
         // Hover / seleccion
-        path.addEventListener('mouseenter', () => hoverFeature(path));
-        path.addEventListener('mouseleave', () => resetHover());
+        path.addEventListener('mouseenter', () => hoverFeature(map, path));
+        path.addEventListener('mouseleave', () => resetHover(map));
         path.addEventListener('click', () => selectFeature(path));
 
         // Identificar Canarias
@@ -407,7 +333,7 @@ function drawMap() {
     }
 }
 
-function hoverFeature(path) {
+function hoverFeature(map, path) {
     if (currentLevel === "nation") {
         const nation = path.dataset.nation; //Spain
         const name = path.getAttribute("data-name"); //SpainLand y Canarias
@@ -427,7 +353,6 @@ function hoverFeature(path) {
         return;
     }
     
-
     if (currentLevel === "province") {
         const hoveredProvince = path;
         const provinceName = hoveredProvince.getAttribute('data-name');
@@ -460,7 +385,7 @@ function hoverFeature(path) {
     }
 }
 
-function resetHover() {
+function resetHover(map) {
     if (currentLevel === "province") {
         map.querySelectorAll('path').forEach(p => {
             p.style.fill = p.dataset.provinceColor;
@@ -475,8 +400,8 @@ function resetHover() {
 
 async function changeLevel(level){
     currentLevel = level;
-    await loadGeoData(level);
-    drawMap();
+    const geoData = await loadGeoData(level);
+    drawMap(geoData);
 }
 
 document.querySelectorAll('input[name="level"]').forEach(radio=>{
