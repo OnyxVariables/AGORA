@@ -301,6 +301,9 @@ function drawMap() {
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.setAttribute('d', pathData);
 
+        //Esto lo utilizo para que cada provincia tenga su propio color que le corresponde y no el de la ccaa para todas
+        path.setAttribute('data-name', feature.properties.name);
+
         // Colores por nivel
         if (feature.properties.name === "Africa Norte") {
             path.style.pointerEvents = "none";
@@ -328,12 +331,15 @@ function drawMap() {
             const ccaa = provinceToCCAA[province];
             const baseColor = ccaaColors[ccaa] || "#ccc";
 
-            const provinces = geoData.filter(
-                f => provinceToCCAA[f.properties.name] === ccaa
-            );
+            const provinces = geoData.filter(f => provinceToCCAA[f.properties.name] === ccaa);
             const index = provinces.indexOf(feature);
 
-            path.style.fill = generateProvinceColor(baseColor, index, provinces.length);
+            const provinceColor = generateProvinceColor(baseColor, index, provinces.length);
+            path.style.fill = provinceColor;
+
+            //Guardo el color base / provincia para el hover
+            path.dataset.provinceColor = provinceColor;
+            path.dataset.ccaaColor = baseColor;
         }
         else {
             // Nivel nation
@@ -400,19 +406,49 @@ function drawMap() {
 }
 
 
-function hoverFeature(path){
-    map.querySelectorAll('path').forEach(p => {
-        if(p === path) {
-            p.style.filter = "brightness(1.2)";
-        } else {
-            p.style.filter = "brightness(0.5)";
-        }
-    });
+function hoverFeature(path) {
+    if (currentLevel === "province") {
+        const hoveredProvince = path;
+        const provinceName = hoveredProvince.getAttribute('data-name');
+        const ccaa = provinceToCCAA[provinceName];
+
+        map.querySelectorAll('path').forEach(p => {
+            const pName = p.getAttribute('data-name');
+            const pCCAA = provinceToCCAA[pName];
+
+            if (p === hoveredProvince) {
+                //la del cursor
+                p.style.fill = p.dataset.ccaaColor; 
+                p.style.filter = "brightness(1.2)";
+                p.style.strokeWidth = "2"; //Esto mola, como que resalta aun mas la provincia en la que estoy
+            } else if (pCCAA === ccaa) {
+                //En ccaa
+                p.style.fill = p.dataset.ccaaColor;
+                p.style.filter = "brightness(0.7)";
+            } else {
+                //Demas
+                p.style.filter = "brightness(0.45)";
+            }
+        });
+    } else {
+        // Mantener comportamiento de otros niveles
+        map.querySelectorAll('path').forEach(p => {
+            if(p === path) p.style.filter = "brightness(1.2)";
+            else p.style.filter = "brightness(0.5)";
+        });
+    }
 }
 
-
-function resetHover(){
-    map.querySelectorAll('path').forEach(p => p.style.filter = "brightness(1)");
+function resetHover() {
+    if (currentLevel === "province") {
+        map.querySelectorAll('path').forEach(p => {
+            p.style.fill = p.dataset.provinceColor;
+            p.style.filter = "brightness(1)";
+            p.style.strokeWidth = "1";
+        });
+    } else {
+        map.querySelectorAll('path').forEach(p => p.style.filter = "brightness(1)");
+    }
 }
 
 
