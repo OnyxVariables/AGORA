@@ -335,16 +335,10 @@ function drawMap(geoData) {
 
 function hoverFeature(map, path) {
     if (currentLevel === "nation") {
-        const nation = path.dataset.nation; //Spain
-        const name = path.getAttribute("data-name"); //SpainLand y Canarias
-
         map.querySelectorAll('path').forEach(p => {
-            const pNation = p.dataset.nation;
             const pName = p.getAttribute("data-name");
 
-            if (pNation === nation && pName === name) {
-                p.style.filter = "brightness(1.4)";
-            } else if (pNation === nation && (pName === "Spain" || pName === "Canarias")) {
+            if (pName === "Spain" || pName === "Canarias") {
                 p.style.filter = "brightness(1.4)";
             } else {
                 p.style.filter = "brightness(0.5)";
