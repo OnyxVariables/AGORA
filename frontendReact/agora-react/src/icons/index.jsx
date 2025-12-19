@@ -1,0 +1,8 @@
+export { default as UserIcon } from "./UserIcon";
+export { default as VoteIcon } from "./VoteIcon";
+export { default as ResultsIcon } from "./ResultsIcon";
+export { default as LogoutIcon } from "./LogoutIcon";
+export { default as HomeIcon } from "./HomeIcon";
+export { default as TarjetIcon } from "./TarjetIcon";
+export { default as AddressIcon } from "./AddressIcon";
+export { default as FingerIcon } from "./FingerIcon";

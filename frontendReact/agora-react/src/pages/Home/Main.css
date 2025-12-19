@@ -1,0 +1,179 @@
+main {
+    width: 90%;
+    margin: 40px auto;
+    gap: 25px;
+    display: grid;
+    grid-auto-rows: 1fr;
+    padding-top: 7em;
+}
+
+
+/* articles */
+.partido {
+    display: flex;
+    border-radius: 1em;
+    overflow: hidden;
+    border: 3px solid #00000096;
+    box-shadow: 10px 10px 2px #8c00dd20;
+    height: 100%;
+}
+
+article > div {
+    width: 65%;
+    border-right: 2px solid black;
+}
+
+article figure {
+    width: 35%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    padding: 1em;
+    overflow: hidden; /* evita desbordes */
+}
+
+.partido figure img {
+    width: 50%;
+    height: auto;
+    object-fit: contain; /* evita que una imagen haga más grande un article */
+}
+
+.partido h2 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* colores de partido por clases */
+.pp {
+    background: #5eadf8;
+}
+
+.pp h2 {
+    background: #1d5ea8;
+    color: white;
+    padding: 0.5em;
+}
+
+.psoe {
+    background: #fd7671;
+}
+
+.psoe h2 {
+    background: #b3201e;
+    color: white;
+    padding: 0.5em;
+}
+
+.vox {
+    background: #8cfa80;
+}
+
+.vox h2 {
+    background: #4aa63b;
+    color: white;
+    padding: 0.5em;
+}
+
+.podemos {
+    background: #d57bfc;
+}
+
+.podemos h2 {
+    background: #6d2d8e;
+    color: white;
+    padding: 0.5em;
+}
+
+.sumar {
+    background: #fa7aa3;
+}
+
+.sumar h2 {
+    background: #c73765;
+    color: white;
+    padding: 0.5em;
+}
+
+.pp p,
+.psoe p,
+.vox p,
+.podemos p,
+.sumar p {
+    padding: 1em;
+    border-top: 2px solid black;
+}
+
+/* Detalles perfectos con hover */
+article, article figure img {
+    transition: all 0.35s ease;
+}
+
+article:hover {
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+article figure img:hover {
+    transform: scale(1.08);
+}
+
+
+/* RESPONSIVE */
+/* Tablets y pantallas medianas */
+@media (max-width: 900px) {
+    main{
+        margin-top: 0;
+    }
+
+    /* Articles más proporcionales */
+    .partido h2 {
+        font-size: 1.6rem;
+    }
+
+    article > div {
+        width: 60%;
+    }
+
+    article figure {
+        width: 40%;
+    }
+}
+
+/* Móviles */
+@media (max-width: 780px) {
+    /* Articles: de 2 columnas a 1 columna */
+    .partido {
+        flex-direction: column;
+    }
+
+    article > div,
+    article figure {
+        width: 100%;
+    }
+
+    article figure {
+        flex-grow: 1;
+    }
+
+    article figure img {
+        width: 70%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .partido p{
+        border-bottom: 2px solid black;
+    }
+
+    article > div {
+        border-right: none;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 380px) {
+    .partido h2 {
+        font-size: 1.4rem;
+    }
+}
