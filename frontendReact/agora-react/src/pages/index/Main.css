@@ -1,23 +1,16 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body {
-    height: 100%;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
 /* Fondo a pantalla completa */
-body::before {
+.index {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.index::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: url("./img/Blockchain.jpg") center no-repeat;
-    background-size: cover;   
-    filter: blur(5px);       /* difuminado */
-    z-index: -1;              /* queda detrás de todo */
+    background-color:black;
+    z-index: -1;
 }
 
 /* Sección 1 (logo + título) */
@@ -79,72 +72,6 @@ body::before {
     background: white;
     transform: scale(1.05);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-}
-
-/* footer */
-footer{
-    position: absolute;
-    bottom: 0;
-    margin: 2em;
-    right: 0;
-}
-
-/* sacado de uiverse.io */
-.spinner {
-  width: 44px;
-  height: 44px;
-  animation: spinner-y0fdc1 2s infinite ease;
-  transform-style: preserve-3d;
-}
-
-.spinner > div {
-  background-color: rgb(255, 254, 254);
-  height: 100%;
-  position: absolute;
-  width: 100%;
-  border: 3px solid #8c00ff;
-}
-
-.spinner div:nth-of-type(1) {
-  transform: translateZ(-22px) rotateY(180deg);
-}
-
-.spinner div:nth-of-type(2) {
-  transform: rotateY(-270deg) translateX(50%);
-  transform-origin: top right;
-}
-
-.spinner div:nth-of-type(3) {
-  transform: rotateY(270deg) translateX(-50%);
-  transform-origin: center left;
-}
-
-.spinner div:nth-of-type(4) {
-  transform: rotateX(90deg) translateY(-50%);
-  transform-origin: top center;
-}
-
-.spinner div:nth-of-type(5) {
-  transform: rotateX(-90deg) translateY(50%);
-  transform-origin: bottom center;
-}
-
-.spinner div:nth-of-type(6) {
-  transform: translateZ(22px);
-}
-
-@keyframes spinner-y0fdc1 {
-  0% {
-    transform: rotate(45deg) rotateX(-25deg) rotateY(25deg);
-  }
-
-  50% {
-    transform: rotate(45deg) rotateX(-385deg) rotateY(25deg);
-  }
-
-  100% {
-    transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
-  }
 }
 
 /* RESPONSIVE */

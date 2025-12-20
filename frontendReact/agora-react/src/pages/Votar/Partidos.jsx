@@ -1,6 +1,7 @@
 import React from "react";
 import PartidoCard from "./Main";
 import "./Main.css";
+import Particles from "../../components/Particles/Particles";
 
 const partidos = [
   { nombre: "PP", value: "PP", colorFondo: "#5eadf8", colorTitulo: "#1d5ea8", imagen: "img/PP.jpg" },
@@ -13,10 +14,25 @@ const partidos = [
 
 function Partidos() {
   return (
-    <main className="grid-partidos">
-      {partidos.map((partido) => (
-        <PartidoCard key={partido.value} {...partido} />
-      ))}
+    <main className="background">
+      {/* FONDO DE PARTICULAS */}
+      <div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, zIndex: -1 }}>
+        <Particles
+        particleColors={['#d4a0ff', '#a066ff', '#6a00d4']}
+        particleCount={20000}
+        particleSpread={10}
+        speed={0.1}
+        particleBaseSize={100}
+        moveParticlesOnHover={false}
+        alphaParticles={true}
+        disableRotation={true}
+        />
+      </div>
+      <div className="grid-partidos">
+        {partidos.map((partido) => (
+          <PartidoCard key={partido.value} {...partido} />
+        ))}
+      </div>
     </main>
   );
 }

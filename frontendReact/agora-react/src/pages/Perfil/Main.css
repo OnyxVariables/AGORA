@@ -1,11 +1,12 @@
-/* Truco para ocupar el 100% de altura del viewport en altura pero no va */
-html, body {
-    height: 100%;
-}
-
-body {
+.layout-usuario {
+    min-height: 87.9vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+}
+
+.layout-usuario .contenedorUsuario {
+    flex: 1;
 }
 
 .contenedorUsuario {
@@ -101,12 +102,15 @@ section {
 
 
 /* RESPONSIVE */
-@media (max-width: 1137px) {
+@media (max-width: 1152px) {
     .contenedorUsuario .tarjeta:last-child {
         grid-column: 1 / -1; /* ocupa todas las columnas, truco de LOLA 17/11/25 */
     }
-        .contenedorUsuario svg{
-        display: none;
+
+    .contenedorUsuario svg {
+        width: 30%;
+        margin-top: 0;
+        margin:0 auto;
     }
 }
 
@@ -114,5 +118,12 @@ section {
 @media (max-width: 900px) {
     .contenedorUsuario{
         margin-top: 8em;
+    }
+}
+
+/* MOVIL */
+@media (max-width: 761px) {
+    .contenedorUsuario svg {
+        display: none;
     }
 }

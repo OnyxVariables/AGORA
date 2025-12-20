@@ -1,5 +1,8 @@
-main{
-    flex:1;
+.background {
+    position: relative;
+    min-height: 87.9vh;
+    width: 100%;
+    overflow: hidden;
 }
 
 /* grid principal */
@@ -9,7 +12,8 @@ main{
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 25px;
-    margin-top: 10em;
+    margin-top: 11em;
+    position: relative;
 }
 
 /* TARJETA BASE */
@@ -48,6 +52,7 @@ main{
     width: 100%;
     object-fit: contain;
     height: 100%;
+    transition: all 0.35s ease;
 }
 
 .card h2 {
@@ -515,7 +520,17 @@ main{
 
 /* RESPONSIVE */
 /* Tablet */
+@media (max-width: 900px) {
+  .grid-partidos {
+      margin-top: 10em;
+  }
+}
+
 @media (max-width: 780px) {
+    .votar{
+        margin-top: 0;
+    }
+
     .grid-partidos {
         grid-template-columns: 1fr;
     }
