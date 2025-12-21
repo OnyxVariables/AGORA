@@ -6,7 +6,7 @@ export default function Main() {
     <main className="index">
 
       {/* FONDO DE PARTICULAS */}
-      <div style={{ width: '100%', height: '100vh', position: 'absolute' }}>
+      <div style={{ width: '100%', height: '100vh', position: 'absolute', pointerEvents: "none" }}>
         <Particles
         particleColors={['#d4a0ff', '#a066ff', '#6a00d4']}
         particleCount={10000}

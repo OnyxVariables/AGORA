@@ -1,0 +1,237 @@
+/* MAIN */
+.electionsMap {
+    padding-top: 10em;
+    width: 95%;
+    margin: 0 auto;
+    margin-bottom: 3em;
+}
+
+/* section 1 */
+.electionsMap .section1{
+    background-color: #d0bfff;
+    padding: 1em;
+    border-radius: 1em;
+    border: 3px solid black;
+    box-shadow: 10px 10px 2px #8c00dd20;
+    position: relative;
+}
+
+.electionsMap .article1{
+    display: flex;
+    justify-content: space-between;
+    text-decoration: underline;
+}
+
+.electionsMap .select{
+    width: 10%;
+    border-radius: 0.5em;
+}
+
+.electionsMap .article2{
+    background-color: white;
+    margin-top: 1em;
+    text-align: center;
+    padding: 0.5em;
+    border-radius: 1em;
+    border: 2px solid black;
+}
+
+/* section 2 */
+.electionsMap .section2{
+    background-color: #eebefa;
+    padding: 1em;
+    border-radius: 1em;
+    margin-top: 2em;
+    border: 3px solid black;
+    font-weight: bold;
+    box-shadow: 10px 10px 2px #8c00dd20;
+    position: relative;
+}
+
+.electionsMap .nickname{
+    border-radius: 0.5em;
+    font-weight: bold;
+    padding: 0.3em;
+    width: 100%;
+    margin-top: 0.5em;
+}
+
+
+/* section 3 */
+.electionsMap .section3{
+    width: 21%;
+    border-radius: 1em;
+    padding: 1em;
+    margin-top: 2em;
+    position: relative;
+    transition: all 0.35s ease;
+}
+
+.electionsMap .filtrado{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5em;
+    font-weight: 600;
+}
+
+.electionsMap .types{
+    border: 2px solid black;
+    border-radius: 0.5em;
+    padding: 0.5em;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    background-color: white;
+}
+
+/* Hovers */
+.electionsMap .section1:hover,
+.electionsMap .section2:hover,
+.electionsMap .section3:hover{
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+.electionsMap .section1, .electionsMap .section2, .electionsMap .section3{
+    transition: all 0.35s ease;
+}
+
+/* MAPA */
+.map path {
+  stroke:black;
+  stroke-width: 1.5;
+  transition: all 0.2s;
+}
+
+#map-container {
+    height: 600px;
+}
+
+#map {
+    pointer-events: none; /* pa que no tape el section3, con z-index no funciona */
+}
+
+#map path {
+    pointer-events: auto; /* pa que funcione los hovers */
+}
+
+.ocean {
+    position: absolute;
+    color: #003366;
+    font-weight: bold;
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+
+.agua {
+    position: relative; /* Pa que el ::before funcione */
+    border-radius: 1em;
+    overflow: hidden;
+}
+
+.agua::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #a0d8f1;
+    border-radius: 1em;
+    z-index: -1;
+    margin-top: 2em;
+}
+
+.electionsMap .section3::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 110%;
+    height: 235px;
+    background-color:#fafafa;
+    z-index: -1;
+    border-radius:0 0 1em 0;
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+.electionsMap .section3::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: #eebefa;
+    border-radius: 1em;
+    border: 3px solid black;
+    box-shadow: 10px 10px 2px #8c00dd20;
+}
+
+.electionsMap .section3:hover::before{
+    box-shadow: 12px 12px 12px #00000030;
+    transition: all 0.35s ease;
+}
+
+.electionsMap .section3 > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* RESPONSIVE */
+/* Tablets y pantallas medianas */
+@media (max-width: 900px) {
+    .electionsMap {
+        padding-top: 8em;
+    }
+    
+    .electionsMap .section3{
+        width: 100%;
+    }
+    
+    .electionsMap .section3::after {
+        width: 100%;
+        height: 95px;
+        border-radius: 0;
+        box-shadow:none; /* O sino se ve mal */
+    }
+    
+    .electionsMap .filtrado{
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+    }
+    
+    #map-container{
+        transform: translate(0px, 220px);
+    }
+
+    .agua{
+        overflow: visible;
+    }
+    
+}
+
+@media (max-width: 575px) {
+    .electionsMap .select{
+        width: 20%;
+    }
+
+    .electionsMap .filtrado{
+        flex-direction: column;
+    }
+
+       
+    .electionsMap .section3::after {
+        height: 235px;
+        background-color:#fafafa;
+        z-index: -1;
+    }
+
+}
+
+@media (max-width: 419px) {
+    .electionsMap .article1 h2{
+        font-size: 1.2em;
+    }
+}

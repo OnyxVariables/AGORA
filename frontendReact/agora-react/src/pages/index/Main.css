@@ -14,7 +14,7 @@
 }
 
 /* Sección 1 (logo + título) */
-.section1 figure {
+.index .section1 figure {
     color: white;
     display: flex;
     justify-content: center;
@@ -23,13 +23,13 @@
     gap: 1em;
 }
 
-.section1 img {
+.index .section1 img {
     width: 15%;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
     object-fit: contain;
 }
 
-.section1 h1 {
+.index .section1 h1 {
     font-size: 9rem;
     letter-spacing: 8px;
     text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
@@ -37,25 +37,25 @@
 }
 
 /* Sección 2 */
-.section2 {
+.index .section2 {
     text-align: center;
     margin-top: 40px;
     color: white;
 }
 
-.section2 h2 {
+.index .section2 h2 {
     font-size: 3rem;
     margin-bottom: 10px;
     text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
 }
 
-.section2 p {
+.index .section2 p {
     font-size: 1.8rem;
     margin-bottom: 25px;
 }
 
 /* Botón */
-.section2 button {
+.index .section2 button {
     padding: 12px 40px;
     font-size: 1.8rem;
     font-weight: bold;
@@ -66,9 +66,10 @@
     cursor: pointer;
     transition: 0.3s;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 10;
 }
 
-.section2 button:hover {
+.index .section2 button:hover {
     background: white;
     transform: scale(1.05);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
@@ -78,13 +79,13 @@
 /* Tablet */
 
 @media (max-width: 1108px) {
-  .section1 img{
+  .index .section1 img{
     width: 25%;
   }
 }
 
 @media (max-width: 900px) {
-  .section1 img{
+  .index .section1 img{
     width: 25%;
   }
 
@@ -95,62 +96,62 @@
 
 /* Moviles */
 @media (max-width: 724px) {
-  .section1 img{
+  .index .section1 img{
     width: 25%;
   }
-  .section1 h1{
+  .index .section1 h1{
     font-size: 6rem;
   }
 
-  .section2 h2{
+  .index .section2 h2{
     font-size: 2.3rem;
   }
   
-  .section2 p{
+  .index .section2 p{
     font-size: 1.5rem;
   }
 
-  .section2 button{
+  .index .section2 button{
     font-size: 1.5rem;
   }
 }
 
 /* Moviles pequeños */
 @media (max-width: 550px) {
-  .section1 img{
+  .index .section1 img{
     width: 30%;
   }
-  .section1 h1{
+  .index .section1 h1{
     font-size: 5rem;
   } 
 
-  .section2 h2{
+  .index .section2 h2{
     font-size: 2rem;
   }
 
-  .section2 p{
+  .index .section2 p{
     font-size: 1.2rem;
   }
 
-  .section2 button{
+  .index .section2 button{
     font-size: 1.2rem;
   }
 }
 
 @media (max-width: 484px) {
-  .section1 img{
+  .index .section1 img{
     width: 30%;
   }
-  .section1 h1{
+  .index .section1 h1{
     font-size: 4rem;
   } 
 }
 
 @media (max-width: 396px) {
-  .section1 img{
+  .index .section1 img{
     width: 35%;
   }
-  .section1 h1{
+  .index .section1 h1{
     font-size: 3.5rem;
   } 
 }
