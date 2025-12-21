@@ -59,18 +59,18 @@
 
 /* section 3 */
 .electionsMap .section3{
-    width: 21%;
     border-radius: 1em;
     padding: 1em;
     margin-top: 2em;
     position: relative;
     transition: all 0.35s ease;
+    background-color: #eebefa;
+    box-shadow: 10px 10px 2px #8c00dd20;
+    border: 3px solid black;
 }
 
 .electionsMap .filtrado{
     display: flex;
-    flex-direction: column;
-    width: 100%;
     gap: 0.5em;
     font-weight: 600;
 }
@@ -82,6 +82,7 @@
     width: 100%;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 1em;
     background-color: white;
 }
@@ -98,6 +99,17 @@
     transition: all 0.35s ease;
 }
 
+/* section4 */
+.electionsMap .section4{
+    margin-top: 2em;
+    overflow: hidden;
+    position: relative;
+    background-color: rgb(147, 215, 255);
+    border-radius: 1em;
+    padding: 4em 3em;
+    
+}
+
 /* MAPA */
 .map path {
   stroke:black;
@@ -105,12 +117,9 @@
   transition: all 0.2s;
 }
 
-#map-container {
-    height: 600px;
-}
-
 #map {
     pointer-events: none; /* pa que no tape el section3, con z-index no funciona */
+    display: flex;
 }
 
 #map path {
@@ -125,58 +134,6 @@
     pointer-events: none;
 }
 
-.agua {
-    position: relative; /* Pa que el ::before funcione */
-    border-radius: 1em;
-    overflow: hidden;
-}
-
-.agua::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #a0d8f1;
-    border-radius: 1em;
-    z-index: -1;
-    margin-top: 2em;
-}
-
-.electionsMap .section3::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 110%;
-    height: 235px;
-    background-color:#fafafa;
-    z-index: -1;
-    border-radius:0 0 1em 0;
-    box-shadow: 12px 12px 12px #00000030;
-}
-
-.electionsMap .section3::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-color: #eebefa;
-    border-radius: 1em;
-    border: 3px solid black;
-    box-shadow: 10px 10px 2px #8c00dd20;
-}
-
-.electionsMap .section3:hover::before{
-    box-shadow: 12px 12px 12px #00000030;
-    transition: all 0.35s ease;
-}
-
-.electionsMap .section3 > * {
-    position: relative;
-    z-index: 1;
-}
-
 
 /* RESPONSIVE */
 /* Tablets y pantallas medianas */
@@ -184,48 +141,12 @@
     .electionsMap {
         padding-top: 8em;
     }
-    
-    .electionsMap .section3{
-        width: 100%;
-    }
-    
-    .electionsMap .section3::after {
-        width: 100%;
-        height: 95px;
-        border-radius: 0;
-        box-shadow:none; /* O sino se ve mal */
-    }
-    
-    .electionsMap .filtrado{
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-around;
-    }
-    
-    #map-container{
-        transform: translate(0px, 220px);
-    }
-
-    .agua{
-        overflow: visible;
-    }
-    
 }
 
-@media (max-width: 575px) {
-    .electionsMap .select{
-        width: 20%;
-    }
 
+@media (max-width: 590px) {
     .electionsMap .filtrado{
         flex-direction: column;
-    }
-
-       
-    .electionsMap .section3::after {
-        height: 235px;
-        background-color:#fafafa;
-        z-index: -1;
     }
 
 }

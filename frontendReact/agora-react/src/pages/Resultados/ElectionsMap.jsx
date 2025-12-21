@@ -122,7 +122,7 @@ export default function ElectionsMap() {
                 case "nation": file = "/data/spain_nation.json"; break;
                 case "ccaa": file = "/data/spain_ccaa.json"; break;
                 case "province": file = "/data/spain_provinces.json"; break;
-                case "municipality": file = "/data/spain_municipality.json"; break;
+                // case "municipality": file = "/data/spain_municipality.json"; break;
                 default:
                 return [];
             }
@@ -334,19 +334,18 @@ export default function ElectionsMap() {
                 canariasGroup.insertBefore(rect, canariasGroup.firstChild);
             }
 
+            canariasGroup.setAttribute("transform", "translate(101, -650)"); //Esta mierda si funciona
+
             // Ajuste viewbox
+            const canariasBBox = canariasGroup.getBBox();
+            const dx = 100;
+            const dy = -650;
+
             const finalBBox = map.getBBox();
-            map.setAttribute('viewBox', `${finalBBox.x} ${finalBBox.y} ${finalBBox.width} ${finalBBox.height}`);
+            const adjustedWidth = Math.max(finalBBox.x + finalBBox.width, canariasBBox.x + canariasBBox.width + dx) - Math.min(finalBBox.x, canariasBBox.x + dx);
+            const adjustedHeight = Math.max(finalBBox.y + finalBBox.height, canariasBBox.y + canariasBBox.height + dy) - Math.min(finalBBox.y, canariasBBox.y + dy);
 
-            map.style.transform = "translate(-50px, -150px)";
-
-            //Mover según nivel
-            if (currentLevel === "nation") {
-                canariasGroup.setAttribute("transform", "translate(100, -650)"); //Esta mierda si funciona
-            } else {
-                // Posición cuando es ccaa o province
-                canariasGroup.setAttribute("transform", "translate(100,-650)");
-            }
+            map.setAttribute('viewBox', `${Math.min(finalBBox.x, canariasBBox.x + dx)} ${Math.min(finalBBox.y, canariasBBox.y + dy)} ${adjustedWidth} ${adjustedHeight}`);
         }
 
         function hoverFeature(map, path) {
@@ -422,7 +421,6 @@ export default function ElectionsMap() {
         );
 
         changeLevel(currentLevel);
-
     }, []);
 
   return (
@@ -459,8 +457,8 @@ export default function ElectionsMap() {
             <input className="nickname" placeholder="  ..." />
         </section>
 
-        <section className="agua">
-            <section className="section3">
+        
+        <section className="section3">
             <form className="filtrado">
                 {levels.map(({ value, label }) => (
                     <div className="types" key={value}>
@@ -469,27 +467,20 @@ export default function ElectionsMap() {
                     </div>
                 ))}
             </form>
-            </section>
+        </section>
 
-            <section className="section4">
+        <section className="section4">
             <article className="map">
                 <div id="map-container">
-                <svg id="map">
-                    <path id="mapa"/>
-                </svg>
+                    <svg id="map">
+                        <path id="mapa"/>
+                    </svg>
                 </div>
-                <div className="ocean" style={{ top: "45%", left: "10%" }}>
-                OCÉANO ATLÁNTICO
-                </div>
-                <div className="ocean" style={{ top: "70%", left: "80%" }}>
-                MAR MEDITERRÁNEO
-                </div>
-                <div className="ocean" style={{ top: "8%", left: "55%" }}>
-                MAR CANTÁBRICO
-                </div>
+                {/* <div className="ocean" style={{ top: "45%", left: "10%" }}>OCÉANO ATLÁNTICO</div>
+                <div className="ocean" style={{ top: "70%", left: "80%" }}>MAR MEDITERRÁNEO</div>
+                <div className="ocean" style={{ top: "8%", left: "55%" }}>MAR CANTÁBRICO</div> */}
             </article>
-            </section>
         </section>
-        </main>
+    </main>
   );
 }

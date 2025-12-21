@@ -10,7 +10,7 @@ const partidos = [
   { nombre: "C’s", value: "CS", colorFondo: "#ffb347", colorTitulo: "#d97900", imagen: "img/Ciudadanos.png" },
   { nombre: "VOX", value: "VOX", colorFondo: "#8cfa80", colorTitulo: "#4aa63b", imagen: "img/VOX.png" },
   { nombre: "Sumar", value: "SUMAR", colorFondo: "#fa7aa3", colorTitulo: "#c73765", imagen: "img/SUMAR.png" },
-]; //Si quisiera meter mas partidos los meto aqui
+  ]; //Si quisiera meter mas partidos los meto aqui
 
 function Partidos() {
   return (
