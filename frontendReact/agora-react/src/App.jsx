@@ -4,7 +4,7 @@ import Home from "./pages/Home/Home";
 import Perfil from "./pages/Perfil/Perfil";
 import Votar from "./pages/Votar/Votar";
 import Resultados from "./pages/Resultados/Resultados";
-import ThemeToggle from "./components/ThemeToggle/ThemeToggle";
+import Error404 from "./pages/error404/error404";
 
 function App() {
   return (
@@ -16,6 +16,7 @@ function App() {
           <Route path="/Perfil" element={<Perfil />} />
           <Route path="/Votar" element={<Votar />} />
           <Route path="/Resultados" element={<Resultados />} />
+          <Route path="/*" element={<Error404 />} />
         </Routes>
       </div>
     </Router>
