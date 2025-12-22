@@ -24,3 +24,17 @@ body {
 .boton:hover {
     background: rgba(255,255,255,0.3);
 }
+
+/* Para el ThemeToggle */
+.app-background {
+  min-height: 100vh;
+  background-color: #ffffff;
+  z-index: 1;
+  position: relative;
+}
+
+.dark .app-background {
+  background-color: #0f0f0f;
+  z-index: 1;
+  position: relative;
+}

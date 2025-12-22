@@ -3,6 +3,9 @@
     position: relative;
     min-height: 100vh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .index::before {
@@ -19,8 +22,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 5em;
     gap: 1em;
+    margin-bottom: 2em;
 }
 
 .index .section1 img {
@@ -39,7 +42,6 @@
 /* Sección 2 */
 .index .section2 {
     text-align: center;
-    margin-top: 40px;
     color: white;
 }
 
@@ -77,7 +79,6 @@
 
 /* RESPONSIVE */
 /* Tablet */
-
 @media (max-width: 1108px) {
   .index .section1 img{
     width: 25%;

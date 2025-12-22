@@ -57,62 +57,14 @@
     width: 100%;
 }
 
-/* colores de partido por clases */
-.pp {
-    background: #5eadf8;
-}
-
-.pp h2 {
-    background: #1d5ea8;
+.partido h2 {
     color: white;
     padding: 0.5em;
+    font-size: 2rem;
+    font-weight: bold;
 }
 
-.psoe {
-    background: #fd7671;
-}
-
-.psoe h2 {
-    background: #b3201e;
-    color: white;
-    padding: 0.5em;
-}
-
-.vox {
-    background: #8cfa80;
-}
-
-.vox h2 {
-    background: #4aa63b;
-    color: white;
-    padding: 0.5em;
-}
-
-.podemos {
-    background: #d57bfc;
-}
-
-.podemos h2 {
-    background: #6d2d8e;
-    color: white;
-    padding: 0.5em;
-}
-
-.sumar {
-    background: #fa7aa3;
-}
-
-.sumar h2 {
-    background: #c73765;
-    color: white;
-    padding: 0.5em;
-}
-
-.pp p,
-.psoe p,
-.vox p,
-.podemos p,
-.sumar p {
+.partido p {
     padding: 1em;
     border-top: 2px solid black;
 }
@@ -135,7 +87,7 @@ article figure img:hover {
 /* RESPONSIVE */
 /* Tablets y pantallas medianas */
 @media (max-width: 900px) {
-    .home:first-child{
+    .home:first-of-type{
         padding-top: 5em;
     }
 

@@ -1,7 +1,5 @@
 .background {
-    position: relative;
-    min-height: 87.9vh;
-    width: 100%;
+  position: relative;
     overflow: hidden;
 }
 
@@ -12,8 +10,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 25px;
-    margin-top: 11em;
-    position: relative;
+    margin-top: 9.5em;
 }
 
 /* TARJETA BASE */
@@ -498,31 +495,28 @@
     height: 100%;
 }
 
-/* COLORES PARTIDOS */
-.pp      { background: #5eadf8; }
-.pp h2   { background: #1d5ea8; }
+.submit{
+  text-align: center;
+}
 
-.psoe    { background: #fd7671; }
-.psoe h2 { background: #b3201e; }
+.enviar{
+  padding: 1em 2em;
+  margin-bottom: 1em;
+  border-radius: 0.5em;
+  font-weight: bolder;
+  font-size: 2vw;
+  width: 50%;
+  border:3px solid black;
+  background-color: blueviolet;
 
-.vox     { background: #8cfa80; }
-.vox h2  { background: #4aa63b; }
-
-.podemos    { background: #d57bfc; }
-.podemos h2 { background: #6d2d8e; }
-
-.sumar      { background: #fa7aa3; }
-.sumar h2   { background: #c73765; }
-
-.cs        { background: #ffb347; }
-.cs h2     { background: #d97900; }
+}
 
 
 /* RESPONSIVE */
 /* Tablet */
 @media (max-width: 900px) {
   .grid-partidos {
-      margin-top: 10em;
+      margin-top: 8em;
   }
 }
 

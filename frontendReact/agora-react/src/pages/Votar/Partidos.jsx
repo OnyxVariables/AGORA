@@ -9,7 +9,11 @@ const partidos = [
   { nombre: "PODEMOS", value: "PODEMOS", colorFondo: "#d57bfc", colorTitulo: "#6d2d8e", imagen: "img/Podemos.png" },
   { nombre: "C’s", value: "CS", colorFondo: "#ffb347", colorTitulo: "#d97900", imagen: "img/Ciudadanos.png" },
   { nombre: "VOX", value: "VOX", colorFondo: "#8cfa80", colorTitulo: "#4aa63b", imagen: "img/VOX.png" },
-  { nombre: "Sumar", value: "SUMAR", colorFondo: "#fa7aa3", colorTitulo: "#c73765", imagen: "img/SUMAR.png" },
+  { nombre: "ehbildu", value: "ehbildu", colorFondo: "#00d0b3", colorTitulo: "#008b79ff", imagen: "img/ehbildu.png" },
+  { nombre: "compromís", value: "compromis", colorFondo: "#ef8518", colorTitulo: "#ad5700ff", imagen: "img/Compromís.png" },
+  { nombre: "CC", value: "cc", colorFondo: "#f3ff52ff", colorTitulo: "#a2aa33ff", imagen: "img/coalicionCanaria.png" },
+  { nombre: "junts", value: "junst", colorFondo: "#20c0b2", colorTitulo: "#158b82ff", imagen: "img/junts.png" },
+  { nombre: "Más Madrid", value: "madrid", colorFondo: "#54efa5", colorTitulo: "#3aac75ff", imagen: "img/masMadrid.png" },
   ]; //Si quisiera meter mas partidos los meto aqui
 
 function Partidos() {
@@ -32,6 +36,9 @@ function Partidos() {
         {partidos.map((partido) => (
           <PartidoCard key={partido.value} {...partido} />
         ))}
+      </div>
+      <div className="submit">
+        <button className="enviar">Enviar</button>
       </div>
     </main>
   );

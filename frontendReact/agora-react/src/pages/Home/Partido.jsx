@@ -1,17 +1,19 @@
-function Partido({ nombre, descripcion, img, clase }) {
+function Partido({ nombre, descripcion, img, estilos }) {
   return (
-      <main className="home">
-        {/* FONDO DE PARTICULAS */}
-        <article className={`partido ${clase}`}>
-          <div>
-            <h2>{nombre}</h2>
-            <p>{descripcion}</p>
-          </div>
-          <figure>
-            <img src={img} alt={nombre} />
-          </figure>
-        </article>
-      </main>
+    <main className="home">
+      <article className="partido" style={{ background: estilos.fondo }}>
+        <div>
+          <h2 style={{ background: estilos.titulo }}>
+            {nombre}
+          </h2>
+          <p>{descripcion}</p>
+        </div>
+
+        <figure>
+          <img src={img} alt={nombre} />
+        </figure>
+      </article>
+    </main>
   );
 }
 

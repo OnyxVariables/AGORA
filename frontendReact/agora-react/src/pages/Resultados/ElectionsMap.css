@@ -1,6 +1,6 @@
 /* MAIN */
 .electionsMap {
-    padding-top: 10em;
+    padding-top: 9.5em;
     width: 95%;
     margin: 0 auto;
     margin-bottom: 3em;
@@ -117,11 +117,6 @@
   transition: all 0.2s;
 }
 
-#map {
-    pointer-events: none; /* pa que no tape el section3, con z-index no funciona */
-    display: flex;
-}
-
 #map path {
     pointer-events: auto; /* pa que funcione los hovers */
 }
@@ -147,6 +142,10 @@
 @media (max-width: 590px) {
     .electionsMap .filtrado{
         flex-direction: column;
+    }
+
+    .electionsMap .select{
+        width: 20%;
     }
 
 }

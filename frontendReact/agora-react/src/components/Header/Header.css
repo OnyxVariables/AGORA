@@ -130,7 +130,7 @@ input[type="checkbox"]:checked ~ .middle {
     z-index: 9998;
     transition: right 0.35s ease;
     overflow-y: auto;
-    margin-top: 5.5em;
+    margin-top: 5.4em;
     max-width: 300px;
 }
 

@@ -334,18 +334,11 @@ export default function ElectionsMap() {
                 canariasGroup.insertBefore(rect, canariasGroup.firstChild);
             }
 
-            canariasGroup.setAttribute("transform", "translate(101, -650)"); //Esta mierda si funciona
-
+            canariasGroup.setAttribute("transform", "translate(100, -650)"); //Esta mierda si funciona
+            
             // Ajuste viewbox
-            const canariasBBox = canariasGroup.getBBox();
-            const dx = 100;
-            const dy = -650;
-
             const finalBBox = map.getBBox();
-            const adjustedWidth = Math.max(finalBBox.x + finalBBox.width, canariasBBox.x + canariasBBox.width + dx) - Math.min(finalBBox.x, canariasBBox.x + dx);
-            const adjustedHeight = Math.max(finalBBox.y + finalBBox.height, canariasBBox.y + canariasBBox.height + dy) - Math.min(finalBBox.y, canariasBBox.y + dy);
-
-            map.setAttribute('viewBox', `${Math.min(finalBBox.x, canariasBBox.x + dx)} ${Math.min(finalBBox.y, canariasBBox.y + dy)} ${adjustedWidth} ${adjustedHeight}`);
+            map.setAttribute('viewBox',`${finalBBox.x} ${finalBBox.y} ${finalBBox.width} ${finalBBox.height}`);
         }
 
         function hoverFeature(map, path) {
