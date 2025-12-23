@@ -38,7 +38,7 @@ function Header({menu}) {
           {/* LOGO */}
           <figure className="logo">
             <img src="/img/LogoAgora.png" alt="Logo" />
-            <h1>AGORA</h1>
+            <h1>Agora</h1>
           </figure>
 
           {/* HAMBURGUESA */}
