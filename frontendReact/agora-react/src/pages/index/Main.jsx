@@ -1,7 +1,42 @@
 import Particles from "../../components/Particles/Particles";
 import "./Main.css";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function Main() {
+  
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+
+  const handleLogin = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/login-cert", {
+        method: "GET",
+        credentials: "include", // para sesion
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Error al autenticar");
+        return;
+      }
+
+      const data = await res.json();
+      const role = data.roleId;
+
+      localStorage.setItem("userRole", role);
+
+      // Redirigo según rol
+      if (role === 1) navigate("/CRUDVotations");
+      if (role === 2) navigate("/Home");
+    } catch (err) {
+      setError("Error de conexión con el backend");
+    }
+  };
+
   return (
     <main className="index">
 
@@ -31,7 +66,8 @@ export default function Main() {
       <section className="section2">
         <h2>¿Listo para votar?</h2>
         <p>Ingrese su certificado digital</p>
-        <button type="button">INGRESAR</button>
+        <button type="button" onClick={handleLogin}>INGRESAR</button>
+        {error && <p style={{color: "red"}}>{error}</p>}
       </section>
     </main>
   );
