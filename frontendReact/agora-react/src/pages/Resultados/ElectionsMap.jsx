@@ -91,6 +91,7 @@ export default function ElectionsMap() {
             "Bizkaia": "País Vasco"
         };
 
+        let cachedViewBox = null; //Para calcular el viewbox solo una vez (como me dijiste Rojohn)
 
 
         //Funciones para colores
@@ -248,6 +249,7 @@ export default function ElectionsMap() {
 
                 //Esto lo utilizo para que cada provincia tenga su propio color que le corresponde y no el de la ccaa para todas
                 path.setAttribute('data-name', feature.properties.name);
+                path.setAttribute("vector-effect", "non-scaling-stroke"); //Se amplia porque reescala en base al tamaño del dispoitivo y por eso se ve más ancho
 
                 // Colores por nivel
                 if (feature.properties.name === "Africa Norte") {
@@ -269,7 +271,7 @@ export default function ElectionsMap() {
                     path.style.strokeWidth="1";
                 }
                 else if (currentLevel === "ccaa") {
-                    path.style.fill = ccaaColors[feature.properties.name] || "#ccc";
+                    path.style.fill = ccaaColors[feature.properties.name] || "#ccc";                  
                 }
                 else if (currentLevel === "province") {
                     const province = feature.properties.name;
@@ -314,10 +316,19 @@ export default function ElectionsMap() {
             if (hasCanarias) {
                 map.appendChild(canariasGroup);
             }
-
+            
+            const scaleFactor = svgWidth / 1000; //Viene de porcentajes para hacerlo % en pantallas mas pequeñas
+            
             // Marco solo para ccaa y province y nation
             if (hasCanarias && (currentLevel === "nation" || currentLevel === "ccaa" || currentLevel === "province")) {
-                const PADDING = 20;
+                const BASE_PADDING = 20;
+                const MIN_PADDING = 10;
+                const MAX_PADDING = 50;
+
+                // Lo hago de esta forma porque si solo utilizo una medida en pantallas pequeñas se pone diminuto y de esta forma le puedo decir hasta que medidas quiero que empequeñezca o engrandezca
+                let PADDING = BASE_PADDING * scaleFactor;
+                PADDING = Math.max(MIN_PADDING, Math.min(MAX_PADDING, PADDING));
+                
                 const bboxCanarias = canariasGroup.getBBox();
 
                 const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -328,17 +339,28 @@ export default function ElectionsMap() {
                 rect.setAttribute("fill", "none");
                 rect.setAttribute("stroke", "black");
                 rect.setAttribute("stroke-width", "2");
+                rect.setAttribute("vector-effect", "non-scaling-stroke"); //Se amplia porque reescala en base al tamaño del dispoitivo y por eso se ve más ancho
                 rect.setAttribute("rx", 16);
                 rect.setAttribute("ry", 16);
 
                 canariasGroup.insertBefore(rect, canariasGroup.firstChild);
             }
 
-            canariasGroup.setAttribute("transform", "translate(100, -650)"); //Esta mierda si funciona
+            const canariasOffset = {
+                x: 0 * scaleFactor,
+                y: -250 * scaleFactor
+            };
+
+            canariasGroup.setAttribute("transform", `translate(${canariasOffset.x}, ${canariasOffset.y})`); //Le paso el translate a Canarias con la variable del principio
             
             // Ajuste viewbox
-            const finalBBox = map.getBBox();
-            map.setAttribute('viewBox',`${finalBBox.x} ${finalBBox.y} ${finalBBox.width} ${finalBBox.height}`);
+            if (!viewBoxInitialized) {
+                const finalBBox = map.getBBox();
+                cachedViewBox = `${finalBBox.x - 20} ${finalBBox.y - 20} ${finalBBox.width + 40} ${finalBBox.height + 40}`;
+                viewBoxInitialized = true;
+            }
+            
+            map.setAttribute("viewBox", cachedViewBox);
         }
 
         function hoverFeature(map, path) {
@@ -413,6 +435,7 @@ export default function ElectionsMap() {
             )
         );
 
+        let viewBoxInitialized = false;
         changeLevel(currentLevel);
     }, []);
 
