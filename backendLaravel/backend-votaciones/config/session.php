@@ -200,6 +200,7 @@ return [
     */
 
     'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    'secure' => env('SESSION_SECURE_COOKIE', false), // false en local, true en producción
 
     /*
     |--------------------------------------------------------------------------
