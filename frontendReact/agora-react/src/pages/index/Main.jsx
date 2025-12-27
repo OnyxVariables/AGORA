@@ -67,7 +67,7 @@ export default function Main() {
         <h2>¿Listo para votar?</h2>
         <p>Ingrese su certificado digital</p>
         <button type="button" onClick={handleLogin}>INGRESAR</button>
-        {error && <p style={{color: "red"}}>{error}</p>}
+        {error && <p style={{color: "red", marginTop:"1em"}}>{error}</p>}
       </section>
     </main>
   );

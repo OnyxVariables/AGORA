@@ -2,16 +2,32 @@ import { useState } from "react";
 import "./Main.css";
 import { TarjetIcon, AddressIcon, FingerIcon } from "../../icons";
 import Particles from "../../components/Particles/Particles";
+import { useEffect } from "react";
 
 function Main() {
-  const [nickname, setNickname] = useState("Sin nickname");
+  const [user, setUser] = useState(null);
+  const [nickname, setNickname] = useState("");
   const [input, setInput] = useState("");
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    fetch("http://localhost:8000/api/me", {
+      credentials: "include",
+    })
+      .then(res => res.json())
+      .then(data => {
+        setUser(data);
+        setNickname(data.nickname || "Sin nickname");
+      });
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setNickname(input);
     setInput("");
+    //Rojohn, aquí guardarás el nickname, lo mandarás a la BBDD, comprubas que es unique y en teoría se mostrará abajo en Nickname: (lo que sea)
   };
+
+  if (!user) return null;
 
   return (
     <div className="layout-usuario">
@@ -34,10 +50,10 @@ function Main() {
         <section className="tarjeta">
           <h2>Datos del Usuario</h2>
           <div className="info">
-            <p><span>Nombre:</span> Oliver</p>
-            <p><span>Apellidos:</span> Gamboa Mesa</p>
-            <p><span>DNI:</span> 123456789Y</p>
-            <p><span>Nickname: </span><span id="nicknameMostrado">{nickname}</span></p>
+            <p><span>Nombre:</span> {user.nombre}</p>
+            <p><span>Apellidos:</span> {user.apellidos}</p>
+            <p><span>DNI:</span> {user.dni}</p>
+            <p><span>Nickname: </span><span id="nicknameMostrado"> {nickname}</span></p>
             <TarjetIcon />
           </div>
         </section>
@@ -45,10 +61,10 @@ function Main() {
         <section className="tarjeta">
           <h2>Datos de Empadronamiento</h2>
           <div className="info">
-            <p><span>Municipio:</span> Marbella</p>
-            <p><span>Provincia:</span> Málaga</p>
-            <p><span>Comunidad autónoma: </span>Andalucía</p>
-            <p><span>Nación: </span>España</p>
+            <p><span>Municipio:</span> {user.municipio}</p>
+            <p><span>Provincia:</span> {user.provincia}</p>
+            <p><span>Comunidad autónoma:</span> {user.comunidad}</p>
+            <p><span>Nación:</span> {user.nacion}</p>
             <AddressIcon />
           </div>
         </section>
