@@ -6,3 +6,4 @@ export { default as HomeIcon } from "./HomeIcon";
 export { default as TarjetIcon } from "./TarjetIcon";
 export { default as AddressIcon } from "./AddressIcon";
 export { default as FingerIcon } from "./FingerIcon";
+export { default as MetricsIcon } from "./MetricsIcon";
