@@ -14,6 +14,13 @@ class User extends Authenticatable
     protected $fillable = [
         'dni',
         'name',
-        'roleId'
+        'municipalityId',
+        'isActive',
+        'nicknamePassword'
     ];
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class, 'municipalityId');
+    }
 }
