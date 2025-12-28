@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS municipality (
     name VARCHAR(100),
 
     UNIQUE(ineId, provinceId),
-    CONSTRAINT FK_MUNICIPALITY_provinceId FOREIGN KEY(provinceId) REFERENCES province(id)
+    CONSTRAINT FK_MUNICIPALITY_provinceId FOREIGN KEY(provinceId) REFERENCES province(ineId)
 );
