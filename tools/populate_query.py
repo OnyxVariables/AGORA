@@ -172,5 +172,5 @@ query += populate_municipality(municipalities) + "\n"
 
 query += populate_user(len(municipalities)) + "\n"
 
-with open('insert.sql', "w") as f:
+with open('insert.sql', "w", encoding="utf8") as f:
     f.write(query)
