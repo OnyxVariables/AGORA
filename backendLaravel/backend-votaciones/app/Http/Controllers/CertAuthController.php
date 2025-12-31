@@ -34,8 +34,8 @@ class CertAuthController extends Controller
 
         } else {
             // DESARROLLO LOCAL
-            $dni = '44207678'; // citizen
-            //$dni = '34388281'; // admin
+            //$dni = '60840966D'; // citizen
+            $dni = '38660052L'; // admin
         }
 
         $user = User::where('dni', $dni)
