@@ -1,0 +1,50 @@
+.mainError {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+.error {
+    display: flex;
+    align-items: center;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.error article {
+    flex: 1;
+}
+
+.errorMessage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2em;
+    border: 3px solid black;
+    padding: 1em;
+    border-radius: 1em;
+    box-shadow: 10px 10px 2px #8c00dd20;
+    transition: all 0.35s ease;
+}
+
+.errorMessage:hover {
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+.errorImg img{
+    width: 100%;
+    object-fit: cover;
+}
+
+@media (max-width: 1270px){
+    .error{
+        flex-direction: column;
+    }
+
+    .error article{
+        flex:0;
+        margin-top:3em;
+    }
+}

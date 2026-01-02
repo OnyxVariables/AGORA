@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: votations
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  php:
+    build: ./docker/php
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+
+  apache:
+    build: ./docker/apache
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./backend:/var/www/html
+      - ./frontend/dist:/var/www/frontend
+      - ./docker/certs:/etc/apache2/certs
+      - ./docker/apache/vhost-ssl.conf:/etc/apache2/sites-available/vhost-ssl.conf
+    networks:
+      - app-network
+    expose:
+      - "8443" 
+    depends_on:
+      - php
+    environment:
+      - CERT_AUTH=true
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
