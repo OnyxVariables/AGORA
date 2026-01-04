@@ -67,6 +67,7 @@ def get_autonomous_communities(url):
     return autonomousCommunities
 
 
+province_id_map = {}
 def get_provinces(url, fields):
     data = get_data(url)
     dataLength = len(data)
@@ -76,14 +77,18 @@ def get_provinces(url, fields):
         kv[field["provinceId"]] = field["autonomousCommunityId"]
 
     provinces = []
+    auto_id = 1
     for i in range(0, dataLength, 2):
-        id = int(data[i].get_text(strip = True))
+        ine_id = int(data[i].get_text(strip = True))
+        province_id_map[ine_id] = auto_id
         provinces.append({
-            "id": id,
-            "autonomousCommunityId": int(kv[id]),
+            "id": auto_id,
+            "ineId": ine_id,
+            "autonomousCommunityId": int(kv[ine_id]),
             "name": data[i + 1].get_text(strip = True),
         })
-    
+        auto_id += 1
+
     return provinces
 
     
@@ -101,7 +106,7 @@ def populate_autonomous_community(autonomousCommunities):
 def populate_province(provinces):
     query = "INSERT INTO province(ineId, autonomousCommunityId, name) VALUES\n"
     for province in provinces:
-        query += f"({province["id"]},{province["autonomousCommunityId"]},\"{province["name"]}\"),\n"
+        query += f"({province["ineId"]},{province["autonomousCommunityId"]},\"{province["name"]}\"),\n"
 
     query = query[:query.rfind(',')]
     query += ";"
@@ -159,7 +164,7 @@ query += populate_province(provinces) + "\n"
 municipalities = [
     {
         "id": field["municipalityId"],
-        "provinceId": field["provinceId"],
+        "provinceId": province_id_map[field["provinceId"]],
         "name": field["municipalityName"],
     } for field in fields
 ]
@@ -167,5 +172,5 @@ query += populate_municipality(municipalities) + "\n"
 
 query += populate_user(len(municipalities)) + "\n"
 
-with open('insert.sql', "w") as f:
+with open('insert.sql', "w", encoding="utf8") as f:
     f.write(query)
