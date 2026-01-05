@@ -1,4 +1,4 @@
-import {UserIcon, VoteIcon, ResultsIcon, LogoutIcon, HomeIcon, MetricsIcon} from "../icons";
+import { UserIcon, VoteIcon, ResultsIcon, LogoutIcon, HomeIcon, MetricsIcon, CRUDVotationIcon } from "../icons";
 
 //Logica que controla la navegacion / botones / svg
 export const NAV_ITEMS = {
@@ -36,9 +36,7 @@ export const NAV_ITEMS = {
   ],
 
   metrics: [
-    { to: "/home", label: "INICIO", icon: HomeIcon }, //Este lo haces tú para que entiendas la logica que he usado
-    { to: "/perfil", label: "NICKNAME", icon: UserIcon },
-    { to: "/votar", label: "VOTAR", icon: VoteIcon },
+    { to: "/crudvotations", label: "CRUDVOTACIONES", icon: CRUDVotationIcon },
     { to: "/", label: "SALIR", icon: LogoutIcon },
   ],
 };
