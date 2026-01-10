@@ -6,7 +6,7 @@ export default function Table({ id, headings, rows }) {
       <thead>
         <tr>
           {headings && headings.map((col) => (
-            <th className="cell cell-header" key={col}>{col}</th>
+            <th className="cell cell-header" key={col}>{col.toUpperCase()}</th>
           ))}
         </tr>
       </thead>
