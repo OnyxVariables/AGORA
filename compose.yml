@@ -56,14 +56,14 @@ services:
       dockerfile: ./docker/nginx/Dockerfile
     depends_on:
       - backend
-    environment:
-      - CERT_AUTH=false
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - frontend_data:/var/www/frontend
       - backend_data:/var/www/html
+      - ./nginx/certs:/etc/nginx/certs
+      - ./nginx/default.conf:/etc/nginx/default.conf
       #- certbot_data:/var/www/certbot
       #- letsencrypt_data:/etc/letsencrypt
     networks:
