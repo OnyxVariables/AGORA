@@ -10,7 +10,7 @@ export default function Main() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("https://localhost/api/login-cert", {
+      const res = await fetch("https://newagora.es/api/login-cert", {
         method: "GET",
         credentials: "include", // para sesion
         headers: {
