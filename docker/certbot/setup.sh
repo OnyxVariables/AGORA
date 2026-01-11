@@ -1,9 +1,9 @@
 #!/bin/sh
 
-DOMAINS="-d newagora.es"
-EMAILS="newagora@gmail.com"
+DOMAINS="-d agorachain.es"
+EMAILS="agorachain@gmail.com"
 
-if [ ! -d "/etc/letsencrypt/live/newagora.es" ]; then
+if [ ! -d "/etc/letsencrypt/live/agorachain.es" ]; then
 	certbot certonly \
 		--webroot \
 		--webroot-path=/var/www/certbot \

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DOMAIN="newagora.es"
+DOMAIN="agorachain.es"
 SSL_DIR="/etc/ssl/"
 
 mkdir -p $SSL_DIR
