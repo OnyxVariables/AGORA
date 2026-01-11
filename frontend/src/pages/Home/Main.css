@@ -1,0 +1,148 @@
+.home:first-of-type {
+    width: 90%;
+    margin: 40px auto;
+    gap: 25px;
+    display: grid;
+    padding-top: 7em;
+}
+
+.home {
+    width: 90%;
+    margin: 40px auto;
+}
+
+.main-partidos {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* articles */
+.partido {
+    display: flex;
+    align-items: stretch;
+    border-radius: 1em;
+    overflow: hidden;
+    border: 3px solid #00000096;
+    box-shadow: 10px 10px 2px #8c00dd20;
+}
+
+.home article > div {
+    flex: 2;
+    border-right: 2px solid black;
+}
+
+.home article figure {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    padding: 1em;
+    overflow: hidden; /* evita desbordes */
+}
+
+.partido figure img {
+    width: 70%;
+    height: auto;
+    object-fit: contain; /* evita que una imagen haga más grande un article */
+}
+
+.partido h2 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.pp figure img{
+    width: 100%;
+}
+
+.partido h2 {
+    color: white;
+    padding: 0.5em;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.partido p {
+    padding: 1em;
+    border-top: 2px solid black;
+}
+
+/* Detalles perfectos con hover */
+.home article, .home article figure img {
+    transition: all 0.35s ease;
+}
+
+.home article:hover {
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+article figure img:hover {
+    transform: scale(1.08);
+}
+
+
+/* RESPONSIVE */
+/* Tablets y pantallas medianas */
+@media (max-width: 900px) {
+    .home:first-of-type{
+        padding-top: 5em;
+    }
+
+    /* Articles más proporcionales */
+    .partido h2 {
+        font-size: 1.6rem;
+    }
+
+    .home article > div {
+        width: 60%;
+    }
+
+    .home article figure {
+        width: 40%;
+    }
+}
+
+/* Móviles */
+@media (max-width: 780px) {
+    /* Articles: de 2 columnas a 1 columna */
+    .partido {
+        flex-direction: column;
+    }
+
+    .home article > div {
+        flex: none;
+    }
+
+    .home article > div,
+    .home article figure {
+        width: 100%;
+    }
+
+    .home article figure {
+        flex-grow: 1;
+    }
+
+    .home article figure img {
+        width: 70%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .partido p{
+        border-bottom: 2px solid black;
+    }
+
+    .home article > div {
+        border-right: none;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 380px) {
+    .partido h2 {
+        font-size: 1.4rem;
+    }
+}

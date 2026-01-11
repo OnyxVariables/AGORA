@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS role(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(30) NOT NULL
+);
+
+INSERT INTO role(name) VALUES
+("admin"),
+("citizen");

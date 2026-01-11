@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS votation(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    startBlockHash VARCHAR(130) NOT NULL,
+    endBlockHash VARCHAR(130) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    startDate DATETIME NOT NULL DEFAULT CURRENT_DATE,
+    endDate DATETIME,
+    state ENUM('active', 'finished', 'pending') NOT NULL,
+
+    CONSTRAINT FK_VOTATION_startBlockHash FOREIGN KEY(startBlockHash) REFERENCES block(hash),
+    CONSTRAINT FK_VOTATION_endBlockHash FOREIGN KEY(endBlockHash) REFERENCES block(hash)
+);
