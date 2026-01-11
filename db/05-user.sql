@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS user(
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    nicknamePassword VARCHAR(130),
+    roleId INT NOT NULL,
+    registerDate DATETIME NOT NULL DEFAULT CURRENT_DATE,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+    dni VARCHAR(30) NOT NULL,
+    municipalityId INT NOT NULL,
+
+    CONSTRAINT FK_USER_roleId FOREIGN KEY(roleId) REFERENCES role(id),
+    CONSTRAINT FK_USER_municipalityId FOREIGN KEY(municipalityId) REFERENCES municipality(id)
+);

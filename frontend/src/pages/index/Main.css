@@ -1,0 +1,179 @@
+@font-face {
+  font-family: 'FontsTitle';
+  src: url('/fonts/FontsTitle.ttf') format('truetype');
+}
+
+/* Fondo a pantalla completa */
+.index {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.index::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color:black;
+    z-index: -1;
+}
+
+/* Sección 1 (logo + título) */
+.index .section1 figure {
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+    margin-bottom: 2em;
+}
+
+.index .section1 img {
+    width: 15%;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+    object-fit: contain;
+}
+
+.index .section1 h1 {
+    font-size: 15rem;
+    text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+    font-weight: 700;
+    font-family: 'FontsTitle', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Sección 2 */
+.index .section2 {
+    text-align: center;
+    color: white;
+}
+
+.index .section2 h2 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+.index .section2 p {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+}
+
+/* Botón */
+.index .section2 button {
+    padding: 12px 40px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    border: 2px solid black;
+    border-radius: 1em;
+    background: rgba(255, 255, 255, 0.9);
+    color: #000000;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+}
+
+.index .section2 button:hover {
+    background: white;
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1632px) {
+  .index .section1 img{
+    width: 25%;
+  }
+}
+/* Tablet */
+@media (max-width: 1108px) {
+  .index .section1 img{
+    width: 25%;
+  }
+}
+
+@media (max-width: 900px) {
+  .index .section1 img{
+    width: 25%;
+  }
+
+  .index .section1 h1{
+    font-size: 8rem;
+  }
+}
+
+/* Moviles */
+@media (max-width: 724px) {
+  .index .section1 img{
+    width: 25%;
+  }
+  .index .section1 h1{
+    font-size: 6rem;
+  }
+
+  .index .section2 h2{
+    font-size: 2.3rem;
+  }
+  
+  .index .section2 p{
+    font-size: 1.5rem;
+  }
+
+  .index .section2 button{
+    font-size: 1.5rem;
+  }
+}
+
+/* Moviles pequeños */
+@media (max-width: 550px) {
+  .index .section1 img{
+    width: 30%;
+  }
+  .index .section1 h1{
+    font-size: 5rem;
+  } 
+
+  .index .section2 h2{
+    font-size: 2rem;
+  }
+
+  .index .section2 p{
+    font-size: 1.2rem;
+  }
+
+  .index .section2 button{
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 484px) {
+  .index .section1 img{
+    width: 30%;
+  }
+  .index .section1 h1{
+    font-size: 4rem;
+  } 
+   .index .section2 h2{
+    font-size: 1.5rem;
+  }
+  
+  .index .section2 p{
+    font-size: 1rem;
+  }
+
+  .index .section2 button{
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 396px) {
+  .index .section1 img{
+    width: 35%;
+  }
+  .index .section1 h1{
+    font-size: 3.5rem;
+  } 
+}

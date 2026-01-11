@@ -37,7 +37,7 @@ export default function App() {
 
   const fetchVotations = () => {
     setLoading(true);
-    fetch("http://localhost:8000/api/votations", {
+    fetch("/api/votations", {
       credentials: "include",
       headers: { "Accept": "application/json" },
     })
@@ -74,16 +74,16 @@ export default function App() {
     e.preventDefault();
 
     // Obtener la cookie CSRF (es lo de sacntum para autenticar o da fallo)
-    await fetch("http://localhost:8000/sanctum/csrf-cookie", {
+    await fetch("/sanctum/csrf-cookie", {
       credentials: "include",
     });
 
     const xsrfToken = document.cookie.split("; ").find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1];
-
-    const url = editId
-      ? `http://localhost:8000/api/votations/${editId}`
-      : "http://localhost:8000/api/votations";
-    const method = editId ? "PUT" : "POST";
+    
+    const url = editingId
+      ? `/api/votations/${editingId}`
+      : "/api/votations";
+    const method = editingId ? "PUT" : "POST";
 
     fetch(url, {
       method,
@@ -106,13 +106,13 @@ export default function App() {
   const handleDelete = async (id) => {
     if (!confirm("¿Eliminar esta votación?")) return;
 
-    await fetch("http://localhost:8000/sanctum/csrf-cookie", {
+    await fetch("/sanctum/csrf-cookie", {
       credentials: "include",
     });
 
     const xsrfToken = document.cookie.split("; ").find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1];
 
-    fetch(`http://localhost:8000/api/votations/${id}`, {
+    fetch(`/api/votations/${id}`, {
       method: "DELETE",
       credentials: "include",
       headers: {

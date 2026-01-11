@@ -1,0 +1,123 @@
+.layout-usuario{
+    display: flex;
+    flex-direction: column;
+    min-height: 73.5vh;
+}
+
+.contenedorUsuario {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2em;
+    margin-top: 9.5em;
+    flex: 1;
+}
+
+/* Tarjetas de datos */
+.contenedorUsuario .tarjeta {
+    background: #fff;
+    padding: 2em;
+    border-radius: 1em;
+    box-shadow: 10px 10px 2px #8c00dd20;
+    border:3px solid black;
+}
+
+span{
+    font-weight: bolder;
+}
+
+.contenedorUsuario .tarjeta:hover {
+    transform: translateY(-5px);
+    box-shadow: 12px 12px 12px #00000030;
+}
+
+.contenedorUsuario .tarjeta h2 {
+    color: #3d0091;
+    margin-bottom: 1em;
+    font-size: 1.3rem;
+    text-decoration: underline;
+}
+
+.contenedorUsuario .tarjeta .info p {
+    margin-bottom: 0.7em;
+    font-size: 0.95rem;
+}
+
+/* FORMULARIO */
+.contenedorUsuario .formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.contenedorUsuario .formulario h2 {
+    color: #3d0091;
+    margin-bottom: 1em;
+}
+
+.contenedorUsuario .formulario form {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.contenedorUsuario .formulario input {
+    padding: 0.8em 1em;
+    border: 1px solid #aaa;
+    border-radius: 0.5em;
+    font-size: 1rem;
+}
+
+.contenedorUsuario .formulario button {
+    background: #3d0091;
+    color: white;
+    padding: 0.8em;
+    border: none;
+    border-radius: 1em;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background .2s ease;
+}
+
+.contenedorUsuario .formulario button:hover {
+    background: #6b2ffb;
+    border:1px solid black
+}
+.contenedorUsuario svg{
+    margin-top: 0em;
+}
+
+/* Detalle perfectos */
+section {
+    transition: all 0.35s ease;
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 1152px) {
+    .contenedorUsuario .tarjeta:last-child {
+        grid-column: 1 / -1; /* ocupa todas las columnas, truco de LOLA 17/11/25 */
+    }
+
+    .contenedorUsuario svg {
+        width: 30%;
+        margin-top: 0;
+        margin:0 auto;
+    }
+}
+
+/* Tablets y pantallas medianas */
+@media (max-width: 900px) {
+    .contenedorUsuario{
+        margin-top: 8em;
+    }
+}
+
+/* MOVIL */
+@media (max-width: 761px) {
+    .contenedorUsuario svg {
+        display: none;
+    }
+}
