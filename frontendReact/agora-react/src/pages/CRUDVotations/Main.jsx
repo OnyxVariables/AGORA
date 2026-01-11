@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
 import "./Main.css";
-
-function ActionButtons({ votation, onEdit, onDelete }) {
-  return (
-    <div className="action-container">
-      <button className="btn edit" onClick={() => onEdit(votation)}>Editar</button>
-      <button className="btn delete" onClick={() => onDelete(votation.id)}>Eliminar</button>
-    </div>
-  );
-}
+import Table from "../../components/Table/Table";
+import Form from "../../components/Form/Form";
+import { ButtonCreate, ButtonEdit, ButtonDelete } from "../../components/Button/Button";
 
 export default function App() {
   const [votations, setVotations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState({});
-  const [editingId, setEditingId] = useState(null);
+  const [editId, setEditId] = useState(null);
 
   const emptyVotation = {
     title: "",
@@ -26,15 +20,16 @@ export default function App() {
   };
 
   const columnNames = {
-  id: "ID",
-  title: "TÍTULO",
-  description: "DESCRIPCIÓN",
-  startDate: "FECHA INICIO",
-  endDate: "FECHA FIN",
-  state: "ESTADO",
-  startBlockHash: "BLOQUE INICIO",
-  endBlockHash: "BLOQUE FIN",
-};
+    id: "ID",
+    title: "TÍTULO",
+    description: "DESCRIPCIÓN",
+    startDate: "FECHA INICIO",
+    endDate: "FECHA FIN",
+    state: "ESTADO",
+    startBlockHash: "BLOQUE INICIO",
+    endBlockHash: "BLOQUE FIN",
+    actions: "ACCIONES",
+  };
 
   useEffect(() => {
     fetchVotations();
@@ -59,8 +54,8 @@ export default function App() {
 
   const openCreateForm = () => {
     setFormData(emptyVotation);
-    setEditingId(null);
-    setShowForm(true);
+    setEditId(null);
+    setIsFormVisible(true);
   };
 
   const openEditForm = (votation) => {
@@ -71,8 +66,8 @@ export default function App() {
       endDate: votation.endDate ? votation.endDate.split("T")[0] : "",
       state: votation.state,
     });
-    setEditingId(votation.id);
-    setShowForm(true);
+    setEditId(votation.id);
+    setIsFormVisible(true);
   };
 
   const handleSubmit = async (e) => {
@@ -102,7 +97,7 @@ export default function App() {
     })
       .then((res) => res.json())
       .then(() => {
-        setShowForm(false);
+        setIsFormVisible(false);
         fetchVotations();
       })
       .catch((err) => console.error(err));
@@ -120,9 +115,9 @@ export default function App() {
     fetch(`/api/votations/${id}`, {
       method: "DELETE",
       credentials: "include",
-      headers: { 
+      headers: {
         Accept: "application/json",
-        "X-XSRF-TOKEN": decodeURIComponent(xsrfToken), 
+        "X-XSRF-TOKEN": decodeURIComponent(xsrfToken),
       },
     })
       .then(() => fetchVotations())
@@ -130,98 +125,53 @@ export default function App() {
   };
 
   if (loading) return <p>Cargando votaciones...</p>;
-  if (votations.length === 0 && !showForm)
+  if (votations.length === 0 && !isFormVisible)
     return (
       <main className="crudvotations">
         <section className="container">
+          <ButtonCreate onClick={openCreateForm}></ButtonCreate>
           <p>No hay votaciones creadas</p>
-          <button className="btn create" onClick={openCreateForm}>Crear</button>
         </section>
       </main>
     );
 
   const headers = votations[0] ? Object.keys(votations[0]) : [];
 
+  // Add action column
+  headers.push("actions");
+  const votationsWithActions = votations.map((votation) => ({
+    ...votation,
+    actions: (
+      <div className="action-container">
+        <ButtonEdit onClick={() => openEditForm(votation)} />
+        <ButtonDelete onClick={() => handleDelete(votation.id)} />
+      </div>
+    ),
+  }));
+
   return (
     <main className="crudvotations">
       <section className="container">
 
-        {showForm && (
-          <form className="form" onSubmit={handleSubmit}>
-            <input
-              placeholder="Título"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-            />
+        <ButtonCreate onClick={openCreateForm} />
 
-            <textarea
-              placeholder="Descripción"
-              value={formData.description || ""}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
-
-            <input
-              type="date"
-              value={formData.startDate}
-              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              required
-              min={!editingId ? new Date().toISOString().split("T")[0] : ""}
-            />
-
-            <input
-              type="date"
-              value={formData.endDate}
-              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-              min={formData.startDate} 
-            />
-
-            <select value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })}>
-              <option value="pending">Pending</option>
-              <option value="active">Active</option>
-              <option value="finished">Finished</option>
-            </select>
-
-            <div className="form-actions">
-              <button className="btn save">Guardar</button>
-              <button type="button" className="btn cancel" onClick={() => setShowForm(false)}>
-                Cancelar
-              </button>
-            </div>
-          </form>
+        {isFormVisible && (
+          <Form
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsFormVisible(false)}
+            editingId={editId}
+          />
         )}
 
         {votations.length > 0 && (
-          <table className="table">
-            <thead>
-              <tr>
-                {headers.map((header) => (
-                  <th key={header} className="cell cell-header">
-                    {columnNames[header] || header.toUpperCase()}
-                  </th>
-                ))}
-                <th className="cell cell-header">ACCIONES</th>
-              </tr>
-            </thead>
-            <tbody>
-              {votations.map((votation) => (
-                <tr key={votation.id} data-id={votation.id}>
-                  {headers.map((key) => (
-                    <td key={key} className="cell">{votation[key]}</td>
-                  ))}
-                  <td className="cell">
-                    <ActionButtons
-                      votation={votation}
-                      onEdit={openEditForm}
-                      onDelete={handleDelete}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <Table
+            id="crudvotations"
+            headings={headers.map((header) => columnNames[header])}
+            rows={votationsWithActions}
+          />
         )}
-        <button className="btn create" onClick={openCreateForm}>Crear</button>
       </section>
     </main>
   );
