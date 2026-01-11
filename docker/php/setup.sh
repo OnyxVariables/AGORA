@@ -30,5 +30,8 @@ php artisan migrate
 # To optimize Laravel
 php artisan config:clear
 php artisan route:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
 exec "$@"
