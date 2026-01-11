@@ -1,4 +1,4 @@
-import { UserIcon, VoteIcon, ResultsIcon, LogoutIcon, HomeIcon, MetricsIcon, CRUDVotationIcon } from "../icons";
+import { UserIcon, VoteIcon, ResultsIcon, LogoutIcon, HomeIcon, MetricsIcon, CRUDVotationIcon, ExportIcon } from "../icons";
 
 //Logica que controla la navegacion / botones / svg
 export const NAV_ITEMS = {
@@ -36,6 +36,7 @@ export const NAV_ITEMS = {
   ],
 
   metrics: [
+    { to: "/metrics", label: "EXPORTAR", icon: ExportIcon },
     { to: "/crudvotations", label: "CRUDVOTACIONES", icon: CRUDVotationIcon },
     { to: "/", label: "SALIR", icon: LogoutIcon },
   ],

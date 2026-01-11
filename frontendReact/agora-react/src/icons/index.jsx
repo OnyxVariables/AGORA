@@ -8,3 +8,4 @@ export { default as AddressIcon } from "./AddressIcon";
 export { default as FingerIcon } from "./FingerIcon";
 export { default as MetricsIcon } from "./MetricsIcon";
 export { default as CRUDVotationIcon } from "./CRUDVotationIcon";
+export { default as ExportIcon } from "./ExportIcon";
