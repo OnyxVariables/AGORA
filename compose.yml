@@ -17,6 +17,25 @@ services:
       - db_data:/var/lib/mysql
     restart: unless-stopped
 
+  db_generator:
+    container_name: agora_generator
+    build:
+      context: ./
+      dockerfile: ./docker/python/Dockerfile
+    environment:
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_CONNECTION: ${DB_CONNECTION:-mariadb}
+      DB_DATABASE: ${DB_DATABASE:-agora}
+      DB_USERNAME: ${DB_USER_NAME:-agorauser}
+      DB_PASSWORD: ${DB_USER_PASS:-agorapass}
+    depends_on:
+      - db
+    networks:
+      - agora
+    # After the build is done, we don't need the container anymore
+    restart: no
+
   backend:
     container_name: agora_backend
     build:
