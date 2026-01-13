@@ -1,3 +1,4 @@
 faker
 requests
 beautifulsoup4
+openpyxl
