@@ -20,9 +20,10 @@ def get_xlsx():
     if len(sys.argv) > 1:
         url = sys.argv[1]
 
-    requests.get(url, stream=True).raise_for_status()
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
     with open(zipFilename, "wb") as f:
-        for chunk in requests.get(url, stream=True).iter_content(chunk_size=8192):
+        for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
     
     with zipfile.ZipFile(zipFilename, 'r') as zip_ref:
@@ -116,7 +117,7 @@ def get_provinces(url, fields):
 
     
 def populate_autonomous_community(autonomousCommunities):
-    query = "INSERT INTO autonomousCommunity(id, name) VALUES\n"
+    query = "INSERT IGNORE INTO autonomousCommunity(id, name) VALUES\n"
     for autonomousCommunity in autonomousCommunities:
         query += f"({autonomousCommunity["id"]},\"{autonomousCommunity["name"]}\"),\n"
 
@@ -127,7 +128,7 @@ def populate_autonomous_community(autonomousCommunities):
 
 
 def populate_province(provinces):
-    query = "INSERT INTO province(ineId, autonomousCommunityId, name) VALUES\n"
+    query = "INSERT IGNORE INTO province(ineId, autonomousCommunityId, name) VALUES\n"
     for province in provinces:
         query += f"({province["ineId"]},{province["autonomousCommunityId"]},\"{province["name"]}\"),\n"
 
@@ -138,7 +139,7 @@ def populate_province(provinces):
 
 
 def populate_municipality(municipalities):
-    query = "INSERT INTO municipality(ineId, provinceId, name) VALUES\n"
+    query = "INSERT IGNORE INTO municipality(ineId, provinceId, name) VALUES\n"
     for municipality in municipalities:
         query += f"({municipality["id"]},{municipality["provinceId"]},\"{municipality["name"]}\"),\n"
 
