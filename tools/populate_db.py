@@ -33,7 +33,7 @@ def get_xlsx():
     
     for root, dirs, files in os.walk(EXTRACT_DIR):
         for file in files:
-            if file == "diccionario25.xlsx":
+            if re.match(r"diccionario[0-9]+.xlsx$", file):
                 return os.path.join(root, file)
 
     return None
