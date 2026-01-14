@@ -79,11 +79,11 @@ export default function App() {
     });
 
     const xsrfToken = document.cookie.split("; ").find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1];
-    
-    const url = editingId
-      ? `/api/votations/${editingId}`
+
+    const url = editId
+      ? `/api/votations/${editId}`
       : "/api/votations";
-    const method = editingId ? "PUT" : "POST";
+    const method = editId ? "PUT" : "POST";
 
     fetch(url, {
       method,
@@ -161,7 +161,7 @@ export default function App() {
             setFormData={setFormData}
             onSubmit={handleSubmit}
             onCancel={() => setIsFormVisible(false)}
-            editingId={editId}
+            editId={editId}
           />
         )}
 
