@@ -4,11 +4,37 @@ import { TarjetIcon, AddressIcon, FingerIcon } from "../../icons";
 import Particles from "../../components/Particles/Particles";
 import { useEffect } from "react";
 
+// TODO(srvariable): Refactor functions in another file
+function readXsrfToken() {
+  return decodeURIComponent(
+    document.cookie
+      .split("; ")
+      .find(row => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1]
+    ?? ""
+  );
+}
+
+async function getXsrfToken() {
+  // If we already have the token, return it, no need to fetch again
+  const xsrfToken = readXsrfToken();
+  if (xsrfToken) {
+    return xsrfToken;
+  }
+
+  await fetch("/sanctum/csrf-cookie", {
+    credentials: "include",
+  });
+
+  return readXsrfToken();;
+}
+
 function Main() {
   const [user, setUser] = useState(null);
   const [nickname, setNickname] = useState("");
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     fetch("/api/me", {
@@ -23,19 +49,15 @@ function Main() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (input.trim() === "") {
+      return;
+    }
 
     try {
-      await fetch("/sanctum/csrf-cookie", {
-        credentials: "include",
-      });
-
-      const xsrfToken = decodeURIComponent(
-        document.cookie
-          .split("; ")
-          .find(row => row.startsWith("XSRF-TOKEN="))
-          ?.split("=")[1] ?? ""
-      );
-
+      const xsrfToken = await getXsrfToken();
       if (!xsrfToken) {
         setError("No se pudo obtener el token CSRF");
         return;
@@ -51,13 +73,16 @@ function Main() {
         body: JSON.stringify({ nickname: input }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        setError("Error al guardar el nickname");
+        setError(data.error);
         return;
       }
 
       setNickname(input);
       setInput("");
+      setSuccess(data.message);
     } catch (err) {
       console.error(err);
       setError("Error de conexión con el backend");
@@ -113,7 +138,8 @@ function Main() {
             <button type="submit">Enviar</button>
             <FingerIcon />
           </form>
-          {error && <p style={{ color: "red", marginTop: "1em" }}>{error}</p>}
+          {error && (<p style={{ color: "red", marginTop: "1em" }}>{error}</p>)}
+          {success && (<p style={{ color: "green", marginTop: "1em" }}>{success}</p>)}
         </section>
 
       </main>
