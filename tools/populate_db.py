@@ -1,45 +1,69 @@
-from bs4 import BeautifulSoup
 from faker import Faker
+from openpyxl import load_workbook
+from bs4 import BeautifulSoup
 
 import requests
 import sys
 import re
 import random
+import zipfile
+import os
+import shutil
 
+# Folder to extract the ZIP file
+EXTRACT_DIR = "relacion_municipios"
 
-def get_csv():
-    if (len(sys.argv) < 2):
-        url = "https://www.ine.es/CDINEbase/consultar.do?mes=&operacion=Relaci%F3n+de+municipios+y+c%F3digos+por+provincias+y+comunidades+aut%F3nomas&id_oper=Ir"
-        print(f"Download the latest file from {url} and export 'diccionario*.xslx' to csv, then run: 'python3 {sys.argv[0]} <CSV file>'")
-        sys.exit(1)
+def get_xlsx():
+    zipFilename = "relacion_municipios.zip"
 
-    return sys.argv[1]
+    url = "https://www.ine.es/daco/inebase_mensual/febrero_2025/relacion_municipios.zip"
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
 
-
-def parse_csv(csvFilename):
-    entireFile = ""
-    with open(csvFilename, encoding="utf8") as f:
-        entireFile = f.read()
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    with open(zipFilename, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
     
-    lines = entireFile.split('\n')[2:]
+    with zipfile.ZipFile(zipFilename, 'r') as zip_ref:
+        zip_ref.extractall(EXTRACT_DIR)
+
+    os.remove(zipFilename)
+    
+    for root, dirs, files in os.walk(EXTRACT_DIR):
+        for file in files:
+            if re.match(r"diccionario[0-9]+.xlsx$", file):
+                return os.path.join(root, file)
+
+    return None
+
+
+def parse_xlsx(xlsxFilename):
+    wb = load_workbook(filename=xlsxFilename, read_only=True, data_only=True)
+
     fields = []
 
-    is_semicolon = lines[0].find(";") != -1 # CSV might be separated by semicolons instead of commas, depending on the app used to export the xlsx
-    for line in lines:
-        match = re.search(r"(\d*),(\d*),(\d*),\d*,(.*)", line)
-        if is_semicolon:
-            match = re.search(r"(\d*);(\d*);(\d*);\d*;(.*)", line)
+    for row in wb.active.iter_rows(min_row=3, values_only=True):
+        if row is None:
+            continue
 
-        if not match:
+        try:
+            autonomousCommunityId = int(row[0])
+            provinceId = int(row[1])
+            municipalityId = int(row[2])
+            municipalityName = str(row[4]).strip()
+        except (TypeError, ValueError, IndexError):
             continue
 
         fields.append({
-            "autonomousCommunityId": int(match.group(1)),
-            "provinceId": int(match.group(2)),
-            "municipalityId": int(match.group(3)),
-            "municipalityName": match.group(4).strip('"'),
+            "autonomousCommunityId": autonomousCommunityId,
+            "provinceId": provinceId,
+            "municipalityId": municipalityId,
+            "municipalityName": municipalityName,
         })
 
+    wb.close()
     return fields
 
 
@@ -93,7 +117,7 @@ def get_provinces(url, fields):
 
     
 def populate_autonomous_community(autonomousCommunities):
-    query = "INSERT INTO autonomousCommunity(id, name) VALUES\n"
+    query = "INSERT IGNORE INTO autonomousCommunity(id, name) VALUES\n"
     for autonomousCommunity in autonomousCommunities:
         query += f"({autonomousCommunity["id"]},\"{autonomousCommunity["name"]}\"),\n"
 
@@ -104,7 +128,7 @@ def populate_autonomous_community(autonomousCommunities):
 
 
 def populate_province(provinces):
-    query = "INSERT INTO province(ineId, autonomousCommunityId, name) VALUES\n"
+    query = "INSERT IGNORE INTO province(ineId, autonomousCommunityId, name) VALUES\n"
     for province in provinces:
         query += f"({province["ineId"]},{province["autonomousCommunityId"]},\"{province["name"]}\"),\n"
 
@@ -115,7 +139,7 @@ def populate_province(provinces):
 
 
 def populate_municipality(municipalities):
-    query = "INSERT INTO municipality(ineId, provinceId, name) VALUES\n"
+    query = "INSERT IGNORE INTO municipality(ineId, provinceId, name) VALUES\n"
     for municipality in municipalities:
         query += f"({municipality["id"]},{municipality["provinceId"]},\"{municipality["name"]}\"),\n"
 
@@ -152,8 +176,9 @@ def populate_user(numMunicipalities):
 
 query = ""
 
-csvFilename = get_csv()
-fields = parse_csv(csvFilename)
+xlsxFilename = get_xlsx()
+fields = parse_xlsx(xlsxFilename)
+shutil.rmtree(EXTRACT_DIR)
 
 autonomousCommunities = get_autonomous_communities("https://www.ine.es/daco/daco42/codmun/cod_ccaa.htm")
 query += populate_autonomous_community(autonomousCommunities) + "\n"
