@@ -8,10 +8,10 @@ RUN apk add --no-cache openssl
 #COPY ./docker/nginx/certs/privkey.pem /etc/letsencrypt/live/agorachain.es/privkey.pem
 
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY ./docker/nginx/setup.sh ./
-RUN chmod +x  ./setup.sh
+# COPY ./docker/nginx/setup.sh ./
+# RUN chmod +x  ./setup.sh
 
-ENTRYPOINT ["./setup.sh"]
+# ENTRYPOINT ["./setup.sh"]
 CMD ["nginx", "-g", "daemon off;"]
 
 EXPOSE 80 443
