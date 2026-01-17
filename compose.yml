@@ -64,29 +64,37 @@ services:
       - backend_data:/var/www/html
       - ./docker/nginx/certs:/etc/nginx/certs
       - ./docker/nginx/default.conf:/etc/nginx/default.conf
-      #- certbot_data:/var/www/certbot
-      #- letsencrypt_data:/etc/letsencrypt
+      - certbot_data:/var/www/certbot
+      - letsencrypt_data:/etc/letsencrypt
     networks:
       - agora
     restart: unless-stopped
 
   ## This will be useful when we have a domain, so we can generate certificates using Let's Encrypt
-  #certbot:
-  #  container_name: agora_certbot
-  #  build:
-  #    context: ./
-  #    dockerfile: ./docker/certbot/Dockerfile
-  #  volumes:
-  #    - certbot_data:/var/www/certbot
-  #  # This might be changed to `unless-stopped` if we renew certificates
-  #  restart: no
+  certbot:
+    container_name: agora_certbot
+    image: certbot/certbot:v5.2.2
+    volumes:
+      - certbot_data:/var/www/certbot
+      - letsencrypt_data:/etc/letsencrypt
+    command: >
+      certonly
+      --webroot
+      --webroot-path=/var/www/certbot
+      --email agorachain@gmail.com
+      --agree-tos
+      --no-eff-email
+      -d agorachain.es
+      -d www.agorachain.es
+    # This might be changed to `unless-stopped` if we renew certificates
+    # restart: no
 
 volumes:
   db_data:
   frontend_data:
   backend_data:
-  #certbot_data:
-  #letsencrypt_data:
+  certbot_data:
+  letsencrypt_data:
 
 networks:
   agora:
