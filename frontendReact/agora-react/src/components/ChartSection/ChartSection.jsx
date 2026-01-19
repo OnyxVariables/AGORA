@@ -33,7 +33,7 @@ function PieChart({ data }) {
 
   return (
     <div className="chart-container pie-chart">
-      <Pie key="pie-chart" data={data} options={options} />
+      <Pie data={data} options={options} />
     </div>
   );
 }
@@ -42,11 +42,39 @@ function BarChart({ data }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          generateLabels(chart) {
+            const dataset = chart.data.datasets[0];
+
+            return chart.data.labels.map((label, i) => ({
+              text: label,
+              fillStyle: dataset.backgroundColor[i],
+              strokeStyle: dataset.borderColor[i],
+              lineWidth: 1,
+              hidden: chart.getDataVisibility(i) === false,
+              i,
+            }));
+          },
+        },
+        onClick(e, legendItem, legend) {
+          const i = legendItem.i;
+          legend.chart.toggleDataVisibility(i);
+          legend.chart.update();
+        },
+      },
+    },
+    scales: {
+      x: {
+        display: false,
+      }
+    }
   };
 
   return (
     <div className="chart-container bar-chart">
-      <Bar key="bar-chart" data={data} options={options} />
+      <Bar data={data} options={options} />
     </div>
   );
 }
@@ -94,12 +122,9 @@ function LineChart({ labels, partidos, series }) {
     },
     scales: {
       x: {
-        title: {
-          display: true,
-          text: "Tiempo",
-        },
-      },
-    },
+        display: false,
+      }
+    }
   };
 
   return (
@@ -140,7 +165,7 @@ export default function ChartSection() {
     datasets: [
       {
         label: "Votos",
-        data: partidos.map(() => Math.floor(30000 + Math.random() * 20000)),
+        data: partidos.map(() => Math.floor(40000 + Math.random() * 20000)),
         backgroundColor: partidos.map(p => p.colorFondo),
         borderColor: partidos.map(p => p.colorTitulo),
         borderWidth: 1,
