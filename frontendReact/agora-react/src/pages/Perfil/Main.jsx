@@ -4,13 +4,40 @@ import { TarjetIcon, AddressIcon, FingerIcon } from "../../icons";
 import Particles from "../../components/Particles/Particles";
 import { useEffect } from "react";
 
+// TODO(srvariable): Refactor functions in another file
+function readXsrfToken() {
+  return decodeURIComponent(
+    document.cookie
+      .split("; ")
+      .find(row => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1]
+    ?? ""
+  );
+}
+
+async function getXsrfToken() {
+  // If we already have the token, return it, no need to fetch again
+  const xsrfToken = readXsrfToken();
+  if (xsrfToken) {
+    return xsrfToken;
+  }
+
+  await fetch("/sanctum/csrf-cookie", {
+    credentials: "include",
+  });
+
+  return readXsrfToken();;
+}
+
 function Main() {
   const [user, setUser] = useState(null);
   const [nickname, setNickname] = useState("");
   const [input, setInput] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/me", {
+    fetch("/api/me", {
       credentials: "include",
     })
       .then(res => res.json())
@@ -22,26 +49,61 @@ function Main() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setNickname(input);
-    setInput("");
-    //Rojohn, aquí guardarás el nickname, lo mandarás a la BBDD, comprubas que es unique y en teoría se mostrará abajo en Nickname: (lo que sea)
+    setError("");
+    setSuccess("");
+
+    if (input.trim() === "") {
+      return;
+    }
+
+    try {
+      const xsrfToken = await getXsrfToken();
+      if (!xsrfToken) {
+        setError("No se pudo obtener el token CSRF");
+        return;
+      }
+
+      const res = await fetch("/api/nickname", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": xsrfToken,
+        },
+        body: JSON.stringify({ nickname: input }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+
+      setNickname(input);
+      setInput("");
+      setSuccess(data.message);
+    } catch (err) {
+      console.error(err);
+      setError("Error de conexión con el backend");
+    }
   };
 
   if (!user) return null;
 
   return (
     <div className="layout-usuario">
-      
-      <div style={{ width: '100%', height: '100%', position: 'fixed', inset:0, zIndex:-1 }}>
+
+      <div style={{ width: '100%', height: '100%', position: 'fixed', inset: 0, zIndex: -1 }}>
         <Particles
-        particleColors={['#d4a0ff', '#a066ff', '#6a00d4']}
-        particleCount={20000}
-        particleSpread={10}
-        speed={0.1}
-        particleBaseSize={100}
-        moveParticlesOnHover={false}
-        alphaParticles={true}
-        disableRotation={true}
+          particleColors={['#d4a0ff', '#a066ff', '#6a00d4']}
+          particleCount={20000}
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={100}
+          moveParticlesOnHover={false}
+          alphaParticles={true}
+          disableRotation={true}
         />
       </div>
 
@@ -72,10 +134,12 @@ function Main() {
         <section className="tarjeta">
           <h2>Ponte un nickname</h2>
           <form className="formulario" onSubmit={handleSubmit}>
-            <input type="text" placeholder=" xxxxxxxx" value={input} onChange={(e) => setInput(e.target.value)}/>
+            <input type="text" placeholder=" xxxxxxxx" value={input} onChange={(e) => setInput(e.target.value)} />
             <button type="submit">Enviar</button>
             <FingerIcon />
           </form>
+          {error && (<p style={{ color: "red", marginTop: "1em" }}>{error}</p>)}
+          {success && (<p style={{ color: "green", marginTop: "1em" }}>{success}</p>)}
         </section>
 
       </main>
