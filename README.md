@@ -130,7 +130,7 @@ Agora se encuentra en **desarrollo activo**, con un enfoque académico-profesion
 ---
 
 ## 👤 Autor
-Proyecto desarrollado como parte de un trabajo técnico avanzado desarrollado por Oliver Gamboa Mesa y Rojohn Ibana Ibañares, con especial atención a la **seguridad, robustez y calidad del software**.
+Proyecto desarrollado por Oliver Gamboa Mesa y Rojohn Ibana Ibañares, con especial atención en la **seguridad, robustez y calidad del software**.
 
 ---
 
