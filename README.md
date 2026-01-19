@@ -6,7 +6,7 @@ El sistema combina **autenticación mediante certificado electrónico**, una **a
 
 ---
 
-## Objetivos del proyecto
+## 🎯 Objetivos del proyecto
 * Garantizar que **solo usuarios autenticados y válidos** puedan votar.
 * Asegurar que cada voto sea **íntegro, inmutable y verificable**.
 * Proteger la identidad del votante y cumplir con los principios de **seguridad y protección de datos**.
@@ -15,7 +15,7 @@ El sistema combina **autenticación mediante certificado electrónico**, una **a
 
 ---
 
-## Arquitectura general
+## 🏗️ Arquitectura general
 Agora está diseñado siguiendo una arquitectura distribuida y modular:
 
 * **Frontend**
@@ -88,7 +88,7 @@ Agora está preparado para crecer:
 
 ---
 
-## Tecnologías utilizadas
+## 🛠️ Tecnologías utilizadas
 * **Backend**: Java / Laravel
 * **Frontend**: HTML, CSS, JavaScript, Chart.js
 * **Blockchain**: Hyperledger Besu
@@ -98,7 +98,7 @@ Agora está preparado para crecer:
 
 ---
 
-## Estructura del proyecto (simplificada)
+## 📁 Estructura del proyecto (simplificada)
 
 ```
 agora/
@@ -114,7 +114,7 @@ agora/
 
 ---
 
-## Documentación
+## 📚 Documentación
 El proyecto incluirá documentación detallada sobre:
 * Instalación y despliegue.
 * Configuración de certificados electrónicos.
@@ -129,7 +129,7 @@ Agora se encuentra en **desarrollo activo**, con un enfoque académico-profesion
 
 ---
 
-## Autor
+## 👤 Autor
 Proyecto desarrollado como parte de un trabajo técnico avanzado desarrollado por Oliver Gamboa Mesa y Rojohn Ibana Ibañares, con especial atención a la **seguridad, robustez y calidad del software**.
 
 ---
