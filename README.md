@@ -1,4 +1,15 @@
-# AGORA
+<img align="left" src="frontend/img/LogoAgora.png" width="80" alt="Logo">
+
+<h1 align="center">AGORA</h1>
+<br clear="left"/>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/estado-en%20desarrollo-blue" />
+  <img src="https://img.shields.io/badge/seguridad-TLS%20%2B%20Certificado%20electr%C3%B3nico-green" />
+  <img src="https://img.shields.io/badge/blockchain-Hyperledger%20Besu-purple" />
+  <img src="https://img.shields.io/badge/infraestructura-Docker%20%2B%20Nginx-orange" />
+  <img src="https://img.shields.io/badge/enfoque-Administraci%C3%B3n%20P%C3%BAblica-black" />
+</p>
 
 ## Plataforma de votación digital segura y descentralizada
 Agora es un proyecto de votación electrónica diseñado con un enfoque **profesional, seguro y escalable**, orientado a entornos donde la **fiabilidad, la trazabilidad y la protección de datos** son requisitos críticos (administraciones públicas, instituciones educativas, organizaciones privadas o procesos internos de alto impacto).
