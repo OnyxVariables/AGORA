@@ -89,12 +89,14 @@ Agora está preparado para crecer:
 ---
 
 ## 🛠️ Tecnologías utilizadas
-* **Backend**: Java / Laravel
-* **Frontend**: HTML, CSS, JavaScript, Chart.js
-* **Blockchain**: Hyperledger Besu
-* **Base de datos**: MySQL / MariaDB
-* **Infraestructura**: Docker, Nginx, AWS
-* **Seguridad**: TLS, certificados electrónicos, SSL con let's encrypt
+| Área | Tecnología |
+|------|------------|
+| Frontend | React, HTML, CSS, JavaScript, Chart.js |
+| Backend | Java / Laravel |
+| Blockchain | Hyperledger Besu |
+| Base de datos | MySQL / MariaDB |
+| Infraestructura | Docker, Nginx, AWS |
+| Seguridad | TLS, Certificados electrónicos, SSL generado con let's encrypt |
 
 ---
 
