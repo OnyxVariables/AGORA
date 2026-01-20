@@ -22,18 +22,97 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend
+  Legend,
 );
 
 function PieChart({ data }) {
+  const customPieLabels = {
+    id: "agoraPluginPieLabels",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta) {
+        return;
+      }
+
+      const dataset = chart.data.datasets[0];
+      let totalVotes = 0;
+
+      meta.data.forEach((element, index) => {
+        if (!element.hidden) {
+          totalVotes += dataset.data[index];
+        }
+      });
+
+      meta.data.forEach((element, index) => {
+        if (element.hidden) {
+          return;
+        }
+
+        const partyVotes = dataset.data[index];
+        const percentage = (partyVotes / totalVotes * 100).toFixed(0);
+        if (percentage < 5) {
+          return;
+        }
+
+        const centerX = element.x;
+        const centerY = element.y;
+
+        const { startAngle, endAngle, outerRadius } = element;
+        const angle = (startAngle + endAngle) / 2;
+
+        const distanceFromCenter = 0.6;
+
+        const x = centerX + Math.cos(angle) * outerRadius * distanceFromCenter;
+        const y = centerY + Math.sin(angle) * outerRadius * distanceFromCenter;
+
+        ctx.save();
+        ctx.font = "0.8rem system-ui";
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "center";
+
+        ctx.fillText(`${percentage}%`, x, y);
+        ctx.restore();
+      });
+    }
+  };
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          generateLabels(chart) {
+            const dataset = chart.data.datasets[0];
+            const meta = chart.getDatasetMeta(0);
+
+            return chart.data.labels.map((label, i) => ({
+              text: label,
+              fillStyle: dataset.backgroundColor[i],
+              strokeStyle: dataset.borderColor[i],
+              lineWidth: 1,
+              hidden: meta.data[i].hidden || false,
+              index: i,
+            }));
+          },
+        },
+        onClick: (e, legendItem, legend) => {
+          const index = legendItem.index;
+          const chart = legend.chart;
+          const meta = chart.getDatasetMeta(0);
+
+          meta.data[index].hidden = !meta.data[index].hidden;
+
+          chart.update();
+        }
+      }
+    },
   };
 
   return (
     <div className="chart-container pie-chart">
-      <Pie data={data} options={options} />
+      <Pie data={data} options={options} plugins={[customPieLabels]} />
     </div>
   );
 }
