@@ -1,7 +1,7 @@
-<img align="left" src="frontend/img/LogoAgora.png" width="80" alt="Logo">
-
-<h1 align="center">AGORA</h1>
-<br clear="left"/>
+<div style="display: flex; align-items: center; gap: 10px;">
+  <img src="frontend/img/LogoAgora.png" alt="Logo" width="80">
+  <h1>AGORA</h1>
+</div>
 
 <p align="center">
   <img src="https://img.shields.io/badge/estado-en%20desarrollo-blue" />
