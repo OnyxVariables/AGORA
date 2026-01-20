@@ -4,7 +4,7 @@ import "./Main.css";
 import SectionContainer from "../../components/SectionContainer/SectionContainer";
 import Select from "../../components/Select/Select";
 import Table from "../../components/Table/Table";
-import Graph from "../../components/Graph/Graph";
+import ChartSection from "../../components/ChartSection/ChartSection";
 
 export default function Main() {
   const [votations, setVotations] = useState({});
@@ -47,7 +47,7 @@ export default function Main() {
           rows={votations.rows}
         />
       </SectionContainer>
-      <Graph />
+      <ChartSection />
       <SectionContainer>
         <Select id="blockId" label="Escoge un ID para ver métricas de los bloques:" />
         <Table
