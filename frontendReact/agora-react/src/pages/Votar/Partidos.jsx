@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
@@ -77,6 +77,60 @@ const partidos = [
 ]; //Si quisiera meter mas partidos los meto aqui
 
 function Partidos() {
+  const [selection, setSelection] = useState();
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const toggleSelection = (currentValue) => {
+    setSelection((previousValue) => (previousValue === currentValue ? null : currentValue));
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!selection) {
+      setError("Selecciona un partido antes de enviar tu voto.");
+      return;
+    }
+
+    try {
+      const xsrfToken = await getXsrfToken();
+      if (!xsrfToken) {
+        setError("No se pudo obtener el token CSRF");
+        return;
+      }
+
+      const res = await fetch("/api/vote", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": xsrfToken,
+        },
+        body: JSON.stringify({
+          vote: {
+            partyId: partidos.find(p => p.value === selection).id,
+            votationId: 1, // TODO(srvariable): Think about a way to know votationId dynamically
+          }
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+
+      setSuccess(data.message);
+    } catch (err) {
+      console.error(err);
+      setError("Error de conexión con el backend");
+    }
+  }
+
   return (
     <main className="background">
       {/* FONDO DE PARTICULAS */}
@@ -102,12 +156,18 @@ function Partidos() {
       </div>
       <div className="grid-partidos">
         {partidos.map((partido) => (
-          <PartidoCard key={partido.value} {...partido} />
+          <PartidoCard
+            key={partido.value}
+            {...partido}
+            isSelected={selection === partido.value}
+            onSelect={() => { toggleSelection(partido.value) }} />
         ))}
       </div>
       <div className="submit">
-        <button className="enviar">Enviar</button>
+        <button className="enviar" onClick={handleSubmit}>Enviar</button>
       </div>
+      {error && <p style={{ color: "red", marginTop: "1em" }}>{error}</p>}
+      {success && <p style={{ color: "green", marginTop: "1em" }}>{success}</p>}
     </main>
   );
 }

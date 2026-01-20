@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
 
-const Main = ({ nombre, value, colorFondo, colorTitulo, imagen }) => {
-  const [checked, setChecked] = useState(false);
-
-  const handleChange = () => setChecked(!checked);
-
+const Main = ({ nombre, value, colorFondo, colorTitulo, imagen, isSelected, onSelect }) => {
   return (
     <article className="card" style={{ background: colorFondo }}>
       <div className="info">
