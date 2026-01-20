@@ -70,24 +70,14 @@ services:
       - agora
     restart: unless-stopped
 
-  ## This will be useful when we have a domain, so we can generate certificates using Let's Encrypt
   certbot:
     container_name: agora_certbot
-    image: certbot/certbot:v5.2.2
+    build:
+      context: ./docker/certbot
     volumes:
       - certbot_data:/var/www/certbot
       - letsencrypt_data:/etc/letsencrypt
-    command: >
-      certonly
-      --webroot
-      --webroot-path=/var/www/certbot
-      --email agorachain@gmail.com
-      --agree-tos
-      --no-eff-email
-      -d agorachain.es
-      -d www.agorachain.es
-    # This might be changed to `unless-stopped` if we renew certificates
-    # restart: no
+    restart: unless-stopped
 
 volumes:
   db_data:
