@@ -5,9 +5,9 @@ import Footer from "../../components/Footer/Footer";
 function CRUDVotations() {
   return (
     <>
-        <Header menu="crudvotations"></Header>
-        <Main></Main>
-        <Footer></Footer>
+      <Header menu="crudvotations"></Header>
+      <Main></Main>
+      <Footer></Footer>
     </>
   );
 }

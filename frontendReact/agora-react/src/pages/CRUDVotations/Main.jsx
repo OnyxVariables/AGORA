@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import "./Main.css";
 import Table from "../../components/Table/Table";
 import Form from "../../components/Form/Form";
-import { ButtonCreate, ButtonEdit, ButtonDelete } from "../../components/Button/Button";
+import {
+  ButtonCreate,
+  ButtonEdit,
+  ButtonDelete,
+} from "../../components/Button/Button";
 
 export default function App() {
   const [votations, setVotations] = useState([]);
@@ -39,7 +43,7 @@ export default function App() {
     setLoading(true);
     fetch("/api/votations", {
       credentials: "include",
-      headers: { "Accept": "application/json" },
+      headers: { Accept: "application/json" },
     })
       .then((res) => res.json())
       .then((data) => {
@@ -78,11 +82,12 @@ export default function App() {
       credentials: "include",
     });
 
-    const xsrfToken = document.cookie.split("; ").find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1];
+    const xsrfToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1];
 
-    const url = editId
-      ? `/api/votations/${editId}`
-      : "/api/votations";
+    const url = editId ? `/api/votations/${editId}` : "/api/votations";
     const method = editId ? "PUT" : "POST";
 
     fetch(url, {
@@ -110,7 +115,10 @@ export default function App() {
       credentials: "include",
     });
 
-    const xsrfToken = document.cookie.split("; ").find((row) => row.startsWith("XSRF-TOKEN="))?.split("=")[1];
+    const xsrfToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1];
 
     fetch(`/api/votations/${id}`, {
       method: "DELETE",
@@ -152,7 +160,6 @@ export default function App() {
   return (
     <main className="crudvotations">
       <section className="container">
-
         <ButtonCreate onClick={openCreateForm} />
 
         {isFormVisible && (

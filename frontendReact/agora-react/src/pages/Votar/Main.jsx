@@ -11,7 +11,13 @@ const Main = ({ nombre, value, colorFondo, colorTitulo, imagen, isSelected, onSe
           <p>VOTAR: </p>
           <div className="votos">
             <label className="cyber-checkbox">
-              <input type="checkbox" name="partido" value={value} checked={isSelected} onChange={onSelect} />
+              <input
+                type="checkbox"
+                name="partido"
+                value={value}
+                checked={checked}
+                onChange={handleChange}
+              />
               <span className="cyber-checkbox__mark">
                 <div className="cyber-checkbox__box">
                   <svg className="cyber-checkbox__check" viewBox="0 0 12 10">

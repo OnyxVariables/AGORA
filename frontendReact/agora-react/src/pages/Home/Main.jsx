@@ -5,7 +5,8 @@ import "./Main.css";
 const partidos = [
   {
     nombre: "PP",
-    descripcion: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
+    descripcion:
+      "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
     img: "img/PartidoPopular.jpg",
     estilos: {
       fondo: "#5eadf8",
@@ -14,7 +15,8 @@ const partidos = [
   },
   {
     nombre: "PSOE",
-    descripcion: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
+    descripcion:
+      "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
     img: "img/PSOE.png",
     estilos: {
       fondo: "#fd7671",
@@ -23,7 +25,8 @@ const partidos = [
   },
   {
     nombre: "VOX",
-    descripcion: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
+    descripcion:
+      "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
     img: "img/VOX.png",
     estilos: {
       fondo: "#8cfa80",
@@ -32,7 +35,8 @@ const partidos = [
   },
   {
     nombre: "PODEMOS",
-    descripcion: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
+    descripcion:
+      "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
     img: "img/Podemos.png",
     estilos: {
       fondo: "#d57bfc",
@@ -41,7 +45,8 @@ const partidos = [
   },
   {
     nombre: "SUMAR",
-    descripcion: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
+    descripcion:
+      "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem? Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quas nesciunt cum nam. Odit in unde voluptatum voluptas magnam sapiente cupiditate exercitationem ab accusamus, quam optio vitae! Atque voluptatem ex autem?",
     img: "img/SUMAR.png",
     estilos: {
       fondo: "#fa7aa3",
@@ -53,18 +58,25 @@ const partidos = [
 function Main() {
   return (
     <main className="main-partidos">
-
       {/* FONDO PARTICLES */}
-      <div style={{ width: '100%', height: '100%', position: 'absolute', inset:0, zIndex:-1 }}>
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          inset: 0,
+          zIndex: -1,
+        }}
+      >
         <Particles
-        particleColors={['#d4a0ff', '#a066ff', '#6a00d4']}
-        particleCount={50000} //Queda bonito asi pero tarda un poco más en cargar
-        particleSpread={10}
-        speed={0.1}
-        particleBaseSize={100}
-        moveParticlesOnHover={false}
-        alphaParticles={true}
-        disableRotation={true}
+          particleColors={["#d4a0ff", "#a066ff", "#6a00d4"]}
+          particleCount={50000} //Queda bonito asi pero tarda un poco más en cargar
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={100}
+          moveParticlesOnHover={false}
+          alphaParticles={true}
+          disableRotation={true}
         />
       </div>
 
