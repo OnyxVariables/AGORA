@@ -3,9 +3,7 @@ function Partido({ nombre, descripcion, img, estilos }) {
     <main className="home">
       <article className="partido" style={{ background: estilos.fondo }}>
         <div>
-          <h2 style={{ background: estilos.titulo }}>
-            {nombre}
-          </h2>
+          <h2 style={{ background: estilos.titulo }}>{nombre}</h2>
           <p>{descripcion}</p>
         </div>
 

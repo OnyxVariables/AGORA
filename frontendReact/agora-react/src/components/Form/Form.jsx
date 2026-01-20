@@ -1,7 +1,13 @@
-import "./Form.css"
+import "./Form.css";
 import { ButtonSave, ButtonCancel } from "../Button/Button";
 
-export default function Form({ formData, setFormData, onSubmit, onCancel, ...props }) {
+export default function Form({
+  formData,
+  setFormData,
+  onSubmit,
+  onCancel,
+  ...props
+}) {
   return (
     <form className="form" onSubmit={onSubmit}>
       <input
@@ -14,13 +20,17 @@ export default function Form({ formData, setFormData, onSubmit, onCancel, ...pro
       <textarea
         placeholder="Descripción"
         value={formData.description || ""}
-        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        onChange={(e) =>
+          setFormData({ ...formData, description: e.target.value })
+        }
       />
 
       <input
         type="date"
         value={formData.startDate}
-        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+        onChange={(e) =>
+          setFormData({ ...formData, startDate: e.target.value })
+        }
         required
         min={!props.editingId ? new Date().toISOString().split("T")[0] : ""}
       />
@@ -32,7 +42,10 @@ export default function Form({ formData, setFormData, onSubmit, onCancel, ...pro
         min={formData.startDate}
       />
 
-      <select value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })}>
+      <select
+        value={formData.state}
+        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+      >
         <option value="pending">Pending</option>
         <option value="active">Active</option>
         <option value="finished">Finished</option>
@@ -43,5 +56,5 @@ export default function Form({ formData, setFormData, onSubmit, onCancel, ...pro
         <ButtonSave />
       </div>
     </form>
-  )
+  );
 }

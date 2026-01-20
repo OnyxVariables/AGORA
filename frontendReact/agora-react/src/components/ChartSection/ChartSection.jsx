@@ -50,7 +50,7 @@ function PieChart({ data }) {
         }
 
         const partyVotes = dataset.data[index];
-        const percentage = (partyVotes / totalVotes * 100).toFixed(0);
+        const percentage = ((partyVotes / totalVotes) * 100).toFixed(0);
         if (percentage < 5) {
           return;
         }
@@ -74,7 +74,7 @@ function PieChart({ data }) {
         ctx.fillText(`${percentage}%`, x, y);
         ctx.restore();
       });
-    }
+    },
   };
 
   const options = {
@@ -105,8 +105,8 @@ function PieChart({ data }) {
           meta.data[index].hidden = !meta.data[index].hidden;
 
           chart.update();
-        }
-      }
+        },
+      },
     },
   };
 
@@ -147,8 +147,8 @@ function BarChart({ data }) {
     scales: {
       x: {
         display: false,
-      }
-    }
+      },
+    },
   };
 
   return (
@@ -161,7 +161,7 @@ function BarChart({ data }) {
 function LineChart({ labels, partidos, series }) {
   const data = {
     labels,
-    datasets: partidos.map(p => ({
+    datasets: partidos.map((p) => ({
       label: p.nombre,
       data: series[p.value] ?? [],
       borderColor: p.colorFondo,
@@ -202,8 +202,8 @@ function LineChart({ labels, partidos, series }) {
     scales: {
       x: {
         display: false,
-      }
-    }
+      },
+    },
   };
 
   return (
@@ -221,44 +221,99 @@ function HeatChart({ data }) {
       reuse the map from /resultados and color the regions based on the data provided.
       But the map has to be componentized first, and it is out of scope right now. */}
     </div>
-  )
+  );
 }
 
 export default function ChartSection() {
   // NOTE(srvariable): Fake data for testing purposes
   const partidos = [
-    { nombre: "PP", value: "PP", colorFondo: "#5eadf8", colorTitulo: "#1d5ea8", imagen: "img/PP.jpg" },
-    { nombre: "PSOE", value: "PSOE", colorFondo: "#fd7671", colorTitulo: "#b3201e", imagen: "img/PSOE.png" },
-    { nombre: "PODEMOS", value: "PODEMOS", colorFondo: "#d57bfc", colorTitulo: "#6d2d8e", imagen: "img/Podemos.png" },
-    { nombre: "C’s", value: "CS", colorFondo: "#ffb347", colorTitulo: "#d97900", imagen: "img/Ciudadanos.png" },
-    { nombre: "VOX", value: "VOX", colorFondo: "#8cfa80", colorTitulo: "#4aa63b", imagen: "img/VOX.png" },
-    { nombre: "ehbildu", value: "ehbildu", colorFondo: "#00d0b3", colorTitulo: "#008b79ff", imagen: "img/ehbildu.png" },
-    { nombre: "compromís", value: "compromis", colorFondo: "#ef8518", colorTitulo: "#ad5700ff", imagen: "img/Compromís.png" },
-    { nombre: "CC", value: "cc", colorFondo: "#f3ff52ff", colorTitulo: "#a2aa33ff", imagen: "img/coalicionCanaria.png" },
-    { nombre: "junts", value: "junst", colorFondo: "#20c0b2", colorTitulo: "#158b82ff", imagen: "img/junts.png" },
-    { nombre: "Más Madrid", value: "madrid", colorFondo: "#54efa5", colorTitulo: "#3aac75ff", imagen: "img/masMadrid.png" },
+    {
+      nombre: "PP",
+      value: "PP",
+      colorFondo: "#5eadf8",
+      colorTitulo: "#1d5ea8",
+      imagen: "img/PP.jpg",
+    },
+    {
+      nombre: "PSOE",
+      value: "PSOE",
+      colorFondo: "#fd7671",
+      colorTitulo: "#b3201e",
+      imagen: "img/PSOE.png",
+    },
+    {
+      nombre: "PODEMOS",
+      value: "PODEMOS",
+      colorFondo: "#d57bfc",
+      colorTitulo: "#6d2d8e",
+      imagen: "img/Podemos.png",
+    },
+    {
+      nombre: "C’s",
+      value: "CS",
+      colorFondo: "#ffb347",
+      colorTitulo: "#d97900",
+      imagen: "img/Ciudadanos.png",
+    },
+    {
+      nombre: "VOX",
+      value: "VOX",
+      colorFondo: "#8cfa80",
+      colorTitulo: "#4aa63b",
+      imagen: "img/VOX.png",
+    },
+    {
+      nombre: "ehbildu",
+      value: "ehbildu",
+      colorFondo: "#00d0b3",
+      colorTitulo: "#008b79ff",
+      imagen: "img/ehbildu.png",
+    },
+    {
+      nombre: "compromís",
+      value: "compromis",
+      colorFondo: "#ef8518",
+      colorTitulo: "#ad5700ff",
+      imagen: "img/Compromís.png",
+    },
+    {
+      nombre: "CC",
+      value: "cc",
+      colorFondo: "#f3ff52ff",
+      colorTitulo: "#a2aa33ff",
+      imagen: "img/coalicionCanaria.png",
+    },
+    {
+      nombre: "junts",
+      value: "junst",
+      colorFondo: "#20c0b2",
+      colorTitulo: "#158b82ff",
+      imagen: "img/junts.png",
+    },
+    {
+      nombre: "Más Madrid",
+      value: "madrid",
+      colorFondo: "#54efa5",
+      colorTitulo: "#3aac75ff",
+      imagen: "img/masMadrid.png",
+    },
   ];
 
   const aggregatedData = {
-    labels: partidos.map(p => p.nombre),
+    labels: partidos.map((p) => p.nombre),
     datasets: [
       {
         label: "Votos",
         data: partidos.map(() => Math.floor(40000 + Math.random() * 20000)),
-        backgroundColor: partidos.map(p => p.colorFondo),
-        borderColor: partidos.map(p => p.colorTitulo),
+        backgroundColor: partidos.map((p) => p.colorFondo),
+        borderColor: partidos.map((p) => p.colorTitulo),
         borderWidth: 1,
       },
     ],
   };
 
   // For the line chart
-  const timeLabels = [
-    "01-01-2026",
-    "02-01-2026",
-    "03-01-2026",
-    "04-01-2026",
-  ];
+  const timeLabels = ["01-01-2026", "02-01-2026", "03-01-2026", "04-01-2026"];
   const timeSeriesData = {
     PP: [12000, 24000, 36000, aggregatedData.datasets[0].data[0]],
     PSOE: [10000, 18000, 26000, aggregatedData.datasets[0].data[1]],

@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function Main() {
-
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
@@ -39,11 +38,17 @@ export default function Main() {
 
   return (
     <main className="index">
-
       {/* FONDO DE PARTICULAS */}
-      <div style={{ width: '100%', height: '100vh', position: 'absolute', pointerEvents: "none" }}>
+      <div
+        style={{
+          width: "100%",
+          height: "100vh",
+          position: "absolute",
+          pointerEvents: "none",
+        }}
+      >
         <Particles
-          particleColors={['#d4a0ff', '#a066ff', '#6a00d4']}
+          particleColors={["#d4a0ff", "#a066ff", "#6a00d4"]}
           particleCount={10000}
           particleSpread={10}
           speed={0.1}
@@ -66,7 +71,9 @@ export default function Main() {
       <section className="section2">
         <h2>¿Listo para votar?</h2>
         <p>Ingrese su certificado digital</p>
-        <button type="button" onClick={handleLogin}>INGRESAR</button>
+        <button type="button" onClick={handleLogin}>
+          INGRESAR
+        </button>
         {error && <p style={{ color: "red", marginTop: "1em" }}>{error}</p>}
       </section>
     </main>

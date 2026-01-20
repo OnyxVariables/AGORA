@@ -12,10 +12,12 @@ import Metrics from "./pages/Metrics/Metrics";
 function App() {
   return (
     <Router>
-      <div className="app-background"> {/* Envuelvo todas las rutas en un contenedor para que les afecte el background */}
+      <div className="app-background">
+        {" "}
+        {/* Envuelvo todas las rutas en un contenedor para que les afecte el background */}
         <Routes>
           <Route path="/" element={<Index />} />
-          
+
           {/* Rutas ciudadano */}
           <Route element={<PrivateRoute roleRequired={2} />}>
             <Route path="/Home" element={<Home />} />
@@ -31,7 +33,7 @@ function App() {
           </Route>
 
           <Route path="/*" element={<Error404 />} />
-          </Routes>
+        </Routes>
       </div>
     </Router>
   );

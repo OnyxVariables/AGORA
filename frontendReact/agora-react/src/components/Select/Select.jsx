@@ -1,4 +1,4 @@
-import "./Select.css"
+import "./Select.css";
 
 export default function Select({ id, label }) {
   return (
@@ -10,5 +10,5 @@ export default function Select({ id, label }) {
         <option value="3">3</option>
       </select>
     </article>
-  )
+  );
 }
