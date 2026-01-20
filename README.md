@@ -1,7 +1,13 @@
-<div style="display: flex; align-items: center; gap: 10px;">
-  <img src="frontend/img/LogoAgora.png" alt="Logo" width="80">
-  <h1>AGORA</h1>
-</div>
+<table>
+  <tr>
+    <td>
+      <img src="frontend/img/LogoAgora.png" alt="Logo" width="80">
+    </td>
+    <td>
+      <h1>AGORA</h1>
+    </td>
+  </tr>
+</table>
 
 <p align="center">
   <img src="https://img.shields.io/badge/estado-en%20desarrollo-blue" />
