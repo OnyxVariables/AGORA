@@ -12,9 +12,11 @@ if [ ! -d "/etc/letsencrypt/live/agorachain.es" ]; then
         -d www.agorachain.es
 fi
 
-# Renovacion automatica
 echo "Iniciando renovación automática"
 while :; do
-    certbot renew --deploy-hook "nginx -s reload"
+    # En vez de intentar recargar nginx desde el contenedor certbot (no recarga nginx en otro contenedor),
+    # le pongo un marker en el volumen compartido que nginx vigila. Si no no funciona porque nginx no comparte la imagen
+    # y --deploy-hook falla
+    certbot renew --deploy-hook "touch /var/www/certbot/reload_nginx"
     sleep 12h
 done

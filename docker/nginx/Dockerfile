@@ -2,8 +2,13 @@ FROM nginx:1.28.1-alpine
 
 RUN apk add --no-cache openssl
 
-COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+# plantillas y script de arranque dentro de la imagen
+COPY ./docker/nginx/http.conf /docker_nginx/http.conf
+COPY ./docker/nginx/http_redirect.conf /docker_nginx/http_redirect.conf
+COPY ./docker/nginx/ssl.conf.template /docker_nginx/ssl.conf.template
+COPY ./docker/nginx/start.sh /start.sh
+RUN chmod +x /start.sh
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/start.sh"]
 
 EXPOSE 80 443

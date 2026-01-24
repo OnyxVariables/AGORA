@@ -81,7 +81,7 @@ services:
       - frontend_data:/var/www/frontend
       - backend_data:/var/www/html
       - ./docker/nginx/certs:/etc/nginx/certs
-      - ./docker/nginx/default.conf:/etc/nginx/default.conf
+      # - ./docker/nginx/default.conf:/etc/nginx/default.conf
       - certbot_data:/var/www/certbot
       - letsencrypt_data:/etc/letsencrypt
     networks:

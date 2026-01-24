@@ -5,55 +5,67 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CertAuthController extends Controller
 {
-    public function login(): JsonResponse
+    public function login(Request $request): JsonResponse
     {
-        //Para AWS
-        if (env('CERT_AUTH') === 'true') {
+        // Para AWS
+        // if (env('CERT_AUTH') === 'true') {
 
-            // Apache pasa los datos del certificado mediante headers
-            $sslVerified = $request->header('X-SSL-Verified');
-            $clientDN = $request->header('X-SSL-Client-S-DN');
+            $sslVerified = $request->server('SSL_CLIENT_VERIFY') ?? $request->header('X-SSL-Verified');
+            $dn = $request->server('SSL_CLIENT_S_DN') ?? $request->header('X-SSL-Client-S-DN');
 
-            if (
-                !isset($_SERVER['SSL_CLIENT_VERIFY']) ||
-                $_SERVER['SSL_CLIENT_VERIFY'] !== 'SUCCESS'
-            ) {
+            Log::info('CertAuth: incoming', ['SSL_CLIENT_VERIFY' => $sslVerified, 'SSL_CLIENT_S_DN' => $dn]);
+
+            if (!$sslVerified || $sslVerified !== 'SUCCESS') {
                 return response()->json(['error' => 'Certificado no válido'], 401);
             }
 
-            if (!isset($_SERVER['SSL_CLIENT_S_DN'])) {
+            if (empty($dn)) {
                 return response()->json(['error' => 'No se pudo leer el certificado'], 401);
             }
 
-            $dn = $_SERVER['SSL_CLIENT_S_DN'];
+        
+            $dni = null;
+            if (preg_match('/serialNumber=IDCES-([0-9]{7,8}[A-Za-z])/', $dn, $matches)) {
+                $dni = $matches[1];
+            } elseif (preg_match('/serialNumber=([^,\/]+)/', $dn, $matches)) {
+                $dni = $matches[1];
+            }
 
-            if (!preg_match('/serialNumber=([0-9]+)[A-Z]/', $dn, $matches)) {
+            if (!$dni) {
+                Log::warning('CertAuth: DNI no extraído', ['dn' => $dn]);
                 return response()->json(['error' => 'DNI no encontrado'], 401);
             }
 
-            $dni = $matches[1];
+            $dni = strtoupper(trim($dni));
 
-        } else {
-            // DESARROLLO LOCAL
-            //$dni = '60840966D'; // citizen
-            $dni = '38660052L'; // admin
-        }
+        // } else {
+        //     // DESARROLLO LOCAL: usa un dni de pruebas
+        //     //$dni = '60840966D'; // citizen
+        //     $dni = '38660052L'; // admin
+        //     Log::info('CertAuth: modo desarrollo. DNI usado', ['dni' => $dni]);
+        // }
 
-        $user = User::where('dni', $dni)
+       
+        $user = User::whereRaw('UPPER(dni) = ?', [strtoupper($dni)])
             ->where('isActive', 1)
             ->first();
 
         if (!$user) {
+            Log::notice('CertAuth: usuario no encontrado o inactivo', ['dni' => $dni]);
             return response()->json(['error' => 'Usuario no autorizado'], 403);
         }
 
-        //sesion Laravel
+        // sesion Laravel
         Auth::login($user);
 
-        //Esto va para React
+        Log::info('CertAuth: login OK', ['dni' => $dni, 'user_id' => $user->id ?? null]);
+
+        // Esto va para react
         return response()->json([
             'roleId' => $user->roleId,
             'dni'    => $user->dni,
