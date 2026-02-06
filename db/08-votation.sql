@@ -11,3 +11,7 @@ CREATE TABLE IF NOT EXISTS votation(
     CONSTRAINT FK_VOTATION_startBlockHash FOREIGN KEY(startBlockHash) REFERENCES block(hash),
     CONSTRAINT FK_VOTATION_endBlockHash FOREIGN KEY(endBlockHash) REFERENCES block(hash)
 );
+
+-- NOTE(srvariable): For testing purposes only
+INSERT INTO votation (startBlockHash, endBlockHash, title, description, state) VALUES
+('0000000000000000000a7b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w', '0000000000000000000a7b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w', 'Elecciones Generales 2024', 'Votación para las elecciones generales de 2024.', 'active');

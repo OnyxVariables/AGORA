@@ -1,6 +1,6 @@
 FROM certbot/certbot:v5.2.2
 
-COPY ./docker/certbot/setup.sh /setup.sh
-RUN chmod +x /setup.sh
+COPY start.sh /etc/certbot/start.sh
+RUN chmod +x /etc/certbot/start.sh
 
-ENTRYPOINT ["/setup.sh"]
+ENTRYPOINT ["/etc/certbot/start.sh"]

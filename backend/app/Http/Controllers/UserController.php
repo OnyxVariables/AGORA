@@ -35,4 +35,33 @@ class UserController extends Controller
             'nacion' => 'España',
         ] , 200, [], JSON_UNESCAPED_UNICODE); //Para forzar utf-8 sin escape cuando devuelve el json
     }
+
+    public function setNickname(Request $request)
+    {
+        $request->validate([
+            'nickname' => 'required|string|max:130',
+        ]);
+
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+
+        // Check if the nickname already exists for another user
+        $existingUser = User::where('nicknamePassword', $request->input('nickname'))
+            ->where('id', '!=', $user->id)
+            ->first();
+        if ($existingUser) {
+            return response()->json([
+                'error' => 'El nickname ya está en uso'
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $user->nicknamePassword = $request->input('nickname');
+        $user->save();
+
+        return response()->json([
+            'message' => 'Nickname actualizado correctamente'
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
 }

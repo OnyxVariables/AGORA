@@ -23,4 +23,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Municipality::class, 'municipalityId');
     }
+
+    public function setInactive()
+    {
+        $this->isActive = false;
+        $this->save();
+    }
 }
