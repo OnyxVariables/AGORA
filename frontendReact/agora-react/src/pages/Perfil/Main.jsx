@@ -36,7 +36,7 @@ function Main() {
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/me", {
+    fetch("/api/me", {
       credentials: "include",
     })
       .then((res) => res.json())
