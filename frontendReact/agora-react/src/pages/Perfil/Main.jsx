@@ -3,6 +3,7 @@ import "./Main.css";
 import { TarjetIcon, AddressIcon, FingerIcon } from "../../icons";
 import Particles from "../../components/Particles/Particles";
 import { useEffect } from "react";
+import { popupError, toastSuccess } from "../../services/alerts";
 
 // TODO(srvariable): Refactor functions in another file
 function readXsrfToken() {
@@ -22,7 +23,7 @@ async function getXsrfToken() {
     return xsrfToken;
   }
 
-  await fetch("/sanctum/csrf-cookie", {
+  await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
     credentials: "include",
   });
 
@@ -37,7 +38,7 @@ function Main() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    fetch("/api/me", {
+    fetch("http://127.0.0.1:8000/api/me", {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -59,11 +60,11 @@ function Main() {
     try {
       const xsrfToken = await getXsrfToken();
       if (!xsrfToken) {
-        setError("No se pudo obtener el token CSRF");
+        popupError("No se pudo obtener el token CSRF");
         return;
       }
 
-      const res = await fetch("/api/nickname", {
+      const res = await fetch("http://127.0.0.1:8000/api/nickname", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -76,16 +77,16 @@ function Main() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error);
+        popupError(data.error);
         return;
       }
 
       setNickname(input);
       setInput("");
-      setSuccess(data.message);
+      toastSuccess(data.message);
     } catch (err) {
       console.error(err);
-      setError("Error de conexión con el backend");
+      popupError("Servicio no disponible");
     }
   };
 
@@ -166,8 +167,6 @@ function Main() {
             <button type="submit">Enviar</button>
             <FingerIcon />
           </form>
-          {error && (<p style={{ color: "red", marginTop: "1em" }}>{error}</p>)}
-          {success && (<p style={{ color: "green", marginTop: "1em" }}>{success}</p>)}
         </section>
       </main>
     </div>
