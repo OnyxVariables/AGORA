@@ -23,7 +23,7 @@ async function getXsrfToken() {
     return xsrfToken;
   }
 
-  await fetch("http://127.0.0.1:8000/sanctum/csrf-cookie", {
+  await fetch("/sanctum/csrf-cookie", {
     credentials: "include",
   });
 
@@ -34,8 +34,6 @@ function Main() {
   const [user, setUser] = useState(null);
   const [nickname, setNickname] = useState("");
   const [input, setInput] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/me", {
@@ -50,8 +48,6 @@ function Main() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     if (input.trim() === "") {
       return;
@@ -64,7 +60,7 @@ function Main() {
         return;
       }
 
-      const res = await fetch("http://127.0.0.1:8000/api/nickname", {
+      const res = await fetch("/api/nickname", {
         method: "POST",
         credentials: "include",
         headers: {
