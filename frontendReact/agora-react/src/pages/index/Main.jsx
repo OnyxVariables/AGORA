@@ -1,15 +1,35 @@
 import Particles from "../../components/Particles/Particles";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import Swal from "sweetalert2";
 
 export default function Main() {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  
+  const Toast = Swal.mixin({
+    toast: true,
+    showConfirmButton: false,
+    position: 'bottom-end',
+    timer: 2000,
+    timerProgressBar: true,
+    width: '200px',
+    padding: '0.5em',
+  });
+  
+  const Popup = Swal.mixin({
+    toast: false,
+    confirmButtonColor: "#3d0091",
+    allowOutsideClick: true,
+    allowEscapeKey: true,
+    customClass: {
+      popup: 'custom-popup',
+      container: "custom-backdrop"
+    }
+  });
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("https://agorachain.es/api/login-cert", {
+      const res = await fetch("http://127.0.0.1:8000/api/login-cert", {
         method: "GET",
         credentials: "include", // para sesion
         headers: {
@@ -17,22 +37,41 @@ export default function Main() {
         },
       });
 
+      //Error respuesta mala
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Error al autenticar");
+        Popup.fire({
+          title: "Acceso denegado",
+          icon: "error"
+        });
         return;
       }
 
       const data = await res.json();
       const role = data.roleId;
 
+      //Error si role  no es 1 o 2 (para contemplar todos los casos)
+      if (!role || (role !== 1 && role !== 2)) {
+        Popup.fire({
+          title: "No se ha podido verificar el acceso",
+          icon: "error"
+        });
+        return;
+      }
       localStorage.setItem("userRole", role);
+
+      await Toast.fire({
+        icon: "success",
+        title: "Acceso verificado",
+      });
 
       // Redirigo según rol
       if (role === 1) navigate("/CRUDVotations");
       if (role === 2) navigate("/Home");
     } catch (err) {
-      setError("Error de conexión con el backend");
+      Popup.fire({
+        title: "Servicio no disponible",
+        icon: "error"
+      });
     }
   };
 
@@ -74,7 +113,6 @@ export default function Main() {
         <button type="button" onClick={handleLogin}>
           INGRESAR
         </button>
-        {error && <p style={{ color: "red", marginTop: "1em" }}>{error}</p>}
       </section>
     </main>
   );
