@@ -1,0 +1,14 @@
+.custom-popup.swal2-popup {
+  width: 400px;
+}
+
+.custom-backdrop.swal2-container {
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 600px) {
+  .custom-popup.swal2-popup {
+    font-size: 0.8rem;
+    padding: 1em;
+  }
+}

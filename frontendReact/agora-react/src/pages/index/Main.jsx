@@ -1,31 +1,10 @@
 import Particles from "../../components/Particles/Particles";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import { popupError, toastSuccess } from "../../services/alerts";
 
 export default function Main() {
   const navigate = useNavigate();
-  
-  const Toast = Swal.mixin({
-    toast: true,
-    showConfirmButton: false,
-    position: 'bottom-end',
-    timer: 2000,
-    timerProgressBar: true,
-    width: '200px',
-    padding: '0.5em',
-  });
-  
-  const Popup = Swal.mixin({
-    toast: false,
-    confirmButtonColor: "#3d0091",
-    allowOutsideClick: true,
-    allowEscapeKey: true,
-    customClass: {
-      popup: 'custom-popup',
-      container: "custom-backdrop"
-    }
-  });
 
   const handleLogin = async () => {
     try {
@@ -39,10 +18,7 @@ export default function Main() {
 
       //Error respuesta mala
       if (!res.ok) {
-        Popup.fire({
-          title: "Acceso denegado",
-          icon: "error"
-        });
+        popupError("Acceso denegado");
         return;
       }
 
@@ -51,27 +27,18 @@ export default function Main() {
 
       //Error si role  no es 1 o 2 (para contemplar todos los casos)
       if (!role || (role !== 1 && role !== 2)) {
-        Popup.fire({
-          title: "No se ha podido verificar el acceso",
-          icon: "error"
-        });
+        popupError("No se ha podido verificar el acceso");
         return;
       }
       localStorage.setItem("userRole", role);
 
-      await Toast.fire({
-        icon: "success",
-        title: "Acceso verificado",
-      });
+      await toastSuccess("Acceso verificado");
 
       // Redirigo según rol
       if (role === 1) navigate("/CRUDVotations");
       if (role === 2) navigate("/Home");
     } catch (err) {
-      Popup.fire({
-        title: "Servicio no disponible",
-        icon: "error"
-      });
+      popupError("Servicio no disponible");
     }
   };
 
