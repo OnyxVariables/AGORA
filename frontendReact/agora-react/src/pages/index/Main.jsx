@@ -8,7 +8,7 @@ export default function Main() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/login-cert", {
+      const res = await fetch("https://agorachain.es/api/login-cert", {
         method: "GET",
         credentials: "include", // para sesion
         headers: {
