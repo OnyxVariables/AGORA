@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./services/alerts.css";
 import PrivateRoute from "./components/PrivateRoute/PrivateRoute";
 import Index from "./pages/index/index";
 import Home from "./pages/Home/Home";
