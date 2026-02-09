@@ -95,7 +95,8 @@ function Partidos() {
     try {
       const xsrfToken = await getXsrfToken();
       if (!xsrfToken) {
-        popupError("No se pudo obtener el token CSRF");
+        popupError("No se pudo actualizar el nickname");
+        console.log("No se pudo obtener el token CSRF");
         return;
       }
 
