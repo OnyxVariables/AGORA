@@ -32,7 +32,7 @@ export default function Main() {
       }
       localStorage.setItem("userRole", role);
 
-      await toastSuccess("Acceso verificado");
+      toastSuccess("Acceso verificado");
 
       // Redirigo según rol
       if (role === 1) navigate("/CRUDVotations");
