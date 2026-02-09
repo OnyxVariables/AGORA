@@ -1,11 +1,10 @@
 import Particles from "../../components/Particles/Particles";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { popupError, toastSuccess } from "../../services/alerts";
 
 export default function Main() {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     try {
@@ -17,22 +16,29 @@ export default function Main() {
         },
       });
 
+      //Error respuesta mala
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Error al autenticar");
+        popupError("Acceso denegado");
         return;
       }
 
       const data = await res.json();
       const role = data.roleId;
 
+      //Error si role  no es 1 o 2 (para contemplar todos los casos)
+      if (!role || (role !== 1 && role !== 2)) {
+        popupError("No se ha podido verificar el acceso");
+        return;
+      }
       localStorage.setItem("userRole", role);
+
+      toastSuccess("Acceso verificado");
 
       // Redirigo según rol
       if (role === 1) navigate("/CRUDVotations");
       if (role === 2) navigate("/Home");
     } catch (err) {
-      setError("Error de conexión con el backend");
+      popupError("Servicio no disponible");
     }
   };
 
@@ -74,7 +80,6 @@ export default function Main() {
         <button type="button" onClick={handleLogin}>
           INGRESAR
         </button>
-        {error && <p style={{ color: "red", marginTop: "1em" }}>{error}</p>}
       </section>
     </main>
   );

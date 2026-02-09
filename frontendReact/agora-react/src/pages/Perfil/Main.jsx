@@ -3,6 +3,7 @@ import "./Main.css";
 import { TarjetIcon, AddressIcon, FingerIcon } from "../../icons";
 import Particles from "../../components/Particles/Particles";
 import { useEffect } from "react";
+import { popupError, toastSuccess } from "../../services/alerts";
 
 // TODO(srvariable): Refactor functions in another file
 function readXsrfToken() {
@@ -33,8 +34,6 @@ function Main() {
   const [user, setUser] = useState(null);
   const [nickname, setNickname] = useState("");
   const [input, setInput] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     fetch("/api/me", {
@@ -49,8 +48,6 @@ function Main() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     if (input.trim() === "") {
       return;
@@ -59,7 +56,8 @@ function Main() {
     try {
       const xsrfToken = await getXsrfToken();
       if (!xsrfToken) {
-        setError("No se pudo obtener el token CSRF");
+        popupError("No se pudo actualizar el nickname");
+        console.log("No se pudo obtener el token CSRF");
         return;
       }
 
@@ -76,16 +74,16 @@ function Main() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error);
+        popupError(data.error);
         return;
       }
 
       setNickname(input);
       setInput("");
-      setSuccess(data.message);
+      toastSuccess(data.message);
     } catch (err) {
       console.error(err);
-      setError("Error de conexión con el backend");
+      popupError("Servicio no disponible");
     }
   };
 
@@ -166,8 +164,6 @@ function Main() {
             <button type="submit">Enviar</button>
             <FingerIcon />
           </form>
-          {error && (<p style={{ color: "red", marginTop: "1em" }}>{error}</p>)}
-          {success && (<p style={{ color: "green", marginTop: "1em" }}>{success}</p>)}
         </section>
       </main>
     </div>

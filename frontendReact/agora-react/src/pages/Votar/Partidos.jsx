@@ -2,6 +2,7 @@ import { useState } from "react";
 import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
+import { popupError, toastSuccess } from "../../services/alerts";
 
 const partidos = [
   {
@@ -78,8 +79,6 @@ const partidos = [
 
 function Partidos() {
   const [selection, setSelection] = useState();
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const toggleSelection = (currentValue) => {
     setSelection((previousValue) => (previousValue === currentValue ? null : currentValue));
@@ -87,18 +86,17 @@ function Partidos() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     if (!selection) {
-      setError("Selecciona un partido antes de enviar tu voto.");
+      popupError("Selecciona un partido para votar");
       return;
     }
 
     try {
       const xsrfToken = await getXsrfToken();
       if (!xsrfToken) {
-        setError("No se pudo obtener el token CSRF");
+        popupError("No se pudo actualizar el nickname");
+        console.log("No se pudo obtener el token CSRF");
         return;
       }
 
@@ -120,14 +118,14 @@ function Partidos() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error);
+        popupError(data.error);
         return;
       }
 
-      setSuccess(data.message);
+      toastSuccess(data.message);
     } catch (err) {
       console.error(err);
-      setError("Error de conexión con el backend");
+      popupError("Servicio no disponible");
     }
   }
 
@@ -166,8 +164,6 @@ function Partidos() {
       <div className="submit">
         <button className="enviar" onClick={handleSubmit}>Enviar</button>
       </div>
-      {error && <p style={{ color: "red", marginTop: "1em" }}>{error}</p>}
-      {success && <p style={{ color: "green", marginTop: "1em" }}>{success}</p>}
     </main>
   );
 }
