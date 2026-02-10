@@ -7,6 +7,31 @@ import {
   ButtonEdit,
   ButtonDelete,
 } from "../../components/Button/Button";
+import { popupError } from "../../services/alerts";
+
+// TODO(srvariable): Refactor functions in another file
+function readXsrfToken() {
+  return decodeURIComponent(
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1] ?? "",
+  );
+}
+
+async function getXsrfToken() {
+  // If we already have the token, return it, no need to fetch again
+  const xsrfToken = readXsrfToken();
+  if (xsrfToken) {
+    return xsrfToken;
+  }
+
+  await fetch("/api/sanctum/csrf-cookie", {
+    credentials: "include",
+  });
+
+  return readXsrfToken();
+}
 
 export default function App() {
   const [votations, setVotations] = useState([]);
@@ -77,15 +102,12 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Obtener la cookie CSRF (es lo de sacntum para autenticar o da fallo)
-    await fetch("/sanctum/csrf-cookie", {
-      credentials: "include",
-    });
-
-    const xsrfToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1];
+    const xsrfToken = await getXsrfToken();
+    if (!xsrfToken) {
+      popupError("No se pudo realizar la votación");
+      console.log("No se pudo obtener el token CSRF");
+      return;
+    }
 
     const url = editId ? `/api/votations/${editId}` : "/api/votations";
     const method = editId ? "PUT" : "POST";
@@ -111,14 +133,12 @@ export default function App() {
   const handleDelete = async (id) => {
     if (!confirm("¿Eliminar esta votación?")) return;
 
-    await fetch("/sanctum/csrf-cookie", {
-      credentials: "include",
-    });
-
-    const xsrfToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1];
+    const xsrfToken = await getXsrfToken();
+    if (!xsrfToken) {
+      popupError("No se pudo eliminar la votación");
+      console.log("No se pudo obtener el token CSRF");
+      return;
+    }
 
     fetch(`/api/votations/${id}`, {
       method: "DELETE",

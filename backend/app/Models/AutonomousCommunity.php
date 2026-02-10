@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class AutonomousCommunity extends Model
 {
-    protected $table = 'autonomouscommunity';
+    protected $table = 'autonomousCommunity';
     public $timestamps = false;
 }
