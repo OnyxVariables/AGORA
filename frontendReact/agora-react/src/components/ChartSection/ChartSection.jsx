@@ -25,7 +25,7 @@ ChartJS.register(
   Legend,
 );
 
-function PieChart({ data }) {
+export function PieChart({ data }) {
   const customPieLabels = {
     id: "agoraPluginPieLabels",
     afterDatasetsDraw(chart) {
@@ -117,7 +117,7 @@ function PieChart({ data }) {
   );
 }
 
-function BarChart({ data }) {
+export function BarChart({ data }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -158,7 +158,7 @@ function BarChart({ data }) {
   );
 }
 
-function LineChart({ labels, partidos, series }) {
+export function LineChart({ labels, partidos, series }) {
   const data = {
     labels,
     datasets: partidos.map((p) => ({
@@ -213,7 +213,7 @@ function LineChart({ labels, partidos, series }) {
   );
 }
 
-function HeatChart({ data }) {
+export function HeatChart({ data }) {
   return (
     <div className="chart-container heat-chart">
       TODO
