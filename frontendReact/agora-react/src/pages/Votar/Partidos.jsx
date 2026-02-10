@@ -4,8 +4,33 @@ import "./Main.css";
 import Particles from "../../components/Particles/Particles";
 import { popupError, toastSuccess } from "../../services/alerts";
 
+// TODO(srvariable): Refactor functions in another file
+function readXsrfToken() {
+  return decodeURIComponent(
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1] ?? "",
+  );
+}
+
+async function getXsrfToken() {
+  // If we already have the token, return it, no need to fetch again
+  const xsrfToken = readXsrfToken();
+  if (xsrfToken) {
+    return xsrfToken;
+  }
+
+  await fetch("/api/sanctum/csrf-cookie", {
+    credentials: "include",
+  });
+
+  return readXsrfToken();
+}
+
 const partidos = [
   {
+    id: 1,
     nombre: "PP",
     value: "PP",
     colorFondo: "#5eadf8",
@@ -13,6 +38,7 @@ const partidos = [
     imagen: "img/PP.jpg",
   },
   {
+    id: 2,
     nombre: "PSOE",
     value: "PSOE",
     colorFondo: "#fd7671",
@@ -20,6 +46,7 @@ const partidos = [
     imagen: "img/PSOE.png",
   },
   {
+    id: 3,
     nombre: "PODEMOS",
     value: "PODEMOS",
     colorFondo: "#d57bfc",
@@ -27,6 +54,7 @@ const partidos = [
     imagen: "img/Podemos.png",
   },
   {
+    id: 4,
     nombre: "C’s",
     value: "CS",
     colorFondo: "#ffb347",
@@ -34,6 +62,7 @@ const partidos = [
     imagen: "img/Ciudadanos.png",
   },
   {
+    id: 5,
     nombre: "VOX",
     value: "VOX",
     colorFondo: "#8cfa80",
@@ -41,6 +70,7 @@ const partidos = [
     imagen: "img/VOX.png",
   },
   {
+    id: 6,
     nombre: "ehbildu",
     value: "ehbildu",
     colorFondo: "#00d0b3",
@@ -48,6 +78,7 @@ const partidos = [
     imagen: "img/ehbildu.png",
   },
   {
+    id: 7,
     nombre: "compromís",
     value: "compromis",
     colorFondo: "#ef8518",
@@ -55,6 +86,7 @@ const partidos = [
     imagen: "img/Compromís.png",
   },
   {
+    id: 8,
     nombre: "CC",
     value: "cc",
     colorFondo: "#f3ff52ff",
@@ -62,6 +94,7 @@ const partidos = [
     imagen: "img/coalicionCanaria.png",
   },
   {
+    id: 9,
     nombre: "junts",
     value: "junst",
     colorFondo: "#20c0b2",
@@ -69,6 +102,7 @@ const partidos = [
     imagen: "img/junts.png",
   },
   {
+    id: 10,
     nombre: "Más Madrid",
     value: "madrid",
     colorFondo: "#54efa5",
@@ -81,8 +115,10 @@ function Partidos() {
   const [selection, setSelection] = useState();
 
   const toggleSelection = (currentValue) => {
-    setSelection((previousValue) => (previousValue === currentValue ? null : currentValue));
-  }
+    setSelection((previousValue) =>
+      previousValue === currentValue ? null : currentValue,
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,9 +145,9 @@ function Partidos() {
         },
         body: JSON.stringify({
           vote: {
-            partyId: partidos.find(p => p.value === selection).id,
+            partyId: partidos.find((p) => p.value === selection).id,
             votationId: 1, // TODO(srvariable): Think about a way to know votationId dynamically
-          }
+          },
         }),
       });
 
@@ -127,7 +163,7 @@ function Partidos() {
       console.error(err);
       popupError("Servicio no disponible");
     }
-  }
+  };
 
   return (
     <main className="background">
@@ -158,11 +194,16 @@ function Partidos() {
             key={partido.value}
             {...partido}
             isSelected={selection === partido.value}
-            onSelect={() => { toggleSelection(partido.value) }} />
+            onSelect={() => {
+              toggleSelection(partido.value);
+            }}
+          />
         ))}
       </div>
       <div className="submit">
-        <button className="enviar" onClick={handleSubmit}>Enviar</button>
+        <button className="enviar" onClick={handleSubmit}>
+          Enviar
+        </button>
       </div>
     </main>
   );

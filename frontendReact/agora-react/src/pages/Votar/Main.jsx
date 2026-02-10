@@ -2,7 +2,15 @@ import React, { useState } from "react";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
 
-const Main = ({ nombre, value, colorFondo, colorTitulo, imagen, isSelected, onSelect }) => {
+const Main = ({
+  nombre,
+  value,
+  colorFondo,
+  colorTitulo,
+  imagen,
+  isSelected,
+  onSelect,
+}) => {
   return (
     <article className="card" style={{ background: colorFondo }}>
       <div className="info">
@@ -15,8 +23,8 @@ const Main = ({ nombre, value, colorFondo, colorTitulo, imagen, isSelected, onSe
                 type="checkbox"
                 name="partido"
                 value={value}
-                checked={checked}
-                onChange={handleChange}
+                checked={isSelected}
+                onChange={onSelect}
               />
               <span className="cyber-checkbox__mark">
                 <div className="cyber-checkbox__box">
