@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
-import "./ElectionsMap.css";
+
 import Particles from "../../components/Particles/Particles";
+import {
+  BarChart,
+  HeatChart,
+  LineChart,
+  PieChart,
+} from "../../components/ChartSection/ChartSection";
+
+import "./ElectionsMap.css";
 
 export default function ElectionsMap() {
   const [selectedName, setSelectedName] = useState("");
@@ -607,14 +615,14 @@ export default function ElectionsMap() {
         setSeatsAssigned(tempDataPerProvince[name]?.seats || 0);
       }
 
-      // Scroll to the dialog
-      const dialog = document.querySelector(".dialog");
-      if (dialog) {
-        const offset = 20;
-        const scrollY =
-          dialog.getBoundingClientRect().bottom + offset - window.innerHeight;
-        window.scrollBy({ top: scrollY, behavior: "smooth" });
-      }
+      //// Scroll to the dialog
+      //const dialog = document.querySelector(".dialog");
+      //if (dialog) {
+      //  const offset = 20;
+      //  const scrollY =
+      //    dialog.getBoundingClientRect().bottom + offset - window.innerHeight;
+      //  window.scrollBy({ top: scrollY, behavior: "smooth" });
+      //}
     }
 
     async function changeLevel(level) {
@@ -709,22 +717,74 @@ export default function ElectionsMap() {
 
       {showDialog && (
         <dialog className="dialog" open>
-          <h3>Información de {selectedName}</h3>
-          <p>
-            <span style={{ fontWeight: "bold" }}>Número de votos:</span>{" "}
-            {totalVotes}
-          </p>
-          <p>
-            <span style={{ fontWeight: "bold" }}>Escaños asignados:</span>{" "}
-            {seatsAssigned}
-          </p>
-          {/* TODO(srvariable): Add more info */}
-          <button
-            className="dialog__button"
-            onClick={() => setShowDialog(false)}
-          >
-            Cerrar
-          </button>
+          <div className="dialog-content">
+            <span className="cerrar" onClick={() => setShowDialog(false)}>
+              X
+            </span>
+            <div className="info">
+              <h3>Información de {selectedName}</h3>
+              <p>
+                <span style={{ fontWeight: "bold" }}>Número de votos:</span>{" "}
+                {totalVotes}
+              </p>
+              <p>
+                <span style={{ fontWeight: "bold" }}>Escaños asignados:</span>{" "}
+                {seatsAssigned}
+              </p>
+              {/* TODO(srvariable): Add more info */}
+            </div>
+            <div className="chart-section">
+              <PieChart
+                data={{
+                  labels: ["foo", "bar"],
+                  datasets: [
+                    {
+                      label: "Escaños",
+                      data: [20000, 11000],
+                      backgroundColor: ["#aaffaa", "#ffffaa"],
+                      borderColor: ["#aaffaa", "#ffffaa"],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+              />
+              <BarChart
+                data={{
+                  labels: ["foo", "bar"],
+                  datasets: [
+                    {
+                      label: "Escaños",
+                      data: [20000, 11000],
+                      backgroundColor: ["#aaffaa", "#ffffaa"],
+                      borderColor: ["#aaffaa", "#ffffaa"],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+              />
+              <LineChart
+                labels={["01-01-2026", "02-01-2026", "03-01-2026"]}
+                partidos={[
+                  {
+                    nombre: "foo",
+                    value: "foo",
+                    colorFondo: "#aaffaa",
+                    colorTitulo: "#aaffaa",
+                  },
+                  {
+                    nombre: "bar",
+                    value: "bar",
+                    colorFondo: "#ffffaa",
+                    colorTitulo: "#ffffaa",
+                  },
+                ]}
+                series={{
+                  foo: [30, 150, 5280],
+                  bar: [120, 1800, 2800],
+                }}
+              />
+            </div>
+          </div>
         </dialog>
       )}
     </main>

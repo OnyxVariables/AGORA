@@ -4,6 +4,7 @@
     width: 95%;
     margin: 0 auto;
     margin-bottom: 3em;
+    position: relative;
 }
 
 /* section 1 */
@@ -134,26 +135,68 @@
 
 /* Dialog */
 .dialog {
+    position: fixed;
+    z-index: 1000000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);  /* borroso */
+    -webkit-backdrop-filter: blur(3px); /* para Safari */
+    padding-bottom: 10em;
+    margin-bottom: 10em;
+}
+
+.dialog-content {
+    background: white;
+    width: 90%;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    max-height: 90vh; /* límite de altura */
+    overflow-y: auto; /* scroll si es necesario */
+    animation: aparecer 0.3s ease;
+    margin-top: 9em;
+    height: 80vh;
     border: 3px solid black;
-    border-radius: 1em;
-    padding: 1em;
-    box-shadow: 10px 10px 2px #8c00dd20;
-    background-color: #f0f0f0;
-    position: relative;
-    margin-top: 1em;
+    display: grid;
+    grid-template-areas:
+        ". . . cerrar"
+        "info charts charts charts"
+        "info charts charts charts";
+        gap: 2em;
 }
 
-.dialog__button {
-    margin-top: 1em;
-    padding: 0.5em 1em;
-    border: none;
-    border-radius: 0.5em;
-    background-color: #8c00dd;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
+.cerrar {
+    grid-area: cerrar;
+    justify-self: end;
 }
 
+.info {
+    grid-area: info;
+}
+
+.chart-section {
+    grid-area: charts;
+    display: grid;
+    grid-template-areas:
+        "pieChart barChart"
+        "lineChart lineChart";
+    justify-content: center;
+    align-items: center;
+    gap: 4em;
+}
+
+.pie-chart,
+.bar-chart {
+    height: 300px;
+    width: 300px;
+}
+
+.line-chart {
+    width: 100%;
+}
 
 /* RESPONSIVE */
 /* Tablets y pantallas medianas */
