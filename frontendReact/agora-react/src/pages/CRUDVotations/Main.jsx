@@ -104,7 +104,7 @@ export default function App() {
 
     const xsrfToken = await getXsrfToken();
     if (!xsrfToken) {
-      popupError("No se pudo realizar la votación");
+      popupError("No se pudo realizar la operación");
       console.log("No se pudo obtener el token CSRF");
       return;
     }
