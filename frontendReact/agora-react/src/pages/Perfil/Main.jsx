@@ -10,9 +10,8 @@ function readXsrfToken() {
   return decodeURIComponent(
     document.cookie
       .split("; ")
-      .find(row => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1]
-    ?? ""
+      .find((row) => row.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1] ?? "",
   );
 }
 
@@ -23,11 +22,11 @@ async function getXsrfToken() {
     return xsrfToken;
   }
 
-  await fetch("/sanctum/csrf-cookie", {
+  await fetch("/api/sanctum/csrf-cookie", {
     credentials: "include",
   });
 
-  return readXsrfToken();;
+  return readXsrfToken();
 }
 
 function Main() {
