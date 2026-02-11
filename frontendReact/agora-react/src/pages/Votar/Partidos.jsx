@@ -4,30 +4,7 @@ import "./Main.css";
 import Particles from "../../components/Particles/Particles";
 import { popupError, toastSuccess } from "../../services/alerts";
 import { PARTIDOS } from "../../data/partidos";
-
-// TODO(srvariable): Refactor functions in another file
-function readXsrfToken() {
-  return decodeURIComponent(
-    document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1] ?? "",
-  );
-}
-
-async function getXsrfToken() {
-  // If we already have the token, return it, no need to fetch again
-  const xsrfToken = readXsrfToken();
-  if (xsrfToken) {
-    return xsrfToken;
-  }
-
-  await fetch("/api/sanctum/csrf-cookie", {
-    credentials: "include",
-  });
-
-  return readXsrfToken();
-}
+import { getXsrfToken } from "../../services/xsrf";
 
 const partidos = PARTIDOS.map((p) => ({
   id: p.id,
