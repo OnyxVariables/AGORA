@@ -1,6 +1,4 @@
-import React, { useState } from "react";
 import "./Main.css";
-import Particles from "../../components/Particles/Particles";
 
 const Main = ({
   nombre,
