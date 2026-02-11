@@ -30,6 +30,7 @@ function Main() {
 
       {PARTIDOS.map((p) => (
         <Partido
+          key={p.id}
           nombre={p.nombre}
           descripcion={p.descripcion}
           img={p.imagen}
