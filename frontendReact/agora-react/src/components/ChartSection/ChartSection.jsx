@@ -11,8 +11,8 @@ import {
 } from "chart.js";
 
 import { Pie, Bar, Line } from "react-chartjs-2";
-
 import "./ChartSection.css";
+import { PARTIDOS } from "../../data/partidos";
 
 ChartJS.register(
   ArcElement,
@@ -226,78 +226,13 @@ function HeatChart({ data }) {
 
 export default function ChartSection() {
   // NOTE(srvariable): Fake data for testing purposes
-  const partidos = [
-    {
-      nombre: "PP",
-      value: "PP",
-      colorFondo: "#5eadf8",
-      colorTitulo: "#1d5ea8",
-      imagen: "img/PP.jpg",
-    },
-    {
-      nombre: "PSOE",
-      value: "PSOE",
-      colorFondo: "#fd7671",
-      colorTitulo: "#b3201e",
-      imagen: "img/PSOE.png",
-    },
-    {
-      nombre: "PODEMOS",
-      value: "PODEMOS",
-      colorFondo: "#d57bfc",
-      colorTitulo: "#6d2d8e",
-      imagen: "img/Podemos.png",
-    },
-    {
-      nombre: "C’s",
-      value: "CS",
-      colorFondo: "#ffb347",
-      colorTitulo: "#d97900",
-      imagen: "img/Ciudadanos.png",
-    },
-    {
-      nombre: "VOX",
-      value: "VOX",
-      colorFondo: "#8cfa80",
-      colorTitulo: "#4aa63b",
-      imagen: "img/VOX.png",
-    },
-    {
-      nombre: "ehbildu",
-      value: "ehbildu",
-      colorFondo: "#00d0b3",
-      colorTitulo: "#008b79ff",
-      imagen: "img/ehbildu.png",
-    },
-    {
-      nombre: "compromís",
-      value: "compromis",
-      colorFondo: "#ef8518",
-      colorTitulo: "#ad5700ff",
-      imagen: "img/Compromís.png",
-    },
-    {
-      nombre: "CC",
-      value: "cc",
-      colorFondo: "#f3ff52ff",
-      colorTitulo: "#a2aa33ff",
-      imagen: "img/coalicionCanaria.png",
-    },
-    {
-      nombre: "junts",
-      value: "junst",
-      colorFondo: "#20c0b2",
-      colorTitulo: "#158b82ff",
-      imagen: "img/junts.png",
-    },
-    {
-      nombre: "Más Madrid",
-      value: "madrid",
-      colorFondo: "#54efa5",
-      colorTitulo: "#3aac75ff",
-      imagen: "img/masMadrid.png",
-    },
-  ];
+  const partidos = PARTIDOS.map((p) => ({
+    nombre: p.nombre,
+    value: p.value,
+    colorFondo: p.colores.fondo,
+    colorTitulo: p.colores.titulo,
+    imagen: p.imagen,
+  }));
 
   const aggregatedData = {
     labels: partidos.map((p) => p.nombre),

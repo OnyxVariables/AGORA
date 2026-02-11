@@ -3,113 +3,17 @@ import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
 import { popupError, toastSuccess } from "../../services/alerts";
+import { PARTIDOS } from "../../data/partidos";
+import { getXsrfToken } from "../../services/xsrf";
 
-// TODO(srvariable): Refactor functions in another file
-function readXsrfToken() {
-  return decodeURIComponent(
-    document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1] ?? "",
-  );
-}
-
-async function getXsrfToken() {
-  // If we already have the token, return it, no need to fetch again
-  const xsrfToken = readXsrfToken();
-  if (xsrfToken) {
-    return xsrfToken;
-  }
-
-  await fetch("/api/sanctum/csrf-cookie", {
-    credentials: "include",
-  });
-
-  return readXsrfToken();
-}
-
-const partidos = [
-  {
-    id: 1,
-    nombre: "PP",
-    value: "PP",
-    colorFondo: "#5eadf8",
-    colorTitulo: "#1d5ea8",
-    imagen: "img/PP.jpg",
-  },
-  {
-    id: 2,
-    nombre: "PSOE",
-    value: "PSOE",
-    colorFondo: "#fd7671",
-    colorTitulo: "#b3201e",
-    imagen: "img/PSOE.png",
-  },
-  {
-    id: 3,
-    nombre: "PODEMOS",
-    value: "PODEMOS",
-    colorFondo: "#d57bfc",
-    colorTitulo: "#6d2d8e",
-    imagen: "img/Podemos.png",
-  },
-  {
-    id: 4,
-    nombre: "C’s",
-    value: "CS",
-    colorFondo: "#ffb347",
-    colorTitulo: "#d97900",
-    imagen: "img/Ciudadanos.png",
-  },
-  {
-    id: 5,
-    nombre: "VOX",
-    value: "VOX",
-    colorFondo: "#8cfa80",
-    colorTitulo: "#4aa63b",
-    imagen: "img/VOX.png",
-  },
-  {
-    id: 6,
-    nombre: "ehbildu",
-    value: "ehbildu",
-    colorFondo: "#00d0b3",
-    colorTitulo: "#008b79ff",
-    imagen: "img/ehbildu.png",
-  },
-  {
-    id: 7,
-    nombre: "compromís",
-    value: "compromis",
-    colorFondo: "#ef8518",
-    colorTitulo: "#ad5700ff",
-    imagen: "img/Compromís.png",
-  },
-  {
-    id: 8,
-    nombre: "CC",
-    value: "cc",
-    colorFondo: "#f3ff52ff",
-    colorTitulo: "#a2aa33ff",
-    imagen: "img/coalicionCanaria.png",
-  },
-  {
-    id: 9,
-    nombre: "junts",
-    value: "junst",
-    colorFondo: "#20c0b2",
-    colorTitulo: "#158b82ff",
-    imagen: "img/junts.png",
-  },
-  {
-    id: 10,
-    nombre: "Más Madrid",
-    value: "madrid",
-    colorFondo: "#54efa5",
-    colorTitulo: "#3aac75ff",
-    imagen: "img/masMadrid.png",
-  },
-]; //Si quisiera meter mas partidos los meto aqui
+const partidos = PARTIDOS.map((p) => ({
+  id: p.id,
+  nombre: p.nombre,
+  value: p.value,
+  colorFondo: p.colores.fondo,
+  colorTitulo: p.colores.titulo,
+  imagen: p.imagen,
+}));
 
 function Partidos() {
   const [selection, setSelection] = useState();
