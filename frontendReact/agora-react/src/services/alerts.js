@@ -6,7 +6,7 @@ const Toast = Swal.mixin({
     position: 'bottom-end',
     timer: 2000,
     timerProgressBar: true,
-    width: '200px',
+    width: '380px',
     padding: '0.5em',
 });
   
