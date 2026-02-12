@@ -8,30 +8,7 @@ import {
   ButtonDelete,
 } from "../../components/Button/Button";
 import { popupError } from "../../services/alerts";
-
-// TODO(srvariable): Refactor functions in another file
-function readXsrfToken() {
-  return decodeURIComponent(
-    document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("XSRF-TOKEN="))
-      ?.split("=")[1] ?? "",
-  );
-}
-
-async function getXsrfToken() {
-  // If we already have the token, return it, no need to fetch again
-  const xsrfToken = readXsrfToken();
-  if (xsrfToken) {
-    return xsrfToken;
-  }
-
-  await fetch("/api/sanctum/csrf-cookie", {
-    credentials: "include",
-  });
-
-  return readXsrfToken();
-}
+import { getXsrfToken } from "../../services/xsrf";
 
 export default function App() {
   const [votations, setVotations] = useState([]);
@@ -104,7 +81,7 @@ export default function App() {
 
     const xsrfToken = await getXsrfToken();
     if (!xsrfToken) {
-      popupError("No se pudo realizar la votación");
+      popupError("No se pudo realizar la operación");
       console.log("No se pudo obtener el token CSRF");
       return;
     }
