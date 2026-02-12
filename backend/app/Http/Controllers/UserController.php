@@ -61,7 +61,7 @@ class UserController extends Controller
         $user->save();
 
         return response()->json([
-            'message' => 'Nickname actualizado correctamente'
+            'message' => 'Nickname actualizado'
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
