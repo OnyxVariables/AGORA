@@ -239,6 +239,11 @@
 
         justify-items: center;
     }
+
+    .dialog-content{
+        margin-top: 7em;
+        height: 83vh;
+    }
 }
 
 @media (max-width: 590px) {
