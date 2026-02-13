@@ -2,7 +2,7 @@ import { useState } from "react";
 import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
-import { popupError, toastSuccess } from "../../services/alerts";
+import { popupError, toastSuccess, popupConfirm } from "../../services/alerts";
 import { PARTIDOS } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
 
@@ -56,6 +56,11 @@ function Partidos() {
       popupError("Es necesario un nickname para votar");
       return;
     }
+
+    await popupConfirm(
+      `Desea votar a ${partidos.find((p) => p.value === selection).nombre}`,
+      "Esta acción es irreversible",
+    );
 
     try {
       const xsrfToken = await getXsrfToken();
