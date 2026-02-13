@@ -18,12 +18,17 @@ function Main() {
       .then((res) => res.json())
       .then((data) => {
         setUser(data);
-        setNickname(data.nickname || "Sin nickname");
+        setNickname(data.nickname || "");
       });
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (nickname.length > 0) {
+      popupError("El nickname ya está establecido");
+      return;
+    }
 
     if (input.trim() === "") {
       return;
@@ -103,7 +108,7 @@ function Main() {
             </p>
             <p>
               <span>Nickname: </span>
-              <span id="nicknameMostrado"> {nickname}</span>
+              <span id="nicknameMostrado"> {nickname || "Sin nickname"}</span>
             </p>
             <TarjetIcon />
           </div>
