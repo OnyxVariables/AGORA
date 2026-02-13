@@ -24,11 +24,36 @@ function Partidos() {
     );
   };
 
+  const hasNickname = async () => {
+    try {
+      const res = await fetch("/api/me", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        popupError(data.error);
+        return;
+      }
+
+      return data?.nickname?.length > 0;
+    } catch (err) {
+      console.log(err);
+      popupError("Servicio no disponible");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selection) {
       popupError("Selecciona un partido para votar");
+      return;
+    }
+
+    if (!(await hasNickname())) {
+      popupError("Es necesario un nickname para votar");
       return;
     }
 

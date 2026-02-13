@@ -28,7 +28,7 @@ class UserController extends Controller
             'nombre' => $nombre,
             'apellidos' => $apellidos,
             'dni' => $user->dni,
-            'nickname' => $user->nicknamePassword ?? "Sin nickname",
+            'nickname' => $user->nicknamePassword ?? null,
             'municipio' => $user->municipality->name ?? null,
             'provincia' => $user->municipality->province->name ?? null,
             'comunidad' => $user->municipality->province->autonomouscommunity->name ?? null,
