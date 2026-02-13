@@ -1,8 +1,23 @@
-import { useEffect } from "react";
-import "./ElectionsMap.css";
+import { useEffect, useState } from "react";
+
 import Particles from "../../components/Particles/Particles";
+import {
+  BarChart,
+  HeatChart,
+  LineChart,
+  PieChart,
+} from "../../components/ChartSection/ChartSection";
+
+import "./ElectionsMap.css";
 
 export default function ElectionsMap() {
+  const [selectedName, setSelectedName] = useState("");
+  const [showDialog, setShowDialog] = useState(false);
+  const [totalVotes, setTotalVotes] = useState(0);
+  const [seatsAssigned, setSeatsAssigned] = useState(0);
+
+  let cachedViewBox = null; //Para calcular el viewbox solo una vez (como me dijiste Rojohn)
+
   const levels = [
     { value: "nation", label: "Nación" },
     { value: "ccaa", label: "Comunidad" },
@@ -89,8 +104,6 @@ export default function ElectionsMap() {
       Gipuzkoa: "País Vasco",
       Bizkaia: "País Vasco",
     };
-
-    let cachedViewBox = null; //Para calcular el viewbox solo una vez (como me dijiste Rojohn)
 
     //Funciones para colores
     function hexToRgb(hex) {
@@ -504,6 +517,114 @@ export default function ElectionsMap() {
       }
     }
 
+    function selectFeature(path) {
+      const name = path.getAttribute("data-name");
+
+      setSelectedName(name);
+      setShowDialog(true);
+
+      // TODO(srvariable): Get data from database, instead of using random values
+      const tempDataPerProvince = {
+        Almería: { votes: 10000, seats: 1 },
+        Cádiz: { votes: 20000, seats: 2 },
+        Córdoba: { votes: 30000, seats: 3 },
+        Granada: { votes: 40000, seats: 4 },
+        Huelva: { votes: 50000, seats: 5 },
+        Jaén: { votes: 60000, seats: 6 },
+        Málaga: { votes: 70000, seats: 7 },
+        Sevilla: { votes: 80000, seats: 8 },
+        Huesca: { votes: 90000, seats: 9 },
+        Teruel: { votes: 100000, seats: 10 },
+        Zaragoza: { votes: 10000, seats: 1 },
+        Asturias: { votes: 20000, seats: 2 },
+        Cantabria: { votes: 30000, seats: 3 },
+        Ávila: { votes: 40000, seats: 4 },
+        Burgos: { votes: 50000, seats: 5 },
+        León: { votes: 60000, seats: 6 },
+        Palencia: { votes: 70000, seats: 7 },
+        Salamanca: { votes: 80000, seats: 8 },
+        Segovia: { votes: 90000, seats: 9 },
+        Soria: { votes: 100000, seats: 10 },
+        Valladolid: { votes: 10000, seats: 1 },
+        Zamora: { votes: 20000, seats: 2 },
+        Albacete: { votes: 30000, seats: 3 },
+        "Ciudad Real": { votes: 40000, seats: 4 },
+        Cuenca: { votes: 50000, seats: 5 },
+        Guadalajara: { votes: 60000, seats: 6 },
+        Toledo: { votes: 70000, seats: 7 },
+        Barcelona: { votes: 80000, seats: 8 },
+        Gerona: { votes: 90000, seats: 9 },
+        Lérida: { votes: 100000, seats: 10 },
+        Tarragona: { votes: 10000, seats: 1 },
+        Ceuta: { votes: 20000, seats: 2 },
+        Valencia: { votes: 30000, seats: 3 },
+        Alicante: { votes: 40000, seats: 4 },
+        Castellón: { votes: 50000, seats: 5 },
+        Badajoz: { votes: 60000, seats: 6 },
+        Cáceres: { votes: 70000, seats: 7 },
+        "La Coruña": { votes: 80000, seats: 8 },
+        Lugo: { votes: 90000, seats: 9 },
+        Orense: { votes: 100000, seats: 10 },
+        Pontevedra: { votes: 10000, seats: 1 },
+        Baleares: { votes: 20000, seats: 2 },
+        "Las Palmas": { votes: 30000, seats: 3 },
+        "Santa Cruz de Tenerife": { votes: 40000, seats: 4 },
+        "La Rioja": { votes: 50000, seats: 5 },
+        Madrid: { votes: 60000, seats: 6 },
+        Melilla: { votes: 70000, seats: 7 },
+        Murcia: { votes: 80000, seats: 8 },
+        Navarra: { votes: 90000, seats: 9 },
+        Álava: { votes: 100000, seats: 10 },
+        Gipuzkoa: { votes: 10000, seats: 1 },
+        Bizkaia: { votes: 20000, seats: 2 },
+      };
+
+      if (currentLevel === "nation" && name === "Spain") {
+        setTotalVotes(
+          Object.values(tempDataPerProvince).reduce((accumulator, data) => {
+            return accumulator + data.votes;
+          }, 0),
+        );
+
+        setSeatsAssigned(
+          Object.values(tempDataPerProvince).reduce((accumulator, data) => {
+            return accumulator + data.seats;
+          }, 0),
+        );
+      } else if (currentLevel === "ccaa") {
+        setTotalVotes(() => {
+          let accumulator = 0;
+          Object.entries(tempDataPerProvince).forEach(([province, data]) => {
+            if (provinceToCCAA[province] === name) {
+              accumulator += data.votes;
+            }
+          });
+          return accumulator;
+        });
+        setSeatsAssigned(() => {
+          let accumulator = 0;
+          Object.entries(tempDataPerProvince).forEach(([province, data]) => {
+            if (provinceToCCAA[province] === name) {
+              accumulator += data.seats;
+            }
+          });
+          return accumulator;
+        });
+      } else if (currentLevel === "province") {
+        setTotalVotes(tempDataPerProvince[name]?.votes || 0);
+        setSeatsAssigned(tempDataPerProvince[name]?.seats || 0);
+      }
+
+      //// Scroll to the dialog
+      //const dialog = document.querySelector(".dialog");
+      //if (dialog) {
+      //  const offset = 20;
+      //  const scrollY =
+      //    dialog.getBoundingClientRect().bottom + offset - window.innerHeight;
+      //  window.scrollBy({ top: scrollY, behavior: "smooth" });
+      //}
+    }
+
     async function changeLevel(level) {
       currentLevel = level;
       const geoData = await loadGeoData(level);
@@ -593,6 +714,79 @@ export default function ElectionsMap() {
                 <div className="ocean" style={{ top: "8%", left: "55%" }}>MAR CANTÁBRICO</div> */}
         </article>
       </section>
+
+      {showDialog && (
+        <dialog className="dialog" open>
+          <div className="dialog-content">
+            <span className="cerrar" onClick={() => setShowDialog(false)}>
+              &times;
+            </span>
+            <h2 className="dialog-title">Información de {selectedName}</h2>
+            <div className="info">
+              <p>
+                <span style={{ fontWeight: "bold" }}>Número de votos:</span>{" "}
+                {totalVotes}
+              </p>
+              <p>
+                <span style={{ fontWeight: "bold" }}>Escaños asignados:</span>{" "}
+                {seatsAssigned}
+              </p>
+              {/* TODO(srvariable): Add more info */}
+            </div>
+            <div className="chart-section">
+              <PieChart
+                data={{
+                  labels: ["foo", "bar"],
+                  datasets: [
+                    {
+                      label: "Escaños",
+                      data: [20000, 11000],
+                      backgroundColor: ["#aaffaa", "#ffffaa"],
+                      borderColor: ["#aaffaa", "#ffffaa"],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+              />
+              <BarChart
+                data={{
+                  labels: ["foo", "bar"],
+                  datasets: [
+                    {
+                      label: "Escaños",
+                      data: [20000, 11000],
+                      backgroundColor: ["#aaffaa", "#ffffaa"],
+                      borderColor: ["#aaffaa", "#ffffaa"],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+              />
+              <LineChart
+                labels={["01-01-2026", "02-01-2026", "03-01-2026"]}
+                partidos={[
+                  {
+                    nombre: "foo",
+                    value: "foo",
+                    colorFondo: "#aaffaa",
+                    colorTitulo: "#aaffaa",
+                  },
+                  {
+                    nombre: "bar",
+                    value: "bar",
+                    colorFondo: "#ffffaa",
+                    colorTitulo: "#ffffaa",
+                  },
+                ]}
+                series={{
+                  foo: [30, 150, 5280],
+                  bar: [120, 1800, 2800],
+                }}
+              />
+            </div>
+          </div>
+        </dialog>
+      )}
     </main>
   );
 }
