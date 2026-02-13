@@ -2,7 +2,7 @@ import { useState } from "react";
 import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
-import { popupError, toastSuccess } from "../../services/alerts";
+import { popupError, toastSuccess, popupConfirm } from "../../services/alerts";
 import { PARTIDOS } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
 
@@ -24,6 +24,26 @@ function Partidos() {
     );
   };
 
+  const hasNickname = async () => {
+    try {
+      const res = await fetch("/api/me", {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        popupError(data.error);
+        return;
+      }
+
+      return data?.nickname?.length > 0;
+    } catch (err) {
+      console.log(err);
+      popupError("Servicio no disponible");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -31,6 +51,16 @@ function Partidos() {
       popupError("Selecciona un partido para votar");
       return;
     }
+
+    if (!(await hasNickname())) {
+      popupError("Es necesario un nickname para votar");
+      return;
+    }
+
+    await popupConfirm(
+      `Desea votar a ${partidos.find((p) => p.value === selection).nombre}`,
+      "Esta acción es irreversible",
+    );
 
     try {
       const xsrfToken = await getXsrfToken();
