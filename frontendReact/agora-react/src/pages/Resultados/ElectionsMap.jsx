@@ -719,10 +719,10 @@ export default function ElectionsMap() {
         <dialog className="dialog" open>
           <div className="dialog-content">
             <span className="cerrar" onClick={() => setShowDialog(false)}>
-              X
+              &times;
             </span>
+            <h2 className="dialog-title">Información de {selectedName}</h2>
             <div className="info">
-              <h3>Información de {selectedName}</h3>
               <p>
                 <span style={{ fontWeight: "bold" }}>Número de votos:</span>{" "}
                 {totalVotes}

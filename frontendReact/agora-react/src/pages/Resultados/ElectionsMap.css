@@ -162,10 +162,10 @@
     border: 3px solid black;
     display: grid;
     grid-template-areas:
-        ". . . cerrar"
+        "dialogTitle . . cerrar"
         "info charts charts charts"
         "info charts charts charts";
-        gap: 2em;
+    gap: 2em;
 }
 
 .cerrar {
@@ -175,6 +175,14 @@
 
 .info {
     grid-area: info;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.dialog-title {
+    grid-area: dialogTitle;
+    text-wrap: nowrap;
 }
 
 .chart-section {
@@ -200,12 +208,38 @@
 
 /* RESPONSIVE */
 /* Tablets y pantallas medianas */
+
+@media (width < 1200px) {
+    .dialog-content {
+        grid-template-areas:
+            ". dialogTitle cerrar"
+            "info info info"
+            "charts charts charts";
+
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .info {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
 @media (max-width: 900px) {
     .electionsMap {
         padding-top: 8em;
     }
-}
 
+    .chart-section {
+        grid-template-areas:
+            "pieChart"
+            "barChart"
+            "lineChart";
+
+        justify-items: center;
+    }
+}
 
 @media (max-width: 590px) {
     .electionsMap .filtrado {
@@ -216,6 +250,9 @@
         width: 20%;
     }
 
+    .dialog-title {
+        text-wrap: wrap;
+    }
 }
 
 @media (max-width: 419px) {
