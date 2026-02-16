@@ -35,7 +35,6 @@ A continuación, se muestra el diagrama de estado completo:
 ```mermaid
 ---
 config:
-  layout: elk
   theme: neo-dark
 ---
 stateDiagram
@@ -77,7 +76,6 @@ stateDiagram
 ```mermaid
 ---
 config:
-  layout: elk
   theme: neo-dark
 ---
 stateDiagram
@@ -109,7 +107,6 @@ stateDiagram
 ```mermaid
 ---
 config:
-  layout: elk
   theme: neo-dark
 ---
 stateDiagram
