@@ -38,8 +38,7 @@ flowchart TB
     InicioC((Inicio Ciudadano)):::inicioFin
 
     InicioC --> LoginC[Iniciar sesión con certificado]:::proceso
-    LoginC --> InfoC[Ver información del proyecto]:::proceso
-    InfoC --> ProgramasC[Desplegar programas electorales]:::proceso
+    LoginC --> ProgramasC[Desplegar programas electorales]:::proceso
     ProgramasC --> NicknameC[Ponerse un nickname]:::proceso
     NicknameC --> VotarC[Votar]:::proceso
 
@@ -96,8 +95,7 @@ flowchart LR
     InicioC((Inicio Ciudadano)):::inicioFin
 
     InicioC --> LoginC[Iniciar sesión con certificado]:::proceso
-    LoginC --> InfoC[Ver información del proyecto]:::proceso
-    InfoC --> ProgramasC[Desplegar programas electorales]:::proceso
+    LoginC --> ProgramasC[Desplegar programas electorales]:::proceso
     ProgramasC --> NicknameC[Ponerse un nickname]:::proceso
     NicknameC --> VotarC[Votar]:::proceso
 
