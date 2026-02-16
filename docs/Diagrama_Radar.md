@@ -1,5 +1,13 @@
 # Visión General de AGORA — Diagrama Radar
 
+## Índice
+1. [Introducción](#1-introducción)
+2. [¿Por qué un Diagrama Radar?](#2-por-qué-un-diagrama-radar)
+3. [Dimensiones Evaluadas](#3-dimensiones-evaluadas)
+4. [Diagrama Radar de AGORA](#4-diagrama-radar-de-agora)
+5. [Interpretación del Diagrama](#5-interpretación-del-diagrama)
+
+
 ## 1. Introducción
 Este proyecto implementa una **plataforma de votación electrónica segura**, basada en **Blockchain**, con autenticación mediante **certificado electrónico**, diferenciación de roles (Ciudadano / Administrador) y trazabilidad completa de los votos.
 
