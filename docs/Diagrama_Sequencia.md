@@ -196,7 +196,7 @@ sequenceDiagram
 
 
 ## 6. Relación con los Casos de Uso
-El diagrama de secuencia está directamente relacionado con los casos de uso definidos [(Casos de Uso)](casosUso.md):
+El diagrama de secuencia está directamente relacionado con los casos de uso definidos [(Casos de Uso)](Diagrama_CasosdeUso.md):
 - **Iniciar sesión (certificado electrónico)**  
 - **Ver proyectos electorales**
 - **Desplegar programas electorales**

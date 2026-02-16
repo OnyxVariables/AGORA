@@ -1,0 +1,136 @@
+# Documentación del Diagrama de Estado  
+
+## Índice
+1. [Introducción](#1-introducción)  
+2. [Objetivo del Diagrama de Estado](#2-objetivo-del-diagrama-de-estado)  
+3. [Convenciones UML Utilizadas](#3-convenciones-uml-utilizadas)  
+4. [Estados del Actor: Ciudadano](#4-estados-del-actor-ciudadano)  
+5. [Estados del Actor: Administrador](#5-estados-del-actor-administrador)  
+6. [Relación con Casos de Uso](#6-relación-con-los-casos-de-uso)  
+
+
+## 1. Introducción
+Este documento describe el **diagrama de estado** del Sistema de Votación Electrónica, que permite modelar los **estados dinámicos** del sistema y las transiciones según las acciones de los actores.
+
+Mientras que los diagramas de secuencia representan **la interacción temporal**, el diagrama de estado muestra **los estados posibles del sistema y sus transiciones**, garantizando que los flujos sean consistentes con los casos de uso y la seguridad de la blockchain.
+
+
+## 2. Objetivo del Diagrama de Estado
+- Modelar los **estados del sistema** según las acciones de Ciudadano y Administrador.
+- Representar **transiciones críticas** como:
+  - Inicio y cierre de sesión.
+  - Emisión y cancelación de votos.
+  - Gestión CRUD y exportación de métricas.
+- Garantizar la **coherencia del flujo** y la trazabilidad de las acciones.
+- Facilitar la comprensión de los procesos para desarrolladores y auditores.
+
+
+## 3. Convenciones UML Utilizadas
+- **Estado inicial `[*]`**: Punto de inicio del sistema.
+- **Estados**: Representan situaciones en que el sistema permanece mientras espera acciones.
+- **Transiciones**: Flechas etiquetadas con la acción que produce el cambio de estado.
+- **Estados compuestos**: Algunos estados (como `Ciudadano_Activo`) incluyen sub-acciones (Votar, Enviar voto, Cancelar voto).
+- **Estado final `[*]`**: Cierre de sesión o finalización de un proceso.<br><br>
+A continuación, se muestra el diagrama de estado completo:
+```mermaid
+---
+config:
+  layout: elk
+  theme: neo-dark
+---
+stateDiagram
+  direction BT
+  [*] --> Inactivo
+  Inactivo --> Autenticacion_Ciudadano:Ciudadano inicia sesión
+  Autenticacion_Ciudadano --> Ciudadano_Activo:Certificado válido
+  Ciudadano_Activo --> Desplegar_Programas:Desplegar programas electorales
+  Ciudadano_Activo --> Votando:Votar
+  Votando --> Enviar_Voto:Enviar voto
+  Votando --> Cancelar_Voto:Cancelar voto
+  Enviar_Voto --> Ciudadano_Activo
+  Cancelar_Voto --> Ciudadano_Activo
+  Ciudadano_Activo --> Ver_Resultados:Ver resultados
+  Ciudadano_Activo --> Inactivo:Salir
+  Inactivo --> Autenticacion_Admin:Administrador inicia sesión
+  Autenticacion_Admin --> Admin_Activo:Certificado válido
+  Admin_Activo --> CRUD_Votaciones:CRUD votaciones
+  Admin_Activo --> Visualizar_Metricas:Visualizar métricas on-chain
+  Visualizar_Metricas --> Exportar_Datos:Exportar datos
+  Admin_Activo --> Inactivo:Salir
+  Inactivo --> [*]
+```
+
+
+## 4. Estados del Actor: Ciudadano
+### Flujo de estados
+1. El ciudadano se encuentra en el estado **Inactivo**.  
+2. Inicia sesión mediante certificado electrónico → **Autenticación_Ciudadano**.  
+3. Certificado válido → **Ciudadano_Activo**.  
+4. Acciones disponibles en **Ciudadano_Activo**:
+   - `Ver_Info` → visualización de información del proyecto.  
+   - `Desplegar_Programas` → consulta de programas electorales.  
+   - `Votando` → flujo de votación:
+     - `Enviar_Voto` → voto registrado en Blockchain.  
+     - `Cancelar_Voto` → voto anulado antes de confirmación.  
+   - `Ver_Resultados` → consulta de resultados.  
+5. Ciudadano finaliza sesión → vuelve a **Inactivo**.
+```mermaid
+---
+config:
+  layout: elk
+  theme: neo-dark
+---
+stateDiagram
+  direction BT
+  [*] --> Inactivo
+  Inactivo --> Autenticacion_Ciudadano:Ciudadano inicia sesión
+  Autenticacion_Ciudadano --> Ciudadano_Activo:Certificado válido
+  Ciudadano_Activo --> Desplegar_Programas:Desplegar programas electorales
+  Ciudadano_Activo --> Votando:Votar
+  Votando --> Enviar_Voto:Enviar voto
+  Votando --> Cancelar_Voto:Cancelar voto
+  Enviar_Voto --> Ciudadano_Activo
+  Cancelar_Voto --> Ciudadano_Activo
+  Ciudadano_Activo --> Ver_Resultados:Ver resultados
+  Ciudadano_Activo --> Inactivo:Salir
+  Inactivo --> [*]
+```
+
+## 5. Estados del Actor: Administrador
+### Flujo de estados
+1. El administrador parte del estado **Inactivo**.  
+2. Inicia sesión → **Autenticación_Admin**.  
+3. Certificado válido → **Admin_Activo**.  
+4. Acciones disponibles en **Admin_Activo**:
+   - `CRUD_Votaciones` → gestión de votaciones (crear, leer, actualizar, eliminar).  
+   - `Visualizar_Metricas` → consulta de métricas on-chain.
+   - `Exportar_Datos` → flujo opcional de exportación de métricas.  
+5. Administrador finaliza sesión → vuelve a **Inactivo**.
+```mermaid
+---
+config:
+  layout: elk
+  theme: neo-dark
+---
+stateDiagram
+  direction TB
+  [*] --> Inactivo
+  Inactivo --> Autenticacion_Admin:Administrador inicia sesión
+  Autenticacion_Admin --> Admin_Activo:Certificado válido
+  Admin_Activo --> CRUD_Votaciones:CRUD votaciones
+  Admin_Activo --> Visualizar_Metricas:Visualizar métricas on-chain
+  Visualizar_Metricas --> Exportar_Datos:Exportar datos
+  Admin_Activo --> Inactivo:Salir
+  Inactivo --> [*]
+```
+
+## 6. Relación con los Casos de Uso
+- Los estados corresponden a **los mismos casos de uso previamente definidos**, asegurando coherencia:  
+  - Iniciar sesión  
+  - Desplegar programas electorales  
+  - Votar / Enviar voto / Cancelar voto  
+  - Ver resultados  
+  - CRUD votaciones  
+  - Visualizar métricas / Exportar datos  
+
+- Permite **ver la vida de cada acción** y la transición entre estados, garantizando trazabilidad y consistencia.
