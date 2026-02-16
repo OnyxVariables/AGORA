@@ -87,53 +87,54 @@ Esta separación garantiza:
 
 
 ## 7. Diagrama de Arquitectura y Despliegue
-```mermaid
-architecture-beta
-    service user(internet)[Usuarios]
+![Arquitectura del sistema](architecture.svg)
 
-    group cloud(logos:aws)[Infraestructura Cloud]
-        group docker(logos:docker-icon)[Contenedores App] in cloud
-            service nginx(logos:nginx)[Nginx HTTPS] in docker
-            service react(logos:react)[React Frontend] in docker
-            service laravel(logos:laravel)[Laravel API] in docker
-            service spring(logos:spring-icon)[Spring Java] in docker
-            service db(logos:mariadb-icon)[MariaDB] in docker
-            service certbot(logos:letsencrypt)[Certbot SSL] in docker
+<!-- %%architecture-beta
+    %%service user(internet)[Usuarios]
+
+    %%group cloud(logos:aws)[Infraestructura Cloud]
+        %%group docker(logos:docker-icon)[Contenedores App] in cloud
+            %%service nginx(logos:nginx)[Nginx HTTPS] in docker
+            %%service react(logos:react)[React Frontend] in docker
+            %%service laravel(logos:laravel)[Laravel API] in docker
+            %%service spring(logos:spring-icon)[Spring Java] in docker
+            %%service db(logos:mariadb-icon)[MariaDB] in docker
+            %%service certbot(logos:letsencrypt)[Certbot SSL] in docker
         
-        group blockchain(logos:ethereum-color)[Red Besu Blockchain] in cloud
-            service k8s(logos:kubernetes)[K8s Master] in blockchain
-            junction cluster in blockchain
-            service n1(logos:aws-ec2)[Node 1] in blockchain
-            service n2(logos:aws-ec2)[Node 2] in blockchain
-            service n3(logos:aws-ec2)[Node 3] in blockchain
-            service n4(logos:aws-ec2)[Node 4] in blockchain
+        %%group blockchain(logos:ethereum-color)[Red Besu Blockchain] in cloud
+            %%service k8s(logos:kubernetes)[K8s Master] in blockchain
+            %%junction cluster in blockchain
+            %%service n1(logos:aws-ec2)[Node 1] in blockchain
+            %%service n2(logos:aws-ec2)[Node 2] in blockchain
+            %%service n3(logos:aws-ec2)[Node 3] in blockchain
+            %%service n4(logos:aws-ec2)[Node 4] in blockchain
 
     %% PROCESO DE VOTO
-    user:R --> L:nginx
-    nginx:B -- T:react
-    react:B -- T:laravel
+    %%user:R -- L:nginx
+    %%nginx:B -- T:react
+    %%react:B -- T:laravel
     
     %% Laravel valida y registra en Besu
-    laravel:R -- L:k8s
-    k8s:B -- T:cluster
-    cluster:L -- R:n1
-    cluster:R -- L:n2
-    cluster:B -- T:n4
-    cluster:B -- T:n3
+    %%laravel:R -- L:k8s
+    %%k8s:B -- T:cluster
+    %%cluster:L -- R:n1
+    %%cluster:R -- L:n2
+    %%cluster:B -- T:n4
+    %%cluster:B -- T:n3
     
 
     %% PROCESO LEY D'HONT (Batch)
     %% Spring lee de la Blockchain
-    k8s:L -- R:spring
+    %%k8s:L -- R:spring
     
     %% Spring procesa, guarda en DB y sirve a React
-    laravel:B -- T:db
-    spring:B -- T:db
-    spring:T -- B:react
+    %%laravel:B -- T:db
+    %%spring:B -- T:db
+    %%spring:T -- B:react
 
     %% Mantenimiento
-    certbot:T -- B:nginx
-```
+    %%certbot:T -- B:nginx -->
+
 
 
 ## 8. Flujo de Votación
