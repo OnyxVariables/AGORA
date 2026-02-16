@@ -14,7 +14,7 @@ Este documento detalla los casos de uso del sistema de votación electrónica. S
 | Tipo | Descripción | Visualización en Diagrama |
 | :--- | :--- | :--- |
 | **Primario** | Aporta valor directo al usuario o proceso. | Cuadrado de color azul claro 🔵 |
-| **Secundario** | Soporte técnico o requisito obligatorio. | Cuadrado de color blanco amarillento ⚪ |
+| **Secundario** | Soporte técnico o requisito obligatorio. | Cuadrado de color blanco amarillento 🟡 |
 | **Extendido** | Funcionalidad opcional dependiente de una condición. | Cuadrado de color naranja claro 🟠 |
 
 ## 2. Arquitectura de Casos de Uso
@@ -22,7 +22,7 @@ Este documento detalla los casos de uso del sistema de votación electrónica. S
 ```mermaid
 graph TD
     %% Estilos
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
@@ -39,6 +39,7 @@ graph TD
     UC_Enviar(Enviar voto):::extendido
     UC_Cancelar(Cancelar voto):::extendido
     UC_Resultados(Ver resultados):::primario
+    UC_Salir(Cerrar sesión):::primario
 
     %% Casos de Uso: Administrador
     UC_CRUD(Gestión CRUD votaciones):::primario
@@ -50,6 +51,7 @@ graph TD
     Ciudadano --- UC_Desplegar
     Ciudadano --- UC_Votar
     Ciudadano --- UC_Resultados
+    Ciudadano --- UC_Salir
 
     UC_VerInfo -.->|include| UC_Login
     UC_Desplegar -.->|include| UC_Login
@@ -57,20 +59,23 @@ graph TD
     UC_Votar -.->|extend| UC_Enviar
     UC_Cancelar -.->|extend| UC_Votar
     UC_Resultados -.->|include| UC_Login
+    UC_Salir -.->|include| UC_Login
 
     %% Relaciones Administrador
     Administrador --- UC_CRUD
     Administrador --- UC_Metricas
+    Administrador --- UC_Salir
 
     UC_CRUD -.->|include| UC_Login
     UC_Metricas -.->|include| UC_Login
     UC_Exportar -.->|extend| UC_Metricas
+    UC_Salir -.->|include| UC_Login
 ```
 
 
 ## 3. Actor: Ciudadano
 ### Caso de uso: Iniciar sesión
-- **Tipo**: Secundario ⚪ (caso de soporte, incluido en todos los primarios)  
+- **Tipo**: Secundario 🟡 (caso de soporte, incluido en todos los primarios)  
 - **Descripción**: El ciudadano se autentica en el sistema mediante su certificado electrónico, requisito previo para realizar cualquier acción dentro del sistema.  
 - **Actor principal**: Ciudadano  
 - **Precondiciones**: El ciudadano dispone de un certificado electrónico válido.  
@@ -83,7 +88,7 @@ graph TD
 
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
     Ciudadano((<b>Ciudadano</b>)):::actor
@@ -100,7 +105,7 @@ graph LR
   3. El sistema muestra los programas de los distintos candidatos o partidos. 
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
@@ -126,7 +131,7 @@ flowchart LR
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0, stroke:#e65100, stroke-width:2px, color:#000
-    classDef actor fill:#fff8d9, stroke:#fff, stroke-width:2px, color:#000
+    classDef actor fill:#fff8d9, stroke:#ffd20e, stroke-width:2px, color:#000
 
     Ciudadano(("<b>Ciudadano</b>")) --> UC_Votar["Votar"]
     UC_Votar -. include .-> UC_Login["Iniciar sesión"]
@@ -145,7 +150,7 @@ flowchart LR
 - **Descripción**: Permite enviar la transacción de voto firmada digitalmente a la blockchain. Incluye validaciones criptográficas, prevención de votos duplicados y registro de auditoría.
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
 
@@ -158,7 +163,7 @@ graph LR
 - **Descripción**: Permite anular el proceso antes de confirmar el envío del voto a la blockchain.  
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
     
@@ -176,7 +181,7 @@ graph LR
   3. El sistema consulta la blockchain y la base de datos para mostrar los resultados.  
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
@@ -185,14 +190,33 @@ graph LR
     UC_Resultados -.->|include| UC_Login[Iniciar sesión]:::soporte
 ``` 
 
+### Caso de uso: Salir
+- **Tipo**: Primario 🔵
+- **Incluye**: Iniciar sesión  
+- **Descripción**: Permite al ciudadano cerrar sesión.  
+- **Flujo principal**:
+  1. El ciudadano inicia sesión.  
+  2. Selecciona SALIR.  
+  3. El sistema cierra su sesión.  
+```mermaid
+graph LR
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
+    classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
+
+    Ciudadano((<b>Ciudadano</b>)):::actor
+    Ciudadano --> UC_Salir[Cerrar sesión]:::primario
+    UC_Salir -.->|include| UC_Login[Iniciar sesión]:::soporte
+``` 
+
 
 ## 4. Actor: Administrador
 ### Caso de uso: Iniciar sesión
-- **Tipo**: Secundario ⚪ (requisito previo para todos los casos del administrador)  
+- **Tipo**: Secundario 🟡 (requisito previo para todos los casos del administrador)  
 - **Descripción**: El administrador se autentica mediante su certificado electrónico institucional.  
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
     Administrador((<b>Administrador</b>)):::actor
@@ -205,7 +229,7 @@ graph LR
 - **Descripción**: Permite al administrador crear, leer, actualizar o eliminar votaciones desde el panel de gestión (CRUD).  
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
@@ -223,7 +247,7 @@ graph LR
   - Permite exportar los datos a un archivo CSV o PDF para su análisis o auditoría externa.  
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
@@ -239,11 +263,30 @@ graph LR
 - **Descripción**: Genera un informe descargable con las métricas actuales del sistema.
 ```mermaid
 graph LR
-    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
 
     Administrador((<b>Administrador</b>)):::actor
     Administrador -->  UC_Metricas[Visualizar métricas]:::primario -.->|extend| UC_Exportar[Exportar métricas]:::extendido
+``` 
+
+### Caso de uso: Salir
+- **Tipo**: Primario 🔵
+- **Incluye**: Iniciar sesión  
+- **Descripción**: Permite al administrardor cerrar sesión.  
+- **Flujo principal**:
+  1. El administrador inicia sesión.  
+  2. Selecciona SALIR.  
+  3. El sistema cierra su sesión.  
+```mermaid
+graph LR
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
+    classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
+
+    Administrador((<b>Administrador</b>)):::actor
+    Administrador --> UC_Salir[Cerrar sesión]:::primario
+    UC_Salir -.->|include| UC_Login[Iniciar sesión]:::soporte
 ``` 
