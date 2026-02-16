@@ -87,7 +87,7 @@ Esta separación garantiza:
 
 
 ## 7. Diagrama de Arquitectura y Despliegue
-![Arquitectura del sistema](architecture1.svg)
+![Arquitectura del sistema](img/architecture2.svg)
 
 <!-- %%architecture-beta
     %%service user(internet)[Usuarios]
