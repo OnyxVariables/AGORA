@@ -20,10 +20,6 @@ Este documento detalla los casos de uso del sistema de votación electrónica. S
 ## 2. Arquitectura de Casos de Uso
 
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph TD
     %% Estilos
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
@@ -86,10 +82,6 @@ graph TD
   4. Si es válido, se le concede acceso al entorno ciudadano.
 
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
@@ -107,10 +99,6 @@ graph LR
   2. El ciudadano pincha sobre “Desplegar programas electorales”.  
   3. El sistema muestra los programas de los distintos candidatos o partidos. 
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -134,10 +122,6 @@ graph LR
 - **Extensión (Cancelar voto)**:  
   - Si el ciudadano decide no continuar, puede ejecutar el caso **Cancelar voto** antes de confirmar. 
 ```mermaid
----
-config:
-  look: handDrawn
----
 flowchart LR
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
@@ -160,10 +144,6 @@ flowchart LR
 - **Tipo**: Extendido 🟠 (opcional, depende del flujo “Votar”)  
 - **Descripción**: Permite enviar la transacción de voto firmada digitalmente a la blockchain. Incluye validaciones criptográficas, prevención de votos duplicados y registro de auditoría.
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -177,10 +157,6 @@ graph LR
 - **Tipo**: Extendido 🟠 (opcional, depende del flujo “Votar”)  
 - **Descripción**: Permite anular el proceso antes de confirmar el envío del voto a la blockchain.  
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -199,10 +175,6 @@ graph LR
   2. Selecciona “Ver resultados”.  
   3. El sistema consulta la blockchain y la base de datos para mostrar los resultados.  
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -219,10 +191,6 @@ graph LR
 - **Tipo**: Secundario ⚪ (requisito previo para todos los casos del administrador)  
 - **Descripción**: El administrador se autentica mediante su certificado electrónico institucional.  
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
@@ -236,10 +204,6 @@ graph LR
 - **Incluye**: Iniciar sesión  
 - **Descripción**: Permite al administrador crear, leer, actualizar o eliminar votaciones desde el panel de gestión (CRUD).  
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -258,10 +222,6 @@ graph LR
 - **Extensión (Exportar métricas)**:  
   - Permite exportar los datos a un archivo CSV o PDF para su análisis o auditoría externa.  
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -278,10 +238,6 @@ graph LR
 - **Tipo**: Extendido 🟠 (opcional, depende de “Visualizar métricas”)  
 - **Descripción**: Genera un informe descargable con las métricas actuales del sistema.
 ```mermaid
----
-config:
-  look: handDrawn
----
 graph LR
     classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
