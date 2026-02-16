@@ -40,8 +40,8 @@ config:
 stateDiagram
   direction BT
   [*] --> Inactivo
-  Inactivo --> Autenticacion_Ciudadano:Ciudadano inicia sesión
-  Autenticacion_Ciudadano --> Ciudadano_Activo:Certificado válido
+  Inactivo --> Autenticación_Ciudadano:Ciudadano inicia sesión
+  Autenticación_Ciudadano --> Ciudadano_Activo:Certificado válido
   Ciudadano_Activo --> Desplegar_Programas:Desplegar programas electorales
   Ciudadano_Activo --> Votando:Votar
   Votando --> Enviar_Voto:Enviar voto
@@ -49,11 +49,12 @@ stateDiagram
   Enviar_Voto --> Ciudadano_Activo
   Cancelar_Voto --> Ciudadano_Activo
   Ciudadano_Activo --> Ver_Resultados:Ver resultados
+  Ver_Resultados --> Buscar_Nickname + código:Buscar Nickname + código
   Ciudadano_Activo --> Inactivo:Salir
-  Inactivo --> Autenticacion_Admin:Administrador inicia sesión
-  Autenticacion_Admin --> Admin_Activo:Certificado válido
+  Inactivo --> Autenticación_Admin:Administrador inicia sesión
+  Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
-  Admin_Activo --> Visualizar_Metricas:Visualizar métricas on-chain
+  Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
   Visualizar_Metricas --> Exportar_Datos:Exportar datos
   Admin_Activo --> Inactivo:Salir
   Inactivo --> [*]
@@ -71,7 +72,8 @@ stateDiagram
    - `Votando` → flujo de votación:
      - `Enviar_Voto` → voto registrado en Blockchain.  
      - `Cancelar_Voto` → voto anulado antes de confirmación.  
-   - `Ver_Resultados` → consulta de resultados.  
+   - `Ver_Resultados` → consulta de resultados.
+     - `Buscar por nickname + código` → consulta tú voto.  
 5. Ciudadano finaliza sesión → vuelve a **Inactivo**.
 ```mermaid
 ---
@@ -81,8 +83,8 @@ config:
 stateDiagram
   direction BT
   [*] --> Inactivo
-  Inactivo --> Autenticacion_Ciudadano:Ciudadano inicia sesión
-  Autenticacion_Ciudadano --> Ciudadano_Activo:Certificado válido
+  Inactivo --> Autenticación_Ciudadano:Ciudadano inicia sesión
+  Autenticación_Ciudadano --> Ciudadano_Activo:Certificado válido
   Ciudadano_Activo --> Desplegar_Programas:Desplegar programas electorales
   Ciudadano_Activo --> Votando:Votar
   Votando --> Enviar_Voto:Enviar voto
@@ -90,6 +92,7 @@ stateDiagram
   Enviar_Voto --> Ciudadano_Activo
   Cancelar_Voto --> Ciudadano_Activo
   Ciudadano_Activo --> Ver_Resultados:Ver resultados
+  Ver_Resultados --> Buscar_Nickname + código:Buscar Nickname + código
   Ciudadano_Activo --> Inactivo:Salir
   Inactivo --> [*]
 ```
@@ -110,12 +113,12 @@ config:
   theme: neo-dark
 ---
 stateDiagram
-  direction TB
+  direction BT
   [*] --> Inactivo
-  Inactivo --> Autenticacion_Admin:Administrador inicia sesión
-  Autenticacion_Admin --> Admin_Activo:Certificado válido
+  Inactivo --> Autenticación_Admin:Administrador inicia sesión
+  Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
-  Admin_Activo --> Visualizar_Metricas:Visualizar métricas on-chain
+  Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
   Visualizar_Metricas --> Exportar_Datos:Exportar datos
   Admin_Activo --> Inactivo:Salir
   Inactivo --> [*]

@@ -56,11 +56,11 @@ sequenceDiagram
     Ciudadano->>+Sistema: Inicia sesión <<include>>
     Sistema-->>-Ciudadano: Certificado validado
 
-    Ciudadano->>+Sistema: Ver información del proyecto
-    Sistema-->>-Ciudadano: Información mostrada
-
     Ciudadano->>+Sistema: Desplegar programas electorales
     Sistema-->>-Ciudadano: Programas desplegados
+
+    Ciudadano->>+Sistema: Ponerse un nickname
+    Sistema-->>-Ciudadano: Nickname guardado
 
     Ciudadano->>+Sistema: Votar
 
@@ -79,6 +79,13 @@ sequenceDiagram
 
     Ciudadano->>+Sistema: Ver resultados
     Sistema-->>-Ciudadano: Resultados mostrados
+
+    alt Usuario decide buscar por su nickname + código <<extend>>
+        Note over Sistema: Si pierde el código dado por el sistema al ponerse un nickname no podrá buscar a quíen votó
+        Ciudadano->>+Sistema: Escribe nickname + código
+        Sistema-->>-Ciudadano: Muestra resultado
+    end
+
     Ciudadano->>+Sistema: Salir
     Sistema-->>-Ciudadano: Fin sesión usuario
 
@@ -110,7 +117,7 @@ El flujo de interacción del **Ciudadano** se desarrolla de la siguiente manera:
 4. Una vez autenticado, el ciudadano puede:
    - Visualizar los programas electorales.
    - Votar a un partido política cuando haya una votación activa.
-   - Consultar los resultados cuando la votación haya finalizado.
+   - Consultar los resultados cuando la votación haya finalizado o buscar por nickname + código para comprobar a quién fue dirigido su voto.
    - Salir y cerrar sesión.
 5. Si decide votar:
    - El sistema verifica si el ciudadano ya ha emitido un voto.
@@ -131,11 +138,11 @@ sequenceDiagram
     Ciudadano->>+Sistema: Inicia sesión <<include>>
     Sistema-->>-Ciudadano: Certificado validado
 
-    Ciudadano->>+Sistema: Ver información del proyecto
-    Sistema-->>-Ciudadano: Información mostrada
-
     Ciudadano->>+Sistema: Desplegar programas electorales
     Sistema-->>-Ciudadano: Programas desplegados
+
+    Ciudadano->>+Sistema: Ponerse un nickname
+    Sistema-->>-Ciudadano: Nickname guardado
 
     Ciudadano->>+Sistema: Votar
 
@@ -154,6 +161,13 @@ sequenceDiagram
 
     Ciudadano->>+Sistema: Ver resultados
     Sistema-->>-Ciudadano: Resultados mostrados
+
+    alt Usuario decide buscar por su nickname + código <<extend>>
+        Note over Sistema: Si pierde el código dado por el sistema al ponerse un nickname no podrá buscar a quíen perteneció su voto
+        Ciudadano->>+Sistema: Escribe nickname + código
+        Sistema-->>-Ciudadano: Muestra resultado
+    end
+
     Ciudadano->>+Sistema: Salir
     Sistema-->>-Ciudadano: Fin sesión usuario
 ```

@@ -33,12 +33,13 @@ graph TD
 
     %% Casos de Uso: Ciudadano
     UC_Login(Iniciar sesión):::soporte
-    UC_VerInfo(Ver información del proyecto):::primario
     UC_Desplegar(Desplegar programas):::primario
+    UC_Nickname(Ponerse un nickname):::primario
     UC_Votar(Votar):::primario
     UC_Enviar(Enviar voto):::extendido
     UC_Cancelar(Cancelar voto):::extendido
     UC_Resultados(Ver resultados):::primario
+    UC_Buscar(Buscar voto por Nickname + codigo):::primario
     UC_Salir(Cerrar sesión):::primario
 
     %% Casos de Uso: Administrador
@@ -47,18 +48,20 @@ graph TD
     UC_Exportar(Exportar datos):::extendido
 
     %% Relaciones Ciudadano
-    Ciudadano --- UC_VerInfo
     Ciudadano --- UC_Desplegar
+    Ciudadano --- UC_Nickname
     Ciudadano --- UC_Votar
     Ciudadano --- UC_Resultados
+    Ciudadano --- UC_Buscar
     Ciudadano --- UC_Salir
 
-    UC_VerInfo -.->|include| UC_Login
     UC_Desplegar -.->|include| UC_Login
+    UC_Nickname -.->|include| UC_Login
     UC_Votar -.->|include| UC_Login
     UC_Votar -.->|extend| UC_Enviar
-    UC_Cancelar -.->|extend| UC_Votar
+    UC_Votar -.->|extend| UC_Cancelar
     UC_Resultados -.->|include| UC_Login
+    UC_Buscar -.->|extend| UC_Login
     UC_Salir -.->|include| UC_Login
 
     %% Relaciones Administrador
@@ -114,16 +117,35 @@ graph LR
     UC_Desplegar -.->|include| UC_Login[Iniciar sesión]:::soporte  
 ``` 
 
+### Caso de uso: Ponerse un Nickname
+- **Tipo**: Primario 🔵 
+- **Incluye**: Iniciar sesión  
+- **Descripción**: Permite ponerse un nickname para luego poder buscar a quien has votado gracias al nickname y un código que proporcionará el propio sistema. Cabe destacar que si se pierde ese código no se podrá comprobar a quién has votado  
+- **Flujo principal**:
+  1. El ciudadano inicia sesión.  
+  2. El ciudadano pincha sobre “Perfil”.  
+  3. El sistema muestra una serie de datos sobre el usuario y permite ponerse un nickname necesario para poder buscar luego el partido al que votó el usuario. 
+```mermaid
+graph LR
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
+    classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
+
+    Ciudadano((<b>Ciudadano</b>)):::actor
+    Ciudadano --> UC_Nickname[Ponerse un nickname]:::primario
+    UC_Nickname -.->|include| UC_Login[Iniciar sesión]:::soporte  
+``` 
+
 ### Caso de uso: Votar
 - **Tipo**: Primario 🔵
-- **Incluye**: Iniciar sesión, Enviar voto  
-- **Extiende**: Cancelar voto  
-- **Descripción**: Permite al ciudadano emitir su voto dentro de una votación activa y registrada en la blockchain.  
+- **Incluye**: Iniciar sesión 
+- **Extiende**: Enviar / Cancelar voto  
+- **Descripción**: Permite al ciudadano poder emitir su voto dentro de una votación activa y registrada en la blockchain.  
 - **Flujo principal**:
   1. El ciudadano inicia sesión.  
   2. Selecciona “Votar”.  
   3. Marca su opción y confirma.  
-  4. El sistema envía el voto a la Blockchain y ejecuta el caso **Enviar voto**.  
+  4. El sistema envía el voto a la Blockchain y ejecuta el caso **Enviar voto** solo si quiere enviarlo (**extensión**).  
 - **Extensión (Cancelar voto)**:  
   - Si el ciudadano decide no continuar, puede ejecutar el caso **Cancelar voto** antes de confirmar. 
 ```mermaid
@@ -174,20 +196,38 @@ graph LR
 ### Caso de uso: Ver resultados
 - **Tipo**: Primario 🔵
 - **Incluye**: Iniciar sesión  
-- **Descripción**: Permite al ciudadano ver los resultados recogidos en la blockchain.  
+- **Extiende**: Buscar voto por Nickname + Código
+- **Descripción**: Permite al ciudadano ver a quién voto haciendo uso de la blockchain con registros inmutables.  
 - **Flujo principal**:
   1. El ciudadano inicia sesión.  
   2. Selecciona “Ver resultados”.  
-  3. El sistema consulta la blockchain y la base de datos para mostrar los resultados.  
+  3. Escribe su Nickname + código y el sistema se encarga de buscarlo en la blockchain y mostrarle el resultado al usuario. 
+- **Extensión (Buscar a quién voto el usuario)**:  
+  - Si el ciudadano quiere buscar a quién votó para corroborar su voto, puede ejecutar el caso **Buscar por nickname + código** en la pantalla Resultados.  
 ```mermaid
 graph LR
     classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef extendido fill:#fff3e0, stroke:#e65100, stroke-width:2px, color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
     Ciudadano((<b>Ciudadano</b>)):::actor
     Ciudadano --> UC_Resultados[Ver resultados]:::primario
     UC_Resultados -.->|include| UC_Login[Iniciar sesión]:::soporte
+    UC_Resultados -. extend .-> UC_Buscar["Buscar voto por Nickname + código"]:::extendido
+```
+
+### Caso de uso: Busacr voto
+- **Tipo**: Extendido 🟠 (opcional, depende del flujo “Ver resultados”)  
+- **Descripción**: Permite buscar el voto de cada usuario escribiendo el Nickname + código que da el sistema cuando el usuario se pone un nickname **(IMPORTANTE no perder el código o no se podrás corrobar a quién votaste)**  
+```mermaid
+graph LR
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
+    classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    
+    Ciudadano((<b>Ciudadano</b>)):::actor
+    Ciudadano --> UC_Resultados[Ver resultados]:::primario -.-> |extend| UC_Buscar[Buscar voto por Nickname + código]:::extendido
 ``` 
 
 ### Caso de uso: Salir
