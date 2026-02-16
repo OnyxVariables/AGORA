@@ -49,13 +49,13 @@ stateDiagram
   Enviar_Voto --> Ciudadano_Activo
   Cancelar_Voto --> Ciudadano_Activo
   Ciudadano_Activo --> Ver_Resultados:Ver resultados
-  Ver_Resultados --> Buscar_Nickname + código:Buscar Nickname + código
+  Ver_Resultados --> Buscar_Nickname+código:Buscar Nickname + código
   Ciudadano_Activo --> Inactivo:Salir
   Inactivo --> Autenticación_Admin:Administrador inicia sesión
   Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
   Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
-  Visualizar_Metricas --> Exportar_Datos:Exportar datos
+  Visualizar_Métricas --> Exportar_Datos:Exportar datos
   Admin_Activo --> Inactivo:Salir
   Inactivo --> [*]
 ```
@@ -92,7 +92,7 @@ stateDiagram
   Enviar_Voto --> Ciudadano_Activo
   Cancelar_Voto --> Ciudadano_Activo
   Ciudadano_Activo --> Ver_Resultados:Ver resultados
-  Ver_Resultados --> Buscar_Nickname + código:Buscar Nickname + código
+  Ver_Resultados --> Buscar_Nickname+código:Buscar Nickname + código
   Ciudadano_Activo --> Inactivo:Salir
   Inactivo --> [*]
 ```
@@ -119,7 +119,7 @@ stateDiagram
   Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
   Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
-  Visualizar_Metricas --> Exportar_Datos:Exportar datos
+  Visualizar_Métricas --> Exportar_Datos:Exportar datos
   Admin_Activo --> Inactivo:Salir
   Inactivo --> [*]
 ```

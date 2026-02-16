@@ -27,7 +27,7 @@ Se incluyen flujos para:
 
 <br><br>A continuación, se muestra el diagrama de flujo completo:
 ```mermaid
-flowchart LR
+flowchart TB
     %% Estilos
     classDef inicioFin fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000
     classDef proceso fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
