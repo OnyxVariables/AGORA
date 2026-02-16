@@ -14,20 +14,19 @@ Este documento detalla los casos de uso del sistema de votación electrónica. S
 | Tipo | Descripción | Visualización en Diagrama |
 | :--- | :--- | :--- |
 | **Primario** | Aporta valor directo al usuario o proceso. | Cuadrado de color azul claro 🔵 |
-| **Secundario** | Soporte técnico o requisito obligatorio. | Cuadrado de color gris ⚪ |
-| **Extendido** | Funcionalidad opcional dependiente de una condición. | Cuadrado de color naranja 🟠 |
+| **Secundario** | Soporte técnico o requisito obligatorio. | Cuadrado de color blanco amarillento ⚪ |
+| **Extendido** | Funcionalidad opcional dependiente de una condición. | Cuadrado de color naranja claro 🟠 |
 
 ## 2. Arquitectura de Casos de Uso
 
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph TD
     %% Estilos
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
@@ -89,11 +88,10 @@ graph TD
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
     Ciudadano((<b>Ciudadano</b>)):::actor
@@ -111,11 +109,10 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
@@ -139,14 +136,13 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 flowchart LR
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0, stroke:#e65100, stroke-width:2px, color:#000
-    classDef actor fill:#ffffff, stroke:#fff, stroke-width:2px, color:#000
+    classDef actor fill:#fff8d9, stroke:#fff, stroke-width:2px, color:#000
 
     Ciudadano(("<b>Ciudadano</b>")) --> UC_Votar["Votar"]
     UC_Votar -. include .-> UC_Login["Iniciar sesión"]
@@ -166,11 +162,10 @@ flowchart LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
 
@@ -184,11 +179,10 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
     
@@ -207,11 +201,10 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
@@ -228,11 +221,10 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
     Administrador((<b>Administrador</b>)):::actor
@@ -246,11 +238,10 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
@@ -269,11 +260,10 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
@@ -290,11 +280,10 @@ graph LR
 ```mermaid
 ---
 config:
-  theme: base
   look: handDrawn
 ---
 graph LR
-    classDef actor fill:#ffffff,stroke:#fff,stroke-width:2px,color:#000
+    classDef actor fill:#fff8d9,stroke:#fff,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
     classDef extendido fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
