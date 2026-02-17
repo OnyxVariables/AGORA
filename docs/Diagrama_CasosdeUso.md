@@ -21,7 +21,7 @@ Este documento detalla los casos de uso del sistema de votación electrónica. S
 ## 2. Arquitectura de Casos de Uso
 
 ```mermaid
-graph TD
+graph LR
     %% Estilos
     classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
     classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -40,7 +40,7 @@ graph TD
     UC_Enviar(Enviar voto):::extendido
     UC_Cancelar(Cancelar voto):::extendido
     UC_Resultados(Ver resultados):::primario
-    UC_Buscar(Buscar voto por Nickname + codigo):::primario
+    UC_Buscar(Buscar voto por Nickname + codigo):::extendido
     UC_Salir(Cerrar sesión):::primario
 
     %% Casos de Uso: Administrador
@@ -53,7 +53,6 @@ graph TD
     Ciudadano --- UC_Nickname
     Ciudadano --- UC_Votar
     Ciudadano --- UC_Resultados
-    Ciudadano --- UC_Buscar
     Ciudadano --- UC_Salir
 
     UC_Desplegar -.->|include| UC_Login
@@ -62,7 +61,7 @@ graph TD
     UC_Votar -.->|extend| UC_Enviar
     UC_Votar -.->|extend| UC_Cancelar
     UC_Resultados -.->|include| UC_Login
-    UC_Buscar -.->|extend| UC_Login
+    UC_Resultados -.->|extend| UC_Buscar
     UC_Salir -.->|include| UC_Login
 
     %% Relaciones Administrador
