@@ -14,8 +14,9 @@ Este documento detalla los casos de uso del sistema de votación electrónica. S
 | Tipo | Descripción | Visualización en Diagrama |
 | :--- | :--- | :--- |
 | **Primario** | Aporta valor directo al usuario o proceso. | Cuadrado de color azul claro 🔵 |
-| **Secundario** | Soporte técnico o requisito obligatorio. | Cuadrado de color blanco amarillento 🟡 |
+| **Secundario** | Soporte técnico o requisito obligatorio. | Cuadrado de color gris blanquecino ⚪ |
 | **Extendido** | Funcionalidad opcional dependiente de una condición. | Cuadrado de color naranja claro 🟠 |
+| **Rol** | Quién hace la acción. | Círculo de color blanco amarillento 🟡 |
 
 ## 2. Arquitectura de Casos de Uso
 
@@ -78,7 +79,7 @@ graph TD
 
 ## 3. Actor: Ciudadano
 ### Caso de uso: Iniciar sesión
-- **Tipo**: Secundario 🟡 (caso de soporte, incluido en todos los primarios)  
+- **Tipo**: Secundario ⚪ (caso de soporte, incluido en todos los primarios)  
 - **Descripción**: El ciudadano se autentica en el sistema mediante su certificado electrónico, requisito previo para realizar cualquier acción dentro del sistema.  
 - **Actor principal**: Ciudadano  
 - **Precondiciones**: El ciudadano dispone de un certificado electrónico válido.  
@@ -252,7 +253,7 @@ graph LR
 
 ## 4. Actor: Administrador
 ### Caso de uso: Iniciar sesión
-- **Tipo**: Secundario 🟡 (requisito previo para todos los casos del administrador)  
+- **Tipo**: Secundario ⚪ (requisito previo para todos los casos del administrador)  
 - **Descripción**: El administrador se autentica mediante su certificado electrónico institucional.  
 ```mermaid
 graph LR
