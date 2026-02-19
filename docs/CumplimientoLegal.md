@@ -71,7 +71,8 @@ AGORA trata únicamente los datos **estrictamente necesarios**:
 | Rol del usuario | Control de permisos |
 | Registro de acciones | Auditoría |
 
-> **Note:** Nunca se almacena el voto en claro asociado a un ciudadano.
+> [!NOTE] 
+> Nunca se almacena el voto en claro asociado a un ciudadano.
 
 ### 3.2 Anonimización y Seudonimización
 - El voto se almacena como **hash criptográfico**
@@ -165,7 +166,7 @@ El proyecto constituye:
 - Una implementación basada en buenas prácticas reales
 
 > [!IMPORTANT]
-> Este proyecto está bajo la licencia MITT debido a su comercialización y cualquier réplica del mismo será acusado como réplica / copia
+> Copyright (c) [2026] [AGORA]. Todos los derechos reservados. Queda estrictamente prohibida la reproducción, copia, distribución o comercialización, total o parcial, del código fuente o del software sin la autorización expresa y por escrito del autor. Este proyecto no es de código abierto (Open Source).
 
 
 ## 10. Conclusión

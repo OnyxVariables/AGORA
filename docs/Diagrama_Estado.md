@@ -26,11 +26,11 @@ Mientras que los diagramas de secuencia representan **la interacción temporal**
 
 
 ## 3. Convenciones UML Utilizadas
-- **Estado inicial `[*]`**: Punto de inicio del sistema.
+- **Estado inicial**: Punto de inicio del sistema.
 - **Estados**: Representan situaciones en que el sistema permanece mientras espera acciones.
 - **Transiciones**: Flechas etiquetadas con la acción que produce el cambio de estado.
 - **Estados compuestos**: Algunos estados (como `Ciudadano_Activo`) incluyen sub-acciones (Votar, Enviar voto, Cancelar voto).
-- **Estado final `[*]`**: Cierre de sesión o finalización de un proceso.<br><br>
+- **Estado final**: Cierre de sesión o finalización de un proceso.<br><br>
 A continuación, se muestra el diagrama de estado completo:
 ```mermaid
 ---
@@ -42,7 +42,7 @@ stateDiagram
   [*] --> Inactivo
   Inactivo --> Autenticación_Ciudadano:Ciudadano inicia sesión
   Autenticación_Ciudadano --> Ciudadano_Activo:Certificado válido
-  Ciudadano_Activo --> Desplegar_Programas:Desplegar programas electorales
+  Ciudadano_Activo --> Consultar_Programas:Consultar programas electorales
   Ciudadano_Activo --> Votando:Votar
   Votando --> Enviar_Voto:Enviar voto
   Votando --> Cancelar_Voto:Cancelar voto
@@ -68,7 +68,7 @@ stateDiagram
 3. Certificado válido → **Ciudadano_Activo**.  
 4. Acciones disponibles en **Ciudadano_Activo**:
    - `Ver_Info` → visualización de información del proyecto.  
-   - `Desplegar_Programas` → consulta de programas electorales.  
+   - `Consultar_Programas` → consulta de programas electorales.  
    - `Votando` → flujo de votación:
      - `Enviar_Voto` → voto registrado en Blockchain.  
      - `Cancelar_Voto` → voto anulado antes de confirmación.  
@@ -85,7 +85,7 @@ stateDiagram
   [*] --> Inactivo
   Inactivo --> Autenticación_Ciudadano:Ciudadano inicia sesión
   Autenticación_Ciudadano --> Ciudadano_Activo:Certificado válido
-  Ciudadano_Activo --> Desplegar_Programas:Desplegar programas electorales
+  Ciudadano_Activo --> Consultar_Programas:Consultar programas electorales
   Ciudadano_Activo --> Votando:Votar
   Votando --> Enviar_Voto:Enviar voto
   Votando --> Cancelar_Voto:Cancelar voto
@@ -127,7 +127,7 @@ stateDiagram
 ## 6. Relación con los Casos de Uso
 - Los estados corresponden a **los mismos casos de uso previamente definidos**, asegurando coherencia:  
   - Iniciar sesión  
-  - Desplegar programas electorales  
+  - Consultar programas electorales  
   - Votar / Enviar voto / Cancelar voto  
   - Ver resultados  
   - CRUD votaciones  

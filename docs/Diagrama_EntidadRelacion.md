@@ -28,7 +28,7 @@ Este sistema de votaciones electrónicas está diseñado para garantizar:
 
 La base de datos relacional almacena únicamente información de gestión y auditoría, mientras que los votos y eventos críticos quedan registrados en blockchain mediante hashes, evitando cualquier vinculación directa entre usuario y voto.
 
-> [!TIP]
+> [!NOTE]
 > El modelo está totalmente normalizado (3FN) y preparado para entornos críticos y regulados.
 
 ## 2. Principios de Diseño del Modelo
