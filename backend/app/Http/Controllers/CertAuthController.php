@@ -71,4 +71,15 @@ class CertAuthController extends Controller
             'dni'    => $user->dni,
         ]);
     }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Sesión cerrada'], 200);
+    }
 }
