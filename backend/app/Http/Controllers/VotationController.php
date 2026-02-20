@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Votation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class VotationController extends Controller
 {
@@ -13,7 +14,7 @@ class VotationController extends Controller
         if (Auth::user()->roleId !== 1) {
             return response()->json(['error' => 'No tienes permiso'], 403);
         }
-        
+
         return response()->json(Votation::all(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
