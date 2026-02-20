@@ -1,7 +1,7 @@
 <table align="center">
   <tr>
     <td>
-      <img src="frontend/img/LogoAgora.jpg" alt="Logo" width="80">
+      <img src="frontend/public/img/LogoAgora.png" alt="Logo" width="80">
     </td>
     <td>
       <h1>AGORA</h1>
