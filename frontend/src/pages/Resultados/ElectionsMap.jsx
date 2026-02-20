@@ -16,8 +16,6 @@ export default function ElectionsMap() {
   const [totalVotes, setTotalVotes] = useState(0);
   const [seatsAssigned, setSeatsAssigned] = useState(0);
 
-  let cachedViewBox = null; //Para calcular el viewbox solo una vez (como me dijiste Rojohn)
-
   const levels = [
     { value: "nation", label: "Nación" },
     { value: "ccaa", label: "Comunidad" },
@@ -448,13 +446,10 @@ export default function ElectionsMap() {
       ); //Le paso el translate a Canarias con la variable del principio
 
       // Ajuste viewbox
-      if (!viewBoxInitialized) {
-        const finalBBox = map.getBBox();
-        cachedViewBox = `${finalBBox.x - 20} ${finalBBox.y - 20} ${finalBBox.width + 40} ${finalBBox.height + 40}`;
-        viewBoxInitialized = true;
-      }
+      const currentViewBox = map.getBBox();
+      const finalViewBox = `${currentViewBox.x - 20} ${currentViewBox.y - 20} ${currentViewBox.width + 40} ${currentViewBox.height + 40}`;
 
-      map.setAttribute("viewBox", cachedViewBox);
+      map.setAttribute("viewBox", finalViewBox);
     }
 
     function hoverFeature(map, path) {
@@ -637,7 +632,6 @@ export default function ElectionsMap() {
         radio.addEventListener("change", (e) => changeLevel(e.target.value)),
       );
 
-    let viewBoxInitialized = false;
     changeLevel(currentLevel);
   }, []);
 
