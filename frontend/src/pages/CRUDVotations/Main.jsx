@@ -42,21 +42,27 @@ export default function App() {
   }, []);
 
   const fetchVotations = () => {
-    setLoading(true);
-    fetch("/api/votations", {
-      credentials: "include",
-      headers: { Accept: "application/json" },
+  setLoading(true);
+  fetch("/api/votations", {
+    credentials: "include",
+    headers: { Accept: "application/json" },
+  })
+    .then((res) => {
+      if (res.status === 403) {
+        window.location.href = "/";  
+      }
+      if (!res.ok) throw new Error("Error en la petición");
+      return res.json();
     })
-      .then((res) => res.json())
-      .then((data) => {
-        setVotations(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  };
+    .then((data) => {
+      setVotations(data);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error(err);
+      setLoading(false);
+    });
+};
 
   const openCreateForm = () => {
     setFormData(emptyVotation);
