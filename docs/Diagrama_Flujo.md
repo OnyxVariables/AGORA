@@ -38,7 +38,7 @@ flowchart TB
     InicioC((Inicio Ciudadano)):::inicioFin
 
     InicioC --> LoginC[Iniciar sesión con certificado]:::proceso
-    LoginC --> ProgramasC[Desplegar programas electorales]:::proceso
+    LoginC --> ProgramasC[Consultar programas electorales]:::proceso
     ProgramasC --> NicknameC[Ponerse un nickname]:::proceso
     NicknameC --> VotarC[Votar]:::proceso
 
@@ -74,7 +74,7 @@ flowchart TB
 Descripción del flujo Ciudadano:
 1. **Inicio**: El ciudadano accede al sistema.
 2. **Iniciar sesión**: Se autentica mediante certificado electrónico.
-3. **Desplegar programas**: Visualiza los programas electorales.
+3. **Consultar programas**: Visualiza los programas electorales.
 4. **Ponerse un nickname**: Necesario para consultar posteriormente a quién votó.
 5. **Votar**: Marca su opción y decide enviar o cancelar el voto.
 6. **Decisión de envío**:
@@ -95,7 +95,7 @@ flowchart LR
     InicioC((Inicio Ciudadano)):::inicioFin
 
     InicioC --> LoginC[Iniciar sesión con certificado]:::proceso
-    LoginC --> ProgramasC[Desplegar programas electorales]:::proceso
+    LoginC --> ProgramasC[Consultar programas electorales]:::proceso
     ProgramasC --> NicknameC[Ponerse un nickname]:::proceso
     NicknameC --> VotarC[Votar]:::proceso
 

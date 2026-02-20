@@ -34,7 +34,7 @@ graph LR
 
     %% Casos de Uso: Ciudadano
     UC_Login(Iniciar sesión):::soporte
-    UC_Desplegar(Desplegar programas):::primario
+    UC_Consultar(Consultar programas):::primario
     UC_Nickname(Ponerse un nickname):::primario
     UC_Votar(Votar):::primario
     UC_Enviar(Enviar voto):::extendido
@@ -49,13 +49,13 @@ graph LR
     UC_Exportar(Exportar datos):::extendido
 
     %% Relaciones Ciudadano
-    Ciudadano --- UC_Desplegar
+    Ciudadano --- UC_Consultar
     Ciudadano --- UC_Nickname
     Ciudadano --- UC_Votar
     Ciudadano --- UC_Resultados
     Ciudadano --- UC_Salir
 
-    UC_Desplegar -.->|include| UC_Login
+    UC_Consultar -.->|include| UC_Login
     UC_Nickname -.->|include| UC_Login
     UC_Votar -.->|include| UC_Login
     UC_Votar -.->|extend| UC_Enviar
@@ -98,13 +98,13 @@ graph LR
     Ciudadano --> UC_Login[Iniciar sesión]:::soporte  
 ```
 
-### Caso de uso: Desplegar programas electorales
+### Caso de uso: Consultar programas electorales
 - **Tipo**: Primario 🔵 
 - **Incluye**: Iniciar sesión  
 - **Descripción**: Permite visualizar los programas o propuestas electorales de los distintos candidatos o partidos disponibles.  
 - **Flujo principal**:
   1. El ciudadano inicia sesión.  
-  2. El ciudadano pincha sobre “Desplegar programas electorales”.  
+  2. El ciudadano pincha sobre “Consultar programas electorales”.  
   3. El sistema muestra los programas de los distintos candidatos o partidos. 
 ```mermaid
 graph LR
@@ -113,8 +113,8 @@ graph LR
     classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
 
     Ciudadano((<b>Ciudadano</b>)):::actor
-    Ciudadano --> UC_Desplegar[Desplegar programas]:::primario
-    UC_Desplegar -.->|include| UC_Login[Iniciar sesión]:::soporte  
+    Ciudadano --> UC_Consultar[Consultar programas]:::primario
+    UC_Consultar -.->|include| UC_Login[Iniciar sesión]:::soporte  
 ``` 
 
 ### Caso de uso: Ponerse un Nickname

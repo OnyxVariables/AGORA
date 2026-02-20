@@ -56,7 +56,7 @@ sequenceDiagram
     Ciudadano->>+Sistema: Inicia sesión <<include>>
     Sistema-->>-Ciudadano: Certificado validado
 
-    Ciudadano->>+Sistema: Desplegar programas electorales
+    Ciudadano->>+Sistema: Consultar programas electorales
     Sistema-->>-Ciudadano: Programas desplegados
 
     Ciudadano->>+Sistema: Ponerse un nickname
@@ -138,7 +138,7 @@ sequenceDiagram
     Ciudadano->>+Sistema: Inicia sesión <<include>>
     Sistema-->>-Ciudadano: Certificado validado
 
-    Ciudadano->>+Sistema: Desplegar programas electorales
+    Ciudadano->>+Sistema: Consultar programas electorales
     Sistema-->>-Ciudadano: Programas desplegados
 
     Ciudadano->>+Sistema: Ponerse un nickname
@@ -213,7 +213,7 @@ sequenceDiagram
 El diagrama de secuencia está directamente relacionado con los casos de uso definidos [(Casos de Uso)](Diagrama_CasosdeUso.md):
 - **Iniciar sesión (certificado electrónico)**  
 - **Ver proyectos electorales**
-- **Desplegar programas electorales**
+- **Consultar programas electorales**
 - **Votar**
 - **Enviar voto**
 - **Cancelar voto**
