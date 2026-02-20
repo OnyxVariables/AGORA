@@ -6,10 +6,10 @@ import ThemeToggle from "../../components/ThemeToggle/ThemeToggle";
 function Perfil() {
   return (
     <>
-        <Header menu="perfil"></Header>
-        <Main></Main>
-        <ThemeToggle></ThemeToggle>
-        <Footer></Footer>
+      <Header menu="perfil"></Header>
+      <Main></Main>
+      <ThemeToggle></ThemeToggle>
+      <Footer></Footer>
     </>
   );
 }

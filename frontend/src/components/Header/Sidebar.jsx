@@ -1,5 +1,11 @@
 import { Link } from "react-router-dom";
-import { UserIcon, VoteIcon, ResultsIcon, LogoutIcon, HomeIcon } from "../../icons";
+import {
+  UserIcon,
+  VoteIcon,
+  ResultsIcon,
+  LogoutIcon,
+  HomeIcon,
+} from "../../icons";
 
 function Sidebar({ open, close, items }) {
   return (
@@ -7,7 +13,7 @@ function Sidebar({ open, close, items }) {
       <div className="input">
         {items.map(({ to, label, icon: Icon }) => (
           <Link key={to} to={to} className="value" onClick={close}>
-            {<Icon/>}
+            {<Icon />}
             <span>{label}</span>
           </Link>
         ))}

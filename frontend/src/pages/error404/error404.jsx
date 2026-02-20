@@ -3,7 +3,7 @@ import Main from "./Main";
 function error404() {
   return (
     <>
-        <Main></Main>
+      <Main></Main>
     </>
   );
 }
