@@ -5,9 +5,9 @@ import ElectionsMap from "./ElectionsMap";
 function Resultados() {
   return (
     <>
-        <Header menu="resultados"></Header>
-        <ElectionsMap></ElectionsMap>
-        <Footer></Footer>
+      <Header menu="resultados"></Header>
+      <ElectionsMap></ElectionsMap>
+      <Footer></Footer>
     </>
   );
 }

@@ -4,10 +4,11 @@
     width: 95%;
     margin: 0 auto;
     margin-bottom: 3em;
+    position: relative;
 }
 
 /* section 1 */
-.electionsMap .section1{
+.electionsMap .section1 {
     background-color: #d0bfff;
     padding: 1em;
     border-radius: 1em;
@@ -16,18 +17,18 @@
     position: relative;
 }
 
-.electionsMap .article1{
+.electionsMap .article1 {
     display: flex;
     justify-content: space-between;
     text-decoration: underline;
 }
 
-.electionsMap .select{
+.electionsMap .select {
     width: 10%;
     border-radius: 0.5em;
 }
 
-.electionsMap .article2{
+.electionsMap .article2 {
     background-color: white;
     margin-top: 1em;
     text-align: center;
@@ -37,7 +38,7 @@
 }
 
 /* section 2 */
-.electionsMap .section2{
+.electionsMap .section2 {
     background-color: #eebefa;
     padding: 1em;
     border-radius: 1em;
@@ -48,7 +49,7 @@
     position: relative;
 }
 
-.electionsMap .nickname{
+.electionsMap .nickname {
     border-radius: 0.5em;
     font-weight: bold;
     padding: 0.3em;
@@ -58,7 +59,7 @@
 
 
 /* section 3 */
-.electionsMap .section3{
+.electionsMap .section3 {
     border-radius: 1em;
     padding: 1em;
     margin-top: 2em;
@@ -69,13 +70,13 @@
     border: 3px solid black;
 }
 
-.electionsMap .filtrado{
+.electionsMap .filtrado {
     display: flex;
     gap: 0.5em;
     font-weight: 600;
 }
 
-.electionsMap .types{
+.electionsMap .types {
     border: 2px solid black;
     border-radius: 0.5em;
     padding: 0.5em;
@@ -90,35 +91,38 @@
 /* Hovers */
 .electionsMap .section1:hover,
 .electionsMap .section2:hover,
-.electionsMap .section3:hover{
+.electionsMap .section3:hover {
     transform: translateY(-5px);
     box-shadow: 12px 12px 12px #00000030;
 }
 
-.electionsMap .section1, .electionsMap .section2, .electionsMap .section3{
+.electionsMap .section1,
+.electionsMap .section2,
+.electionsMap .section3 {
     transition: all 0.35s ease;
 }
 
 /* section4 */
-.electionsMap .section4{
+.electionsMap .section4 {
     margin-top: 2em;
     overflow: hidden;
     position: relative;
     background-color: rgb(147, 215, 255);
     border-radius: 1em;
     padding: 1em;
-    
+
 }
 
 /* MAPA */
 .map path {
-  stroke:black;
-  stroke-width: 1.5;
-  transition: all 0.2s;
+    stroke: black;
+    stroke-width: 1.5;
+    transition: all 0.2s;
 }
 
 #map path {
-    pointer-events: auto; /* pa que funcione los hovers */
+    pointer-events: auto;
+    /* pa que funcione los hovers */
 }
 
 .ocean {
@@ -129,29 +133,135 @@
     pointer-events: none;
 }
 
+/* Dialog */
+.dialog {
+    position: fixed;
+    z-index: 1000000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);  /* borroso */
+    -webkit-backdrop-filter: blur(3px); /* para Safari */
+    padding-bottom: 10em;
+    margin-bottom: 10em;
+}
+
+.dialog-content {
+    background: white;
+    width: 90%;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    max-height: 90vh; /* límite de altura */
+    overflow-y: auto; /* scroll si es necesario */
+    animation: aparecer 0.3s ease;
+    margin-top: 9em;
+    height: 80vh;
+    border: 3px solid black;
+    display: grid;
+    grid-template-areas:
+        "dialogTitle . . cerrar"
+        "info charts charts charts"
+        "info charts charts charts";
+    gap: 2em;
+}
+
+.cerrar {
+    grid-area: cerrar;
+    justify-self: end;
+}
+
+.info {
+    grid-area: info;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.dialog-title {
+    grid-area: dialogTitle;
+    text-wrap: nowrap;
+}
+
+.chart-section {
+    grid-area: charts;
+    display: grid;
+    grid-template-areas:
+        "pieChart barChart"
+        "lineChart lineChart";
+    justify-content: center;
+    align-items: center;
+    gap: 4em;
+}
+
+.pie-chart,
+.bar-chart {
+    height: 300px;
+    width: 300px;
+}
+
+.line-chart {
+    width: 100%;
+}
 
 /* RESPONSIVE */
 /* Tablets y pantallas medianas */
+
+@media (width < 1200px) {
+    .dialog-content {
+        grid-template-areas:
+            ". dialogTitle cerrar"
+            "info info info"
+            "charts charts charts";
+
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .info {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
 @media (max-width: 900px) {
     .electionsMap {
         padding-top: 8em;
     }
+
+    .chart-section {
+        grid-template-areas:
+            "pieChart"
+            "barChart"
+            "lineChart";
+
+        justify-items: center;
+    }
+
+    .dialog-content{
+        margin-top: 7em;
+        height: 83vh;
+    }
 }
 
-
 @media (max-width: 590px) {
-    .electionsMap .filtrado{
+    .electionsMap .filtrado {
         flex-direction: column;
     }
 
-    .electionsMap .select{
+    .electionsMap .select {
         width: 20%;
     }
 
+    .dialog-title {
+        text-wrap: wrap;
+    }
 }
 
 @media (max-width: 419px) {
-    .electionsMap .article1 h2{
+    .electionsMap .article1 h2 {
         font-size: 1.2em;
     }
 }

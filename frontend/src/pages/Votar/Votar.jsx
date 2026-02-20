@@ -5,9 +5,9 @@ import Footer from "../../components/Footer/Footer";
 function Votar() {
   return (
     <>
-        <Header menu="votar"></Header>
-        <Main></Main>
-        <Footer></Footer>
+      <Header menu="votar"></Header>
+      <Main></Main>
+      <Footer></Footer>
     </>
   );
 }
