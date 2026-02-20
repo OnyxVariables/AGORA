@@ -57,10 +57,14 @@ function Partidos() {
       return;
     }
 
-    await popupConfirm(
+    const isConfirmed = await popupConfirm(
       `Desea votar a ${partidos.find((p) => p.value === selection).nombre}`,
       "Esta acción es irreversible",
     );
+
+    if (!isConfirmed) {
+      return;
+    }
 
     try {
       const xsrfToken = await getXsrfToken();
