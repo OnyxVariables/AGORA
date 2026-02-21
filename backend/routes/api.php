@@ -14,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/nickname', [UserController::class, 'setNickname']);
     Route::post('/vote', [VoteController::class, 'send']);
     Route::post('/logout', [CertAuthController::class, 'logout']);
+     Route::get('/votation/active', [VotationController::class, 'active']);
 });
 
 // Ruta protegida por Sanctum donde solo puede acceder usuario autenticado
