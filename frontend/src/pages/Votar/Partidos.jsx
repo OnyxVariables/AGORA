@@ -5,6 +5,7 @@ import Particles from "../../components/Particles/Particles";
 import { popupError, toastSuccess, popupConfirm } from "../../services/alerts";
 import { PARTIDOS } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
+import { keccak256, toUtf8Bytes } from "ethers";
 
 const partidos = PARTIDOS.map((p) => ({
   id: p.id,
@@ -15,8 +16,17 @@ const partidos = PARTIDOS.map((p) => ({
   imagen: p.imagen,
 }));
 
+// Genera 256 bits seguros
+function generarCodigo() {
+  const array = new Uint8Array(32);
+  window.crypto.getRandomValues(array);
+  return Array.from(array)
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 function Partidos() {
-  const [selection, setSelection] = useState();
+  const [selection, setSelection] = useState(null);
 
   const toggleSelection = (currentValue) => {
     setSelection((previousValue) =>
@@ -24,7 +34,8 @@ function Partidos() {
     );
   };
 
-  const hasNickname = async () => {
+  //Datos completos de usuario
+  const getUser = async () => {
     try {
       const res = await fetch("/api/me", {
         credentials: "include",
@@ -34,13 +45,14 @@ function Partidos() {
 
       if (!res.ok) {
         popupError(data.error);
-        return;
+        return null;
       }
 
-      return data?.nickname?.length > 0;
+      return data; //Aqui incluye nickname y municipality
     } catch (err) {
       console.log(err);
       popupError("Servicio no disponible");
+      return null;
     }
   };
 
@@ -52,20 +64,35 @@ function Partidos() {
       return;
     }
 
-    if (!(await hasNickname())) {
+    // Cojo el usuario 
+    const user = await getUser();
+
+    if (!user?.nickname) {
       popupError("Es necesario un nickname para votar");
       return;
     }
 
+
+    // Cojo la votación activa
+    const resVotation = await fetch("/api/votation/active", {
+      credentials: "include",
+    });
+    if (!resVotation.ok) {
+      popupError("No se pudo obtener la votación activa");
+      return;
+    }
+    const votationData = await resVotation.json();
+
+    const votationId = votationData.id.toString();
+    const partido = partidos.find((p) => p.value === selection);
+
     const isConfirmed = await popupConfirm(
-      `Desea votar a ${partidos.find((p) => p.value === selection).nombre}`,
+      `Desea votar a ${partido.nombre}`,
       "Esta acción es irreversible",
     );
 
-    if (!isConfirmed) {
-      return;
-    }
-
+    if (!isConfirmed) return;
+    
     try {
       const xsrfToken = await getXsrfToken();
       if (!xsrfToken) {
@@ -73,6 +100,11 @@ function Partidos() {
         console.log("No se pudo obtener el token CSRF");
         return;
       }
+
+      //Genero codigo y hash
+      const codigo = generarCodigo();
+      const input = user.nickname + codigo + votationId;
+      const voteHash = keccak256(toUtf8Bytes(input));
 
       const res = await fetch("/api/vote", {
         method: "POST",
@@ -83,8 +115,10 @@ function Partidos() {
         },
         body: JSON.stringify({
           vote: {
-            partyId: partidos.find((p) => p.value === selection).id,
-            votationId: 1, // TODO(srvariable): Think about a way to know votationId dynamically
+            voteHash: voteHash,
+            partyId: partido.id,
+            municipality: user.municipio,
+            votationId: votationId,
           },
         }),
       });
@@ -96,6 +130,13 @@ function Partidos() {
         return;
       }
 
+      await popupConfirm(
+        `Voto registrado correctamente.
+        Tu código de verificación es: ${codigo}
+        GUARDA ESTE CÓDIGO.
+        Es la única forma de consultar tu voto.`,
+        "Código de verificación"
+      );
       toastSuccess(data.message);
     } catch (err) {
       console.error(err);
