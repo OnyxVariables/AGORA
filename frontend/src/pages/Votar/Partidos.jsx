@@ -3,18 +3,9 @@ import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
 import { popupError, toastSuccess, popupConfirm } from "../../services/alerts";
-import { PARTIDOS } from "../../data/partidos";
+import { useParties } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
 import { keccak256, toUtf8Bytes } from "ethers";
-
-const partidos = PARTIDOS.map((p) => ({
-  id: p.id,
-  nombre: p.nombre,
-  value: p.value,
-  colorFondo: p.colores.fondo,
-  colorTitulo: p.colores.titulo,
-  imagen: p.imagen,
-}));
 
 // Genera 256 bits seguros
 function generarCodigo() {
@@ -26,6 +17,7 @@ function generarCodigo() {
 }
 
 function Partidos() {
+  const { partidos, loading } = useParties();
   const [selection, setSelection] = useState(null);
 
   const toggleSelection = (currentValue) => {
@@ -85,6 +77,10 @@ function Partidos() {
 
     const votationId = votationData.id.toString();
     const partido = partidos.find((p) => p.value === selection);
+    if (!partido) {
+      popupError("Partido no válido");
+      return;
+    }
 
     const isConfirmed = await popupConfirm(
       `Desea votar a ${partido.nombre}`,
@@ -143,6 +139,10 @@ function Partidos() {
       popupError("Servicio no disponible");
     }
   };
+
+  if (loading) {
+    return <main className="background">Cargando partidos...</main>;
+  }
 
   return (
     <main className="background">

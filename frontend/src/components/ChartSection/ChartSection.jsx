@@ -12,7 +12,7 @@ import {
 
 import { Pie, Bar, Line } from "react-chartjs-2";
 import "./ChartSection.css";
-import { PARTIDOS } from "../../data/partidos";
+import { useParties } from "../../data/partidos";
 
 ChartJS.register(
   ArcElement,
@@ -161,17 +161,23 @@ export function BarChart({ data }) {
 export function LineChart({ labels, partidos, series }) {
   const data = {
     labels,
-    datasets: partidos.map((p) => ({
-      label: p.nombre,
-      data: series[p.value] ?? [],
-      borderColor: p.colorFondo,
-      backgroundColor: p.colorFondo,
-      strokeColor: p.colorTitulo, // Custom property for legend
-      lineWidth: 1,
-      tension: 0.3,
-      pointRadius: 3,
-      pointHoverRadius: 6,
-    })),
+    datasets: partidos.map((p) => {
+      const borderColor = p.colores?.fondo ?? p.colorFondo ?? "grey";
+      const backgroundColor = p.colores?.fondo ?? p.colorFondo ?? "grey";
+      const strokeColor = p.colores?.titulo ?? p.colorTitulo ?? "grey";
+
+      return {
+        label: p.nombre,
+        data: series[p.value] ?? [],
+        borderColor,
+        backgroundColor,
+        strokeColor, // Custom property for legend
+        lineWidth: 1,
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+      };
+    }),
   };
 
   const options = {
@@ -225,23 +231,21 @@ export function HeatChart({ data }) {
 }
 
 export default function ChartSection() {
-  // NOTE(srvariable): Fake data for testing purposes
-  const partidos = PARTIDOS.map((p) => ({
-    nombre: p.nombre,
-    value: p.value,
-    colorFondo: p.colores.fondo,
-    colorTitulo: p.colores.titulo,
-    imagen: p.imagen,
-  }));
+  const { partidos, loading } = useParties();
 
+  if (loading) {
+    return <div className="charts">Cargando datos...</div>;
+  }
+
+  // NOTE(srvariable): Fake data for testing purposes
   const aggregatedData = {
     labels: partidos.map((p) => p.nombre),
     datasets: [
       {
         label: "Votos",
         data: partidos.map(() => Math.floor(40000 + Math.random() * 20000)),
-        backgroundColor: partidos.map((p) => p.colorFondo),
-        borderColor: partidos.map((p) => p.colorTitulo),
+        backgroundColor: partidos.map((p) => p.colores.fondo),
+        borderColor: partidos.map((p) => p.colores.titulo),
         borderWidth: 1,
       },
     ],

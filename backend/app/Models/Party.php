@@ -12,5 +12,11 @@ class Party extends Model
 
     protected $fillable = [
         'name',
+        'code',
+        'description',
+        'image',
+        'color_background',
+        'color_title',
+        'active',
     ];
 }
