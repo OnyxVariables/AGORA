@@ -3,8 +3,10 @@ import Sidebar from "./Sidebar";
 import "./Header.css";
 import { Link } from "react-router-dom";
 import { NAV_ITEMS } from "../../config/navigation";
+import { useAuth } from "../../components/PrivateRoute/AuthContext";
 
 function Header({ menu }) {
+  const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -60,11 +62,28 @@ function Header({ menu }) {
 
           {/* NAV escritorio */}
           <nav>
-            {items.map(({ to, label, icon: Icon }) => (
-              <Link key={to} to={to} className="boton">
-                <Icon /> {label}{" "}
-              </Link>
-            ))}
+            {items.map(({ to, label, icon: Icon }) => {
+              if (label === "SALIR") {
+                return (
+                  <button 
+                    key={label}  
+                    className="boton" 
+                    onClick={(e) => {
+                      e.preventDefault(); // O sino da error 405 (método no permitido)
+                      logout(); 
+                    }}
+                  >
+                    <Icon /> {label}
+                  </button>
+                );
+              }
+              
+              return (
+                <Link key={to} to={to} className="boton">
+                  <Icon /> {label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </header>
@@ -73,6 +92,7 @@ function Header({ menu }) {
         open={sidebarOpen}
         close={() => setSidebarOpen(false)}
         items={items}
+        onLogout={logout} 
       />
     </>
   );

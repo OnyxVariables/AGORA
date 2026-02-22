@@ -2,9 +2,11 @@ import Particles from "../../components/Particles/Particles";
 import "./Main.css";
 import { useNavigate } from "react-router-dom";
 import { popupError, toastSuccess } from "../../services/alerts";
+import { useAuth } from "../../components/PrivateRoute/AuthContext";
 
 export default function Main() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     try {
@@ -30,13 +32,15 @@ export default function Main() {
         popupError("No se ha podido verificar el acceso");
         return;
       }
-      localStorage.setItem("userRole", role);
+
+      // Uso el contexto en lugar de localStorage
+      login(role);
+      // localStorage.setItem("userRole", role);
 
       toastSuccess("Acceso verificado");
 
       // Redirigo según rol
-      if (role === 1) navigate("/CRUDVotations");
-      if (role === 2) navigate("/Home");
+      role === 1 ? navigate("/CRUDVotations") : navigate("/Home");
     } catch (err) {
       popupError("Servicio no disponible");
     }
