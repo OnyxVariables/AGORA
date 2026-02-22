@@ -716,7 +716,7 @@ export default function ElectionsMap() {
               &times;
             </span>
             <h2 className="dialog-title">Información de {selectedName}</h2>
-            <div className="info">
+            <div className="results">
               <p>
                 <span style={{ fontWeight: "bold" }}>Número de votos:</span>{" "}
                 {totalVotes}
