@@ -13,8 +13,8 @@ import Metrics from "./pages/Metrics/Metrics";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="app-background">
           {/* Envuelvo todas las rutas en un contenedor para que les afecte el background */}
           <Routes>
@@ -37,8 +37,8 @@ function App() {
             <Route path="/*" element={<Error404 />} />
           </Routes>
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
