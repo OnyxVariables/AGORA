@@ -12,6 +12,7 @@ class Vote extends Model
         'voteHash',
         'votationId',
         'partyId',
+        'municipalityId',
     ];
     
     public $timestamps = false;
@@ -24,5 +25,10 @@ class Vote extends Model
     public function party()
     {
         return $this->belongsTo(Party::class, 'id');
+    }
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class, 'id');
     }
 }

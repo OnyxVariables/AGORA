@@ -45,7 +45,7 @@ const Main = ({
         </div>
       </div>
       <figure>
-        <img src={imagen} alt={`Logo ${name}`} />
+        <img src={imagen} alt={`Logo ${nombre}`} />
       </figure>
     </article>
   );
