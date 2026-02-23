@@ -1,12 +1,14 @@
 import { createContext, useContext, useState } from "react";
 import { getXsrfToken } from "../../services/xsrf";
 import { popupError, toastSuccess } from "../../services/alerts";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   // El rol se queda aquí, si es null no hay sesión.
   const [userRole, setUserRole] = useState(null);
+  const navigate = useNavigate();
 
   const login = (role) => setUserRole(role);
   
@@ -30,14 +32,13 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         popupError("Error al cerrar sesión en el servidor");
         return;
       }
 
       setUserRole(null);
-      window.location.href = "/";
       toastSuccess("Sesión cerrada");
+      navigate("/"); //Con esto la pagina no recarga, con la redirección sí
 
     } catch (err) {
       console.error("Error al cerrar sesión:", err);
