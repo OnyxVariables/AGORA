@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Vote;
+use App\Models\Municipality;
 
 class VoteController extends Controller
 {
@@ -16,6 +17,8 @@ class VoteController extends Controller
         $request->validate([
             'vote.partyId' => 'required|integer|exists:party,id',
             'vote.votationId' => 'required|integer|exists:votation,id',
+            'vote.municipality' => 'required|integer|exists:municipality,id',
+            'vote.voteHash' => 'required|integer',
         ]);
             
         $user = $request->user();
@@ -31,12 +34,11 @@ class VoteController extends Controller
             ], 403, [], JSON_UNESCAPED_UNICODE);
         }
 
-        // NOTE(srvariable): Think about a better way to generate the voteHash
-        $voteHash = hash('sha256', $user->id . $vote['partyId'] . $vote['votationId'] . uniqid('', true));
         Vote::create([
             'voteHash' => $voteHash,
             'votationId' => $vote['votationId'],
             'partyId' => $vote['partyId'],
+            'municipalityId' => $vote['municipality'],
         ]);
 
         $user->setInactive();

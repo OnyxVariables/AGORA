@@ -3,16 +3,15 @@ import "./Main.css";
 const Main = ({
   nombre,
   value,
-  colorFondo,
-  colorTitulo,
   imagen,
+  colores,
   isSelected,
   onSelect,
 }) => {
   return (
-    <article className="card" style={{ background: colorFondo }}>
+    <article className="card" style={{ background: colores.fondo }}>
       <div className="info">
-        <h2 style={{ background: colorTitulo }}>{nombre}</h2>
+        <h2 style={{ background: colores.titulo }}>{nombre}</h2>
         <div className="voto">
           <p>VOTAR: </p>
           <div className="votos">

@@ -78,4 +78,21 @@ class VotationController extends Controller
         Votation::destroy($id);
         return response()->json(null, 204);
     }
+
+    // Obtener votación activa, es el método que se me ocurre para que el frontend sepa qué votación mostrar, ya que solo puede haber una activa a la vez
+    public function active()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+
+        $votation = Votation::where('state', 'active')->first();
+
+        if (!$votation) {
+            return response()->json(['error' => 'No hay votación activa'], 404);
+        }
+
+        return response()->json($votation, 200, [], JSON_UNESCAPED_UNICODE);
+    }
 }

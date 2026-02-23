@@ -173,7 +173,7 @@
     justify-self: end;
 }
 
-.info {
+.results {
     grid-area: info;
     display: flex;
     flex-direction: column;
@@ -219,7 +219,7 @@
         grid-template-columns: repeat(3, 1fr);
     }
 
-    .info {
+    .results {
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;

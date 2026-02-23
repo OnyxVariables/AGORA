@@ -1,9 +1,10 @@
 import Particles from "../../components/Particles/Particles";
 import Partido from "./Partido";
 import "./Main.css";
-import { PARTIDOS } from "../../data/partidos";
+import { useParties } from "../../data/partidos";
 
 function Main() {
+  const { partidos, loading } = useParties();
   return (
     <main className="main-partidos">
       {/* FONDO PARTICLES */}
@@ -28,7 +29,7 @@ function Main() {
         />
       </div>
 
-      {PARTIDOS.map((p) => (
+      {!loading && partidos.map((p) => (
         <Partido
           key={p.id}
           nombre={p.nombre}
