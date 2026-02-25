@@ -3,7 +3,7 @@
   border: 3px solid black;
 }
 
-.swal2-confirm{
+.swal2-confirm, .swal2-cancel{
   border: 3px solid black;
 }
 
