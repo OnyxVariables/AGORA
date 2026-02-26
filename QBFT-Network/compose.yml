@@ -1,14 +1,12 @@
 services: 
   node1: 
     image: hyperledger/besu:latest 
-    container_name: besu-node1 
+    container_name: besu-node1
+    network_mode: host 
     volumes: 
       - ./genesis.json:/genesis.json 
       - ./Node-1/data:/opt/besu/data 
       - ./static-nodes.json:/opt/besu/data/static-nodes.json 
-    ports: 
-      - "8545:8545" 
-      - "30303:30303" 
       #Eth por convención utiliza estos puertos 
     command: > 
       --data-path=/opt/besu/data 
@@ -24,14 +22,12 @@ services:
 
   node2: 
     image: hyperledger/besu:latest 
-    container_name: besu-node2 
+    container_name: besu-node2
+    network_mode: host 
     volumes: 
       - ./genesis.json:/genesis.json 
       - ./Node-2/data:/opt/besu/data 
       - ./static-nodes.json:/opt/besu/data/static-nodes.json 
-    ports: 
-      - "8545:8545" 
-      - "30303:30303" 
     command: > 
       --data-path=/opt/besu/data 
       --genesis-file=/genesis.json 
@@ -47,14 +43,12 @@ services:
 
   node3: 
     image: hyperledger/besu:latest 
-    container_name: besu-node3 
+    container_name: besu-node3
+    network_mode: host 
     volumes: 
       - ./genesis.json:/genesis.json 
       - ./Node-3/data:/opt/besu/data 
       - ./static-nodes.json:/opt/besu/data/static-nodes.json 
-    ports: 
-      - "8545:8545" 
-      - "30303:30303" 
     command: > 
       --data-path=/opt/besu/data 
       --genesis-file=/genesis.json 
@@ -70,14 +64,12 @@ services:
 
   node4: 
     image: hyperledger/besu:latest 
-    container_name: besu-node4 
+    container_name: besu-node4
+    network_mode: host 
     volumes: 
       - ./genesis.json:/genesis.json 
       - ./Node-4/data:/opt/besu/data 
       - ./static-nodes.json:/opt/besu/data/static-nodes.json 
-    ports: 
-      - "8545:8545" 
-      - "30303:30303" 
     command: > 
       --data-path=/opt/besu/data 
       --genesis-file=/genesis.json 
