@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: besu-service
+spec:
+  clusterIP: None  # Crea un servicio "Headless" para que cada nodo tenga su DNS
+  selector:
+    app: besu-node
+  ports:
+    - name: p2p
+      port: 30303
+    - name: rpc
+      port: 8545
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: besu-rpc-public
+spec:
+  type: LoadBalancer # Expone el puerto 8545 al exterior (AWS creará una IP/DNS)
+  selector:
+    app: besu-node
+  ports:
+    - protocol: TCP
+      port: 8545
+      targetPort: 8545
