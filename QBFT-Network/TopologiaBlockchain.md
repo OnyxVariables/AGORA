@@ -1,5 +1,16 @@
 # Documentación de la Topología de la Red Blockchain (QBFT)
 
+1. [Introducción](#1-introducción)
+2. [Visión general de la red](#2-visión-general-de-la-red)
+3. [Topología lógica](#3-topología-lógica)
+4. [Nodos de la red](#4-nodos-de-la-red)
+5. [Consenso y validadores](#5-consenso-y-validadores)
+6. [Persistencia y almacenamiento](#6-persistencia-y-almacenamiento)
+7. [Comunicación entre nodos](#7-comunicación-entre-nodos)
+8. [Exposición de APIs](#8-exposición-de-apis)
+9. [Consideraciones de seguridad](#9-consideraciones-de-seguridad)
+10. [Evolución futura de la topología](#10-evolución-futura-de-la-topología)
+
 
 ## 1. Introducción
 Este documento describe la **topología de la red blockchain permisionada** basada en **Hyperledger Besu** utilizando el algoritmo de consenso **QBFT (Quorum Byzantine Fault Tolerance)**.  
@@ -14,7 +25,8 @@ El objetivo de esta documentación es definir de forma clara:
 
 
 ## 2. Visión general de la red
-La red blockchain está compuesta por **múltiples nodos Besu** que participan en una red **permisionada** y **privada**.  
+La red blockchain está compuesta por **múltiples nodos Besu** que participan en una red **permisionada** y **privada**.
+
 > [!IMPORTANT]
 > Todos los nodos comparten el mismo bloque génesis (`genesis.json`) y forman parte de un **consorcio cerrado**.
 
