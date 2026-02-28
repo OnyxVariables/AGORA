@@ -17,7 +17,7 @@ echo "Despliegue iniciado. Para verificar: kubectl get pods"
 echo "Instalando Prometheus y Grafana con Helm"
 helm repo add prometheus-community https://prometheus-community.github.io
 helm repo update
-helm install monitoring prometheus-community/kube-prometheus-stack \
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --namespace besu \
   --set grafana.adminPassword=admin \
   --set prometheus.prometheusSpec.podMetadataObjectSelector.matchLabels.app=besu-node \
