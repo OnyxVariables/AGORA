@@ -21,8 +21,10 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --namespace besu \
   --set grafana.adminPassword=admin \
   --set prometheus.prometheusSpec.podMetadataObjectSelector.matchLabels.app=besu-node \
+  --set grafana.service.type=NodePort \
+  --set grafana.service.nodePort=30000 \
   --wait
 
 kubectl apply -f ../k8s-manifests/besu-servicemonitor.yaml
 
-echo "Success Deploy. Accede a Grafana en el puerto 3000"
+echo "Success Deploy. Accede a Grafana en el puerto 30000"

@@ -20,10 +20,11 @@ kind: Service
 metadata:
   name: besu-rpc-public
 spec:
-  type: LoadBalancer # Expone el puerto 8545 al exterior (AWS creará una IP/DNS)
+  type: NodePort
   selector:
     app: besu-node
   ports:
     - protocol: TCP
       port: 8545
       targetPort: 8545
+      nodePort: 30001 # Puerto externo fijo para el RPC

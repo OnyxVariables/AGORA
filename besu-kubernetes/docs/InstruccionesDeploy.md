@@ -12,19 +12,24 @@ Antes de instalar software, las 4 instancias deben pertenecer al mismo Security 
 | TCP       | 10250  | 0.0.0.0/0            | Métricas de Kubelet                          |
 | TCP       | 30303  | 0.0.0.0/0            | Comunicación P2P de datos entre nodos        |
 | UDP       | 30303  | 0.0.0.0/0            | Descrubrimiento de nodos de la red           |
-| TCP       | 8545   | IP Pública del admin | Acceso JSON-RPC (API para PHP)               |
+| TCP       | 30001  | IP Pública del admin | Acceso JSON-RPC (API para PHP)               |
 | TCP       | 22     | IP Pública del admin | Acceso SSH para administración               |
 | TCP       | 80     | 0.0.0.0/0            | Accesi web AGORA                             |
 | TCP       | 443    | 0.0.0.0/0            | Acceso Web Seguro AGORA                      |
+| TCP       | 30000  | 0.0.0.0/0            | Interfaz Web de Grafana (Dashboards)         |
 
 
 ## 2. Configuración del Cluster K3s (Control Plane)
 En la Máquina Principal (Por ejemplo: Master - IP: 172.31.90.224)
 1. Instalar el servidor K3s:
     - `curl -sfL https://get.k3s.io/ | sh -`
-2. Obtener el Token de unión (esperar 30s):
+2. Instalar helm:
+    - `curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
+    chmod 700 get_helm.sh
+    ./get_helm.sh`
+3. Obtener el Token de unión (esperar 30s):
     - `sudo cat /var/lib/rancher/k3s/server/node-token`
-3. Configurar permisos de kubectl de forma permanente para el usuario actual:
+4. Configurar permisos de kubectl de forma permanente para el usuario actual:
     - `sudo chmod 644 /etc/rancher/k3s/k3s.yaml`
     - `echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> ~/.bashrc`
     - `source ~/.bashrc`
@@ -47,6 +52,7 @@ El proyecto se organiza de la siguiente manera en la máquina Master:
 ```text
 besu-kubernetes/
 ├── k8s-manifests/
+│   ├── besu-servicemonitor.yaml
 │   ├── secrets.yaml
 │   ├── service.yaml
 │   └── statefulset.yaml
@@ -62,6 +68,7 @@ besu-kubernetes/
 ### k8s-manifests
 | Archivo | Descripción |
 |----------|-------------|
+| `besu-servicemonitor.yaml` | Puente entre Besu y Grafana |
 | `secrets.yaml` | Claves privadas codificadas en Base64 (`key-0` a `key-3`). |
 | `service.yaml` | Servicio interno y exposición de RPC. |
 | `statefulset.yaml` | Orquestación de las 4 réplicas de Besu. |
@@ -88,24 +95,40 @@ besu-kubernetes/
     - `./deploy.sh`
 
 ### ¿Qué hace deploy.sh?
-El script automatiza la creación del **ConfigMap** desde los archivos JSON y aplica los manifiestos en el orden correcto: **ConfigMap → Secrets → Service → StatefulSet.**
+El script automatiza la creación del **ConfigMap** desde los archivos JSON, despliega el stack de monitoreo Kube-Prometheus-Stack mediante Helm para recolectar métricas de BESU y aplica los manifiestos en el orden correcto: **ConfigMap → Secrets → Service → StatefulSet → Besu-servicemonitor**
 
 
 ## 6. Comandos de Gestión y Monitoreo
-| Acción                         | Comando                                               |
-|--------------------------------|-------------------------------------------------------|
-| Ver estado de la red           | `kubectl get pods -o wide`                            |
-| Ver logs en vivo (Nodo 0)      | `kubectl logs -f besu-0`                              |
-| Entrar al contenedor           | `kubectl exec -it besu-0 -- /bin/bash`                |
-| Reiniciar despliegue           | `kubectl delete statefulset besu && ./deploy.sh`      |
-| Limpieza total de datos        | `kubectl delete pvc --all`                            |
+| Acción                          | Comando                                                       |
+|---------------------------------|---------------------------------------------------------------|
+| Ver estado de la red            | `kubectl get pods -n besu`                                    |
+| Ver estado de la red (extendido)| `kubectl get pods -n besu -o wide`                            |
+| Listar servicios del clúster    | `kubectl get svc`                            |
+| Ver logs en vivo (Nodo 0)       | `kubectl logs -n besu -f besu-0`                              |
+| Entrar al contenedor            | `kubectl exec -it -n besu besu-0 -- /bin/bash`                |
+| Reiniciar despliegue            | `kubectl delete statefulset besu -n besu && ./deploy.sh`      |
+| Limpieza total de datos         | `kubectl delete pvc --all -n besu`                            |
+| Obtener contraseña de Grafana   | `kubectl get secret -n besu monitoring-grafana -o jsonpath="{.data.admin-password}" \| base64 -d ; echo` |
+| Acceder a Grafana (Port-Forward)| `kubectl port-forward -n besu svc/monitoring-grafana 30000:80 --address 0.0.0.0`                         |
+| Verificar métricas en Prometheus| `curl -X GET http://<IP_NODO>:9545/metrics`                   |
 
 ### Consultas JSON-RPC (Desde una máquina cualquiera o Master)
 - Ver cantidad de pares conectados (Resultado esperado: 0x3)
-    - `curl -X POST --data "{\"jsonrpc\":\"2.0\",\"method\":\"net_peerCount\",\"params\":[],\"id\":1}" http://<IP_PUBLICA_MASTER>:8545`
+    - `curl -X POST --data "{\"jsonrpc\":\"2.0\",\"method\":\"net_peerCount\",\"params\":[],\"id\":1}" http://<IP_PUBLICA_MASTER>:30001`
 
 - Ver altura de bloque actual
-    - `curl -X POST --data "{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}" http://<IP_PUBLICA_MASTER>:8545`
+    - `curl -X POST --data "{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}" http://<IP_PUBLICA_MASTER>:30001`
+
+### Acceso al Panel de Monitoreo (Grafana)
+Para visualizar el estado de los nodos, el consumo de CPU/RAM y las transacciones por segundo:
+- **URL de acceso**: http://<IP_PUBLICA_MASTER>:30000
+
+> [!IMPORTANT]
+> Tener abierto el puerto 30000 en el security group de AWS
+
+> [!TIP]
+> Si al entrar sale **NO DATA**, mirar que el ServiceMonitor esté activo ejecutando: `kubectl get servicemonitor -n besu`
+
 
 ## Solución de Problemas (Troubleshooting)
 1. Error **Permission Denied** en **k3s.yaml**:  
