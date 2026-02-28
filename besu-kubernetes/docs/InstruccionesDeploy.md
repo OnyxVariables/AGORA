@@ -103,13 +103,12 @@ El script automatiza la creación del **ConfigMap** desde los archivos JSON, des
 |---------------------------------|---------------------------------------------------------------|
 | Ver estado de la red            | `kubectl get pods -n besu`                                    |
 | Ver estado de la red (extendido)| `kubectl get pods -n besu -o wide`                            |
-| Listar servicios del clúster    | `kubectl get svc`                            |
+| Listar servicios del clúster    | `kubectl get svc -n besu`                                     |
 | Ver logs en vivo (Nodo 0)       | `kubectl logs -n besu -f besu-0`                              |
 | Entrar al contenedor            | `kubectl exec -it -n besu besu-0 -- /bin/bash`                |
 | Reiniciar despliegue            | `kubectl delete statefulset besu -n besu && ./deploy.sh`      |
 | Limpieza total de datos         | `kubectl delete pvc --all -n besu`                            |
 | Obtener contraseña de Grafana   | `kubectl get secret -n besu monitoring-grafana -o jsonpath="{.data.admin-password}" \| base64 -d ; echo` |
-| Acceder a Grafana (Port-Forward)| `kubectl port-forward -n besu svc/monitoring-grafana 30000:80 --address 0.0.0.0`                         |
 | Verificar métricas en Prometheus| `curl -X GET http://<IP_NODO>:9545/metrics`                   |
 
 ### Consultas JSON-RPC (Desde una máquina cualquiera o Master)
