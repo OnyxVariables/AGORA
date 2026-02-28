@@ -124,6 +124,9 @@ La comunicación entre nodos se realiza mediante el protocolo Ethereum P2P.
 
 En el entorno distribuido (AWS), los nodos se identificarán mediante direcciones IP estáticas, evitando dependencias de DNS internos.
 
+> [!IMPORTANT]
+> La capa P2P utiliza el protocolo RLPx. Se requiere la apertura de los puertos 30303 (TCP para datos y UDP para discovery).
+
 
 ## 8. Exposición de APIs
 Cada nodo expone una interfaz JSON-RPC HTTP que permite:
