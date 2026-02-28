@@ -70,6 +70,8 @@ spec:
           name: p2p
         - containerPort: 8545
           name: rpc
+        - containerPort: 9545
+          name: metrics
         volumeMounts:
         - name: genesis-vol
           mountPath: /etc/besu
