@@ -1,12 +1,26 @@
 #!/bin/bash
-echo "Desplegando Red QBFT en Kubernetes"
 
-# Creo los recursos en el orden correcto
+# Create namespace if it doesn't exist
+kubectl create namespace besu || true
+
+echo "Desplegando Red QBFT en Kubernetes"
+# Apply Kubernetes manifests on the besu namespace
 kubectl create configmap besu-genesis-config \
   --from-file=../network-config/genesis.json \
-  --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f ../k8s-manifests/secrets.yaml
-kubectl apply -f ../k8s-manifests/service.yaml
-kubectl apply -f ../k8s-manifests/statefulset.yaml
-
+  --dry-run=client -o yaml | kubectl apply -n besu -f -
+kubectl apply -n besu -f ../k8s-manifests/secrets.yaml
+kubectl apply -n besu -f ../k8s-manifests/service.yaml
+kubectl apply -n besu -f ../k8s-manifests/statefulset.yaml
 echo "Despliegue iniciado. Para verificar: kubectl get pods"
+
+# Wait for the pod to be ready before deploying monitoring
+echo "Instalando Prometheus y Grafana con Helm"
+helm repo add prometheus-community https://prometheus-community.github.io
+helm repo update
+helm install monitoring prometheus-community/kube-prometheus-stack \
+  --namespace besu \
+  --set grafana.adminPassword=admin \
+  --set prometheus.prometheusSpec.podMetadataObjectSelector.matchLabels.app=besu-node \
+  --wait
+
+echo "Success Deploy. Accede a Grafana en el puerto 3000"

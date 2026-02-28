@@ -12,6 +12,10 @@ spec:
     metadata:
       labels:
         app: besu-node
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9545"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
       - name: besu-node
@@ -57,6 +61,9 @@ spec:
             --p2p-interface=0.0.0.0 \
             --discovery-enabled=true \
             --host-allowlist="*" \
+            --metrics-enabled=true \
+            --metrics-host=0.0.0.0 \
+            --metrics-port=9545 \
             --profile=ENTERPRISE
         ports:
         - containerPort: 30303
