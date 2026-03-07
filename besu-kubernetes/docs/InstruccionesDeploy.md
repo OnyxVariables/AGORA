@@ -101,13 +101,14 @@ El script automatiza la creación del **ConfigMap** desde los archivos JSON, des
 ## 6. Comandos de Gestión y Monitoreo
 | Acción                          | Comando                                                       |
 |---------------------------------|---------------------------------------------------------------|
+| Script de despliegue            | `./deploy.sh`                                                 |
 | Ver estado de la red            | `kubectl get pods -n besu`                                    |
 | Ver estado de la red (extendido)| `kubectl get pods -n besu -o wide`                            |
 | Listar servicios del clúster    | `kubectl get svc -n besu`                                     |
 | Ver logs en vivo (Nodo 0)       | `kubectl logs -n besu -f besu-0`                              |
 | Entrar al contenedor            | `kubectl exec -it -n besu besu-0 -- /bin/bash`                |
-| Reiniciar despliegue            | `kubectl delete statefulset besu -n besu && ./deploy.sh`      |
-| Limpieza total de datos         | `kubectl delete pvc --all -n besu`                            |
+| Reiniciar despliegue            | `kubectl delete statefulset besu -n besu &&                   |
+| Limpieza total de datos cache   | `kubectl delete pvc --all -n besu`                            |
 | Obtener contraseña de Grafana   | `kubectl get secret -n besu monitoring-grafana -o jsonpath="{.data.admin-password}" \| base64 -d ; echo` |
 | Verificar métricas en Prometheus| `curl -X GET http://<IP_NODO>:9545/metrics`                   |
 
