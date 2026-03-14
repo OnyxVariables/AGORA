@@ -19,6 +19,9 @@ Antes de instalar software, las 4 instancias deben pertenecer al mismo Security 
 | TCP       | 30000  | 0.0.0.0/0            | Interfaz Web de Grafana (Dashboards)         |
 | TCP       | 25000  | 0.0.0.0/0            | Quorum Explorer (Blockchain Explorer)        |
 
+> [!CAUTION]
+> El despliegue puede fallar debido a que no hay recursos disponibles en la instancia. En ese caso o liberar espacio o crearse una nueva instancia y seguir los pasos descritos en este documento.
+
 
 ## 2. Configuración del Cluster K3s (Control Plane)
 En la Máquina Principal (Por ejemplo: Master - IP: 172.31.90.224)
