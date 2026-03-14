@@ -17,6 +17,7 @@ Antes de instalar software, las 4 instancias deben pertenecer al mismo Security 
 | TCP       | 80     | 0.0.0.0/0            | Accesi web AGORA                             |
 | TCP       | 443    | 0.0.0.0/0            | Acceso Web Seguro AGORA                      |
 | TCP       | 30000  | 0.0.0.0/0            | Interfaz Web de Grafana (Dashboards)         |
+| TCP       | 25000  | 0.0.0.0/0            | Quorum Explorer (Blockchain Explorer)        |
 
 
 ## 2. Configuración del Cluster K3s (Control Plane)
@@ -55,7 +56,8 @@ besu-kubernetes/
 │   ├── besu-servicemonitor.yaml
 │   ├── secrets.yaml
 │   ├── service.yaml
-│   └── statefulset.yaml
+│   ├── statefulset.yaml
+│   └── quorum-explorer.yaml
 │
 ├── network-config/
 │   ├── genesis.json
@@ -72,6 +74,7 @@ besu-kubernetes/
 | `secrets.yaml` | Claves privadas codificadas en Base64 (`key-0` a `key-3`). |
 | `service.yaml` | Servicio interno y exposición de RPC. |
 | `statefulset.yaml` | Orquestación de las 4 réplicas de Besu. |
+| `quorum-explorer.yaml` | Interfaz web para explorar la blockchain. |
 
 ### network-config
 | Archivo | Descripción |
@@ -128,6 +131,14 @@ Para visualizar el estado de los nodos, el consumo de CPU/RAM y las transaccione
 
 > [!TIP]
 > Si al entrar sale **NO DATA**, mirar que el ServiceMonitor esté activo ejecutando: `kubectl get servicemonitor -n besu`
+
+### Acceso al Quorum Explorer
+Para explorar la blockchain de forma visual:
+- **URL de acceso**: http://<IP_PUBLICA_MASTER>:25000
+- Ver bloques, transacciones, cuentas y estadísticas en tiempo real
+
+> [!IMPORTANT]
+> Tener abierto el puerto 25000 en el security group de AWS
 
 
 ## Solución de Problemas (Troubleshooting)

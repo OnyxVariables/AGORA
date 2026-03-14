@@ -20,11 +20,24 @@ helm repo update
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --namespace besu \
   --set grafana.adminPassword=admin \
-  --set prometheus.prometheusSpec.podMetadataObjectSelector.matchLabels.app=besu-node \
   --set grafana.service.type=NodePort \
   --set grafana.service.nodePort=30000 \
   --wait
 
 kubectl apply -f ../k8s-manifests/besu-servicemonitor.yaml
 
-echo "Success Deploy. Accede a Grafana en el puerto 30000"
+echo "Instalando Quorum Explorer..."
+kubectl apply -f ../k8s-manifests/quorum-explorer.yaml
+
+echo "Esperando a que Quorum Explorer esté listo..."
+kubectl wait --for=condition=ready pod -l app=quorum-explorer -n besu --timeout=120s
+
+echo ""
+echo "DESPLIEGUE COMPLETADO!"
+echo ""
+echo " Servicios disponibles:"
+echo "- Grafana: http://<IP_PUBLICA_MASTER>:30000 (admin/admin)"
+echo "- Quorum Explorer: http://<IP_PUBLICA_MASTER>:25000"
+echo "- Prometheus: http://<IP_PUBLICA_MASTER>:9090"
+echo ""
+echo "Para verificar: kubectl get pods -n besu"
