@@ -16,6 +16,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/3306' || exit 1"]
+      timeout: 10s
+      retries: 15
+      interval: 5s
 
   db_generator:
     container_name: agora_generator
@@ -29,7 +34,8 @@ services:
       DB_USERNAME: ${DB_USER_NAME:-agorauser}
       DB_PASSWORD: ${DB_USER_PASS:-agorapass}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - agora
     # After the build is done, we don't need the container anymore
@@ -55,7 +61,8 @@ services:
     networks:
       - agora
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:

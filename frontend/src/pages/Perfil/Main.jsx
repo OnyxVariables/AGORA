@@ -5,6 +5,7 @@ import Particles from "../../components/Particles/Particles";
 import { useEffect } from "react";
 import { popupError, toastSuccess } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
+import { API_CONFIG } from "../../config/api";
 
 function Main() {
   const [user, setUser] = useState(null);
@@ -12,7 +13,7 @@ function Main() {
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    fetch("/api/me", {
+    fetch(API_CONFIG.endpoints.ME, {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -42,7 +43,7 @@ function Main() {
         return;
       }
 
-      const res = await fetch("/api/nickname", {
+      const res = await fetch(API_CONFIG.endpoints.NICKNAME, {
         method: "POST",
         credentials: "include",
         headers: {

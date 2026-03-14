@@ -1,5 +1,7 @@
 *.csv
 *.txt
+.env
+.env.*
 
 tools/*.sql
 

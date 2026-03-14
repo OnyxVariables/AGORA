@@ -9,6 +9,7 @@ import {
 } from "../../components/Button/Button";
 import { popupError } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
+import { API_CONFIG } from "../../config/api";
 
 export default function App() {
   const [votations, setVotations] = useState([]);
@@ -43,7 +44,7 @@ export default function App() {
 
   const fetchVotations = () => {
   setLoading(true);
-  fetch("/api/votations", {
+  fetch(API_CONFIG.endpoints.VOTATIONS, {
     credentials: "include",
     headers: { Accept: "application/json" },
   })
@@ -92,7 +93,7 @@ export default function App() {
       return;
     }
 
-    const url = editId ? `/api/votations/${editId}` : "/api/votations";
+    const url = editId ? `${API_CONFIG.endpoints.VOTATIONS}/${editId}` : API_CONFIG.endpoints.VOTATIONS;
     const method = editId ? "PUT" : "POST";
 
     fetch(url, {
@@ -123,7 +124,7 @@ export default function App() {
       return;
     }
 
-    fetch(`/api/votations/${id}`, {
+    fetch(`${API_CONFIG.endpoints.VOTATIONS}/${id}`, {
       method: "DELETE",
       credentials: "include",
       headers: {

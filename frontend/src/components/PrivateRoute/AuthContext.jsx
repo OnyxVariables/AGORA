@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from "react";
 import { getXsrfToken } from "../../services/xsrf";
 import { popupError, toastSuccess } from "../../services/alerts";
 import { useNavigate } from "react-router-dom";
+import { API_CONFIG } from "../../config/api";
 
 const AuthContext = createContext();
 
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      const res = await fetch("/api/logout", {
+      const res = await fetch(API_CONFIG.endpoints.LOGOUT, {
         method: "POST",
         credentials: "include",
         headers: {
