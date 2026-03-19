@@ -1,0 +1,26 @@
+{
+  "name": "agora-blockchain",
+  "version": "1.0.0",
+  "description": "Sistema de votación AGORA en blockchain",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy-simple:local": "hardhat run scripts/deploy-simple.js --network localhost",
+    "deploy-simple:besu": "hardhat run scripts/deploy-simple.js --network besu",
+    "interact-simple:local": "hardhat run scripts/interact-simple.js --network localhost",
+    "interact-simple:besu": "hardhat run scripts/interact-simple.js --network besu",
+    "node": "hardhat node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.17.0",
+    "@openzeppelin/contracts": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0"
+  },
+  "keywords": ["blockchain", "voting", "ethereum", "hardhat"],
+  "author": "AGORA Team",
+  "license": "MIT"
+}
