@@ -80,7 +80,7 @@ npx hardhat run scripts/deploy-simple.js --network localhost
 npx hardhat run scripts/deploy-simple.js --network localhost
 ```
 > [!TIP]
-> **Busca el mensaje** "SimpleVoting desplegado en:"
+> **Busca el mensaje** "SimpleVoting desplegado en: "
 
 ### Error Común 4: "Account not found"
 **Causa:** Usando una cuenta que no existe en la red local.
