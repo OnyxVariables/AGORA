@@ -2,50 +2,70 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Vote;
+use App\Models\User;
+use App\Models\Municipality;
+use App\Services\BlockchainService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Vote;
-use App\Models\Municipality;
+use Illuminate\Support\Facades\Log;
 
 class VoteController extends Controller
 {
+    private $blockchainService;
+    
+    public function __construct(BlockchainService $blockchainService)
+    {
+        $this->blockchainService = $blockchainService;
+    }
+
     public function send(Request $request)
     {
-        $vote = $request->input('vote');
-
-        $request->validate([
-            'vote.partyId' => 'required|integer|exists:party,id',
-            'vote.votationId' => 'required|integer|exists:votation,id',
-            'vote.municipality' => 'required|integer|exists:municipality,id',
-            'vote.voteHash' => 'required|integer',
+        $data = $request->validate([
+            'partyId' => 'required|integer',
+            'votationId' => 'required|integer',
+            'municipalityId' => 'required|integer',
+            'voteHash' => 'required|string'
         ]);
-            
-        $user = $request->user();
+
+        $user = Auth::user();
+
         if (!$user) {
             return response()->json([
                 'error' => 'No autenticado'
-                ], 401, [], JSON_UNESCAPED_UNICODE);
+            ], 401, [], JSON_UNESCAPED_UNICODE);
         }
 
         if (!$user->isActive) {
             return response()->json([
-                'error' => 'El usuario ya ha votado'
+                'error' => 'Ya has votado'
             ], 403, [], JSON_UNESCAPED_UNICODE);
         }
 
-        Vote::create([
-            'voteHash' => $voteHash,
-            'votationId' => $vote['votationId'],
-            'partyId' => $vote['partyId'],
-            'municipalityId' => $vote['municipality'],
-        ]);
+        try {
+            $tx = $this->blockchainService->submitVote(
+                $data['partyId'],
+                $data['votationId'],
+                $data['municipalityId'],
+                $data['voteHash']
+            );
 
-        $user->setInactive();
+            if (!$tx['success']) {
+                return response()->json(['error' => 'Error al enviar el voto'], 500, [], JSON_UNESCAPED_UNICODE);
+            }
 
-        return response()->json([
-            'message' => 'Voto registrado correctamente',
-            'voteHash' => $voteHash,
-        ], 200, [], JSON_UNESCAPED_UNICODE);
+            // No se pasa usuario a inactive aquí porque si la transacción falla en blockchain, el usuario no va a poder votar de nuevo
+            // Se pasa a inactive en Spring Boot cuando se confirma el voto en la blockchain y escucha el evento
+
+            return response()->json([
+                'message' => 'Voto enviado',
+                'txHash' => $tx['transactionHash']
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+
+            return response()->json(['error' => 'Error interno'], 500, [], JSON_UNESCAPED_UNICODE);
+        }
     }
 }
