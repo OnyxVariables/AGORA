@@ -12,6 +12,7 @@ class Votation extends Model
 
     protected $fillable = [
         'blockchainId',
+        'txHash',
         'startBlockHash',
         'endBlockHash',
         'title',
