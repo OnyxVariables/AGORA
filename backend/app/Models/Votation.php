@@ -11,6 +11,7 @@ class Votation extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'blockchainId',
         'startBlockHash',
         'endBlockHash',
         'title',
