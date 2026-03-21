@@ -41,6 +41,28 @@ services:
       - agora_dev
     restart: no
 
+  hardhat:
+    container_name: agora_hardhat_dev
+    build:
+      context: ./blockchain
+      dockerfile: ../docker/hardhat/Dockerfile
+    environment:
+      NODE_ENV: development
+    networks:
+      - agora_dev
+    volumes:
+      - ./blockchain:/app
+      - hardhat_data_dev:/app/data
+      - backend_data_dev:/var/www/html  # Para actualizar .env
+    restart: unless-stopped
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /var/www/html/storage/app/SimpleVoting.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
   backend:
     container_name: agora_backend_dev
     build:
@@ -59,6 +81,10 @@ services:
       DB_DATABASE: ${DB_DATABASE:-agora_dev}
       DB_USERNAME: ${DB_USER_NAME:-agorauser}
       DB_PASSWORD: ${DB_USER_PASS:-agorapass}
+      # Variables de Blockchain
+      BESU_RPC_URL: http://hardhat:8545
+      BLOCKCHAIN_ADMIN_ADDRESS: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      SIMPLE_VOTING_ADDRESS: ${SIMPLE_VOTING_ADDRESS:-}
     volumes:
       - backend_data_dev:/var/www/html
       - ./.env.dev:/var/www/html/.env  # Development environment file
@@ -67,6 +93,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      hardhat:
+        condition: service_healthy  # Esperar a que contrato esté desplegado
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -103,7 +131,7 @@ services:
     volumes:
       - frontend_data_dev:/var/www/frontend
       - backend_data_dev:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/default.conf  # Development nginx config
+      - ./docker/nginx/default-dev.conf:/etc/nginx/conf.d/default.conf  # Configuración desarrollo sin SSL
     networks:
       - agora_dev
     restart: unless-stopped
@@ -117,6 +145,7 @@ volumes:
   db_data_dev:
   frontend_data_dev:
   backend_data_dev:
+  hardhat_data_dev:
 
 networks:
   agora_dev:
