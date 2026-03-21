@@ -68,6 +68,14 @@ class VoteController extends Controller
             ], 400);
         }
 
+        $connection = $this->blockchainService->checkConnection();
+        if (!$connection['success']) {
+            return response()->json([
+                'error' => 'Blockchain no disponible',
+                'details' => $connection['error']
+            ], 503);
+        }
+
         $maxRetries = 3;
         $attempt = 0;
         $tx = null;

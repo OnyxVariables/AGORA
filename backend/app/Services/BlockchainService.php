@@ -5,6 +5,7 @@ namespace App\Services;
 use Web3\Web3;
 use Web3\Contract;
 use Web3Providers\HttpProvider;
+use Illuminate\Support\Facades\Log;
 
 class BlockchainService
 {
@@ -14,7 +15,9 @@ class BlockchainService
     public function __construct()
     {
         $rpc = env('BESU_RPC_URL', 'http://localhost:8545');
-        $this->web3 = new Web3(new HttpProvider($rpc));
+        // Timeout de 5 segundos para requests HTTP
+        $provider = new HttpProvider($rpc, 5);
+        $this->web3 = new Web3($provider);
 
         $abiJson = json_decode(file_get_contents(storage_path('app/SimpleVoting.json')));
         $this->simpleVoting = new Contract($this->web3->provider, $abiJson->abi);
@@ -27,7 +30,6 @@ class BlockchainService
         $this->simpleVoting->at($contractAddress);
     }
 
-    
     // Obtengo dirección admin obligatoria
     private function getFromAddress()
     {
@@ -40,14 +42,24 @@ class BlockchainService
         return $from;
     }
 
-    // Esperar receipt de la transacción
+    // Esperar receipt de la transaccion con timeout y reintentos
     private function waitForReceipt($txHash, $maxAttempts = 15, $sleepSeconds = 1)
     {
         $receipt = null;
         $attempts = 0;
 
         while ($receipt === null && $attempts < $maxAttempts) {
-            $receipt = $this->web3->eth->getTransactionReceipt($txHash);
+            try {
+                $this->web3->eth->getTransactionReceipt($txHash, function ($err, $r) use (&$receipt) {
+                    if ($err !== null) {
+                        throw $err;
+                    }
+                    $receipt = $r;
+                });
+            } catch (\Exception $e) {
+                Log::warning("Intento $attempts fallido al obtener receipt: {$e->getMessage()}");
+            }
+
             if ($receipt !== null) {
                 return $receipt;
             }
@@ -67,24 +79,38 @@ class BlockchainService
         }
     }
     
-    // Enviar transacción genérica
-    private function sendTransaction($method, $params, $gas = 300000)
+    // Enviar transacción con reintentos
+    private function sendTransaction($method, $params, $gas = 300000, $maxRetries = 3)
     {
         $from = $this->getFromAddress();
+        $attempt = 0;
 
-        $txHash = $this->simpleVoting->send($method, $params, [
-            'from' => $from,
-            'gas' => '0x' . dechex($gas)
-        ]);
+        do {
+            try {
+                $txHash = $this->simpleVoting->send($method, $params, [
+                    'from' => $from,
+                    'gas' => '0x' . dechex($gas)
+                ]);
 
-        $receipt = $this->waitForReceipt($txHash);
+                $receipt = $this->waitForReceipt($txHash);
+                
+                return [
+                    'txHash' => $txHash,
+                    'blockNumber' => $receipt->blockNumber ? $receipt->blockNumber->toString() : null,
+                    'gasUsed' => $receipt->gasUsed ? $receipt->gasUsed->toString() : null,
+                    'receipt' => $receipt
+                ];
 
-        return [
-            'txHash' => $txHash,
-            'blockNumber' => $receipt->blockNumber ? $receipt->blockNumber->toString() : null,
-            'gasUsed' => $receipt->gasUsed ? $receipt->gasUsed->toString() : null,
-            'receipt' => $receipt
-        ];
+            } catch (\Exception $e) {
+                $attempt++;
+                Log::warning("Intento $attempt para $method fallido: {$e->getMessage()}");
+                sleep(1);
+
+                if ($attempt >= $maxRetries) {
+                    throw new \Exception("Error enviando la transacción tras $maxRetries intentos: " . $e->getMessage());
+                }
+            }
+        } while ($attempt < $maxRetries);
     }
 
     // Enviar voto
@@ -109,7 +135,12 @@ class BlockchainService
             ];
 
         } catch (\Exception $e) {
-            return $this->handleError($e, 'Error enviando voto');
+            Log::error("submitVote error: {$e->getMessage()}");
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Error enviando voto'
+            ];
         }
     }
 
@@ -206,16 +237,24 @@ class BlockchainService
     public function checkConnection()
     {
         try {
-            $blockNumber = $this->web3->eth->blockNumber();
+            $blockNumber = null;
+            $this->web3->eth->blockNumber(function ($err, $bn) use (&$blockNumber) {
+                if ($err !== null) throw $err;
+                $blockNumber = $bn->toString();
+            });
 
             return [
                 'success' => true,
-                'blockNumber' => $blockNumber->toString(),
+                'blockNumber' => $blockNumber,
                 'message' => 'Conectado a blockchain'
             ];
-
         } catch (\Exception $e) {
-            return $this->handleError($e, 'Error de conexión');
+            Log::error("checkConnection error: {$e->getMessage()}");
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Error de conexión'
+            ];
         }
     }
 
