@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Vote;
 use App\Models\User;
+use App\Models\Votation;
 use App\Models\Municipality;
 use App\Services\BlockchainService;
 use Illuminate\Http\Request;
@@ -25,7 +26,10 @@ class VoteController extends Controller
             'partyId' => 'required|integer',
             'votationId' => 'required|integer',
             'municipalityId' => 'required|integer',
-            'voteHash' => 'required|string'
+            'voteHash' => [
+                'required',
+                'regex:/^0x[a-fA-F0-9]{64}$/'
+            ]
         ]);
 
         $user = Auth::user();
@@ -42,6 +46,28 @@ class VoteController extends Controller
             ], 403, [], JSON_UNESCAPED_UNICODE);
         }
 
+        $votation = Votation::where('id', $data['votationId'])
+            ->where('state', 'active')
+            ->first();
+
+        if (!$votation) {
+            return response()->json([
+                'error' => 'La votación no está activa'
+            ], 400);
+        }
+
+        if (now()->lt($votation->startDate)) {
+            return response()->json([
+                'error' => 'La votación aún no ha comenzado'
+            ], 400);
+        }
+
+        if (now()->gt($votation->endDate)) {
+            return response()->json([
+                'error' => 'La votación ha finalizado'
+            ], 400);
+        }
+
         try {
             $tx = $this->blockchainService->submitVote(
                 $data['partyId'],
@@ -51,7 +77,10 @@ class VoteController extends Controller
             );
 
             if (!$tx['success']) {
-                return response()->json(['error' => 'Error al enviar el voto'], 500, [], JSON_UNESCAPED_UNICODE);
+                return response()->json([
+                    'error' => 'Error en blockchain',
+                    'details' => $tx['error'] ?? null
+                ], 500);
             }
 
             // No se pasa usuario a inactive aquí porque si la transacción falla en blockchain, el usuario no va a poder votar de nuevo
