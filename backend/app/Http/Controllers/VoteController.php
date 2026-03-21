@@ -68,17 +68,31 @@ class VoteController extends Controller
             ], 400);
         }
 
+        $maxRetries = 3;
+        $attempt = 0;
+        $tx = null;
+
         try {
-            $tx = $this->blockchainService->submitVote(
-                $data['partyId'],
-                $data['votationId'],
-                $data['municipalityId'],
-                $data['voteHash']
-            );
+            do{
+                $tx = $this->blockchainService->submitVote(
+                    $data['partyId'],
+                    $data['votationId'],
+                    $data['municipalityId'],
+                    $data['voteHash']
+                );
+
+                $attempt++;
+
+                if ($tx['success']) {
+                    break;
+                }
+
+                sleep(1);
+            } while ($attempt < $maxRetries);
 
             if (!$tx['success']) {
                 return response()->json([
-                    'error' => 'Error en blockchain',
+                    'error' => 'Error en blockchain tras ' . $maxRetries . ' intentos',
                     'details' => $tx['error'] ?? null
                 ], 500);
             }
