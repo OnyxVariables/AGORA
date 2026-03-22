@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.agora</groupId>
-	<artifactId>votaciones</artifactId>
+	<artifactId>votations</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>

@@ -1,10 +1,10 @@
-package com.agora.votaciones;
+package com.agora.votations;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class VotacionesApplicationTests {
+class VotationsApplicationTests {
 
 	@Test
 	void contextLoads() {
