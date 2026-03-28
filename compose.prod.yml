@@ -7,10 +7,10 @@ services:
     # TODO(srvariable): **Enhancement** instead of keeping these variables
     # in env, use Docker Secrets + Docker Swarm. https://docs.docker.com/engine/swarm/secrets/
     environment:
-      MYSQL_DATABASE: ${DB_NAME:-agora}
-      MYSQL_USER: ${DB_USER_NAME:-agorauser}
-      MYSQL_PASSWORD: ${DB_USER_PASS:-agorapass}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS:-root}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
       - agora
     volumes:
@@ -30,9 +30,9 @@ services:
     environment:
       DB_HOST: ${DB_HOST:-db}
       DB_PORT: ${DB_PORT:-3306}
-      DB_DATABASE: ${DB_DATABASE:-agora}
-      DB_USERNAME: ${DB_USER_NAME:-agorauser}
-      DB_PASSWORD: ${DB_USER_PASS:-agorapass}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
@@ -53,9 +53,9 @@ services:
       DB_HOST: ${DB_HOST:-db}
       DB_PORT: ${DB_PORT:-3306}
       DB_CONNECTION: ${DB_CONNECTION:-mariadb}
-      DB_DATABASE: ${DB_DATABASE:-agora}
-      DB_USERNAME: ${DB_USER_NAME:-agorauser}
-      DB_PASSWORD: ${DB_USER_PASS:-agorapass}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - backend_data:/var/www/html
     networks:
