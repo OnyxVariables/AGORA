@@ -50,7 +50,7 @@ sudo chmod a+r /etc/apt/keyrings/docker.gpg`
 - `sudo systemctl status docker`
 
 > [!TIP]
-> Puedes ahorrarte estos paso usando `newgrp docker`
+> Puedes ahorrarte estos pasos usando `newgrp docker`
 
 
 ## 2. Sincronización Crítica de Tiempo (NTP)
