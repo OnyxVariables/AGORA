@@ -49,8 +49,8 @@ sudo chmod a+r /etc/apt/keyrings/docker.gpg`
 - `sudo systemctl enable docker`
 - `sudo systemctl status docker`
 
-> [!CAUTION]
-> Usa el código con precaución.
+> [!TIP]
+> Puedes ahorrarte estos pasos usando `newgrp docker`
 
 
 ## 2. Sincronización Crítica de Tiempo (NTP)
