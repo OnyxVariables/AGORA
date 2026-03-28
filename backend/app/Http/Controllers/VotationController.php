@@ -4,18 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\Votation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class VotationController extends Controller
 {
     // READ
     public function index()
     {
+        if (Auth::user()->roleId !== 1) {
+            return response()->json(['error' => 'No tienes permiso'], 403);
+        }
+
         return response()->json(Votation::all(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     // CREATE
     public function store(Request $request)
     {
+        if (Auth::user()->roleId !== 1) {
+            return response()->json(['error' => 'No tienes permiso'], 403);
+        }
+
         $data = $request->validate([
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
@@ -26,19 +35,19 @@ class VotationController extends Controller
 
         $fakeHash = hash('sha256', uniqid());
 
-    // INSERTO bloque de prueba en la tabla 'block' para que la base de datos no se queje de la Foreign Key
-    //En el siguiente sprint, la blockchain genera los bloques y se guardan en block en la BBDD donde se referencia aquí
-    \DB::table('block')->insertOrIgnore([
-        'hash' => $fakeHash,
-        'blockNumber' => rand(1, 1000),
-        'previousHash' => '0',
-        'transactions' => 0,
-        'isValid' => 1,
-        'createdAt' => now()
-    ]);
+        // INSERTO bloque de prueba en la tabla 'block' para que la base de datos no se queje de la Foreign Key
+        //En el siguiente sprint, la blockchain genera los bloques y se guardan en block en la BBDD donde se referencia aquí
+        \DB::table('block')->insertOrIgnore([
+            'hash' => $fakeHash,
+            'blockNumber' => rand(1, 1000),
+            'previousHash' => '0',
+            'transactions' => 0,
+            'isValid' => 1,
+            'createdAt' => now()
+        ]);
 
-    $data['startBlockHash'] = $fakeHash;
-    $data['endBlockHash'] = $fakeHash;
+        $data['startBlockHash'] = $fakeHash;
+        $data['endBlockHash'] = $fakeHash;
 
         $votation = Votation::create($data);
 
@@ -48,6 +57,10 @@ class VotationController extends Controller
     // UPDATE
     public function update(Request $request, $id)
     {
+        if (Auth::user()->roleId !== 1) {
+            return response()->json(['error' => 'No tienes permiso'], 403);
+        }
+
         $votation = Votation::findOrFail($id);
 
         $votation->update($request->all());
@@ -58,7 +71,28 @@ class VotationController extends Controller
     // DELETE
     public function destroy($id)
     {
+        if (Auth::user()->roleId !== 1) {
+            return response()->json(['error' => 'No tienes permiso'], 403);
+        }
+
         Votation::destroy($id);
         return response()->json(null, 204);
+    }
+
+    // Obtener votación activa, es el método que se me ocurre para que el frontend sepa qué votación mostrar, ya que solo puede haber una activa a la vez
+    public function active()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+
+        $votation = Votation::where('state', 'active')->first();
+
+        if (!$votation) {
+            return response()->json(['error' => 'No hay votación activa'], 404);
+        }
+
+        return response()->json($votation, 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

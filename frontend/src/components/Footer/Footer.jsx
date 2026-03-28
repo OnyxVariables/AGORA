@@ -11,40 +11,71 @@ function Footer() {
     // }
   };
 
-
   return (
     <>
       <footer>
         {/* Botón que abre el modal */}
-        <Link to="#" className="boton" onClick={(e) => {
-          e.preventDefault();
-          setModalAbierto(true);
-        }}>
+        <Link
+          to="#"
+          className="boton"
+          onClick={(e) => {
+            e.preventDefault();
+            setModalAbierto(true);
+          }}
+        >
           Términos de privacidad
         </Link>
-        
+
         <div className="links">
-            {/* <!-- X (Twitter) --> */}
-            <Link to="#"><svg fill="white" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg" className="icons-social-media instagram">
-                <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"></path>
-            </svg></Link>
-            {/* <!-- X (Twitter) --> */}
-            <Link to="#" target="_blank"><svg className="icons-social-media x" fill="white" viewBox="0 0 1200 1227" xmlns="http://www.w3.org/2000/svg">
-                <path d="M714.163 519.284L1160.89 0H1051.18L667.137 442.652L367.137 0H0L468.852 681.145L0 1226.37H109.716L516.261 761.916L832.863 1226.37H1200M150.311 79.381H308.651L1049.84 1146.69H891.501"/>
-            </svg></Link>
-            {/* <!-- LinkedIn --> */}
-            <Link to="#"><svg fill="white" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg" className="icons-social-media linkedin">
-                <path d="M100.28 448H7.4V148.9h92.88zm-46.44-345.5C24 102.5 0 78.6 0 50.7 0 22.6 24-1.3 53.84-1.3c29.75 0 53.64 24 53.64 52.95 0 27.8-23.89 50.8-53.64 50.8zM447.9 448h-92.7V302.4c0-34.7-12.4-58.4-43.5-58.4-23.7 0-37.8 15.9-44 31.3-2.3 5.6-2.9 13.4-2.9 21.3V448h-92.7s1.2-242.1 0-267.1h92.7v37.9c12.3-19 34.4-46 83.6-46 61 0 106.7 39.8 106.7 125.4V448z"/>
-            </svg></Link>
-            {/* <!-- GitHub --> */}
-            <Link to="#"><svg fill="white" viewBox="0 0 496 512" xmlns="http://www.w3.org/2000/svg" className="icons-social-media github">
-                <path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-2.9 0-5.2-1.6-5.2-3.6 0-2 2.3-3.6 5.2-3.6 2.9 0 5.2 1.6 5.2 3.6zm-32.3-10.2c-.7 1.5-2.9 2-4.9 1.2-2-.7-3.2-2.5-2.5-4 0-.1.1-.1.1-.2 0 .1 0 .1-.1.2-.7 1.5.5 3.3 2.5 4 2 .8 4.2.3 4.9-1.2zm44.8-1.1c-1.3 1.1-3.4.5-4.7-.9-1.3-1.4-1.4-3.5-.1-4.5 1.3-1.1 3.4-.5 4.7.9 1.3 1.4 1.4 3.5.1 4.5zM248 8C111 8 0 119 0 256c0 110 71.3 203.4 170.3 236.4 12.5 2.3 17.1-5.4 17.1-12v-43.3c-69.3 15-83.9-33.5-83.9-33.5-11.3-28.8-27.5-36.5-27.5-36.5-22.5-15.4 1.7-15.1 1.7-15.1 24.9 1.7 38 25.6 38 25.6 22.1 37.9 58 27 72.2 20.7 2.2-16.1 8.7-27 15.9-33.2-55.3-6.3-113.4-27.6-113.4-122.9 0-27.2 9.7-49.5 25.6-66.9-2.6-6.3-11.1-31.7 2.4-66.2 0 0 20.9-6.7 68.5 25.5 19.9-5.5 41.3-8.3 62.5-8.4 21.2.1 42.6 2.9 62.5 8.4 47.6-32.2 68.5-25.5 68.5-25.5 13.5 34.5 5 59.9 2.4 66.2 15.9 17.4 25.6 39.7 25.6 66.9 0 95.6-58.2 116.5-113.6 122.8 8.9 7.7 16.8 23 16.8 46.3v68.7c0 6.7 4.6 14.4 17.2 12C424.7 459.4 496 366 496 256 496 119 385 8 248 8z"/>
-            </svg></Link>
+          {/* <!-- X (Twitter) --> */}
+          <Link to="#">
+            <svg
+              fill="white"
+              viewBox="0 0 448 512"
+              xmlns="http://www.w3.org/2000/svg"
+              className="icons-social-media instagram"
+            >
+              <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"></path>
+            </svg>
+          </Link>
+          {/* <!-- X (Twitter) --> */}
+          <Link to="#" target="_blank">
+            <svg
+              className="icons-social-media x"
+              fill="white"
+              viewBox="0 0 1200 1227"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M714.163 519.284L1160.89 0H1051.18L667.137 442.652L367.137 0H0L468.852 681.145L0 1226.37H109.716L516.261 761.916L832.863 1226.37H1200M150.311 79.381H308.651L1049.84 1146.69H891.501" />
+            </svg>
+          </Link>
+          {/* <!-- LinkedIn --> */}
+          <Link to="#">
+            <svg
+              fill="white"
+              viewBox="0 0 448 512"
+              xmlns="http://www.w3.org/2000/svg"
+              className="icons-social-media linkedin"
+            >
+              <path d="M100.28 448H7.4V148.9h92.88zm-46.44-345.5C24 102.5 0 78.6 0 50.7 0 22.6 24-1.3 53.84-1.3c29.75 0 53.64 24 53.64 52.95 0 27.8-23.89 50.8-53.64 50.8zM447.9 448h-92.7V302.4c0-34.7-12.4-58.4-43.5-58.4-23.7 0-37.8 15.9-44 31.3-2.3 5.6-2.9 13.4-2.9 21.3V448h-92.7s1.2-242.1 0-267.1h92.7v37.9c12.3-19 34.4-46 83.6-46 61 0 106.7 39.8 106.7 125.4V448z" />
+            </svg>
+          </Link>
+          {/* <!-- GitHub --> */}
+          <Link to="#">
+            <svg
+              fill="white"
+              viewBox="0 0 496 512"
+              xmlns="http://www.w3.org/2000/svg"
+              className="icons-social-media github"
+            >
+              <path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-2.9 0-5.2-1.6-5.2-3.6 0-2 2.3-3.6 5.2-3.6 2.9 0 5.2 1.6 5.2 3.6zm-32.3-10.2c-.7 1.5-2.9 2-4.9 1.2-2-.7-3.2-2.5-2.5-4 0-.1.1-.1.1-.2 0 .1 0 .1-.1.2-.7 1.5.5 3.3 2.5 4 2 .8 4.2.3 4.9-1.2zm44.8-1.1c-1.3 1.1-3.4.5-4.7-.9-1.3-1.4-1.4-3.5-.1-4.5 1.3-1.1 3.4-.5 4.7.9 1.3 1.4 1.4 3.5.1 4.5zM248 8C111 8 0 119 0 256c0 110 71.3 203.4 170.3 236.4 12.5 2.3 17.1-5.4 17.1-12v-43.3c-69.3 15-83.9-33.5-83.9-33.5-11.3-28.8-27.5-36.5-27.5-36.5-22.5-15.4 1.7-15.1 1.7-15.1 24.9 1.7 38 25.6 38 25.6 22.1 37.9 58 27 72.2 20.7 2.2-16.1 8.7-27 15.9-33.2-55.3-6.3-113.4-27.6-113.4-122.9 0-27.2 9.7-49.5 25.6-66.9-2.6-6.3-11.1-31.7 2.4-66.2 0 0 20.9-6.7 68.5 25.5 19.9-5.5 41.3-8.3 62.5-8.4 21.2.1 42.6 2.9 62.5 8.4 47.6-32.2 68.5-25.5 68.5-25.5 13.5 34.5 5 59.9 2.4 66.2 15.9 17.4 25.6 39.7 25.6 66.9 0 95.6-58.2 116.5-113.6 122.8 8.9 7.7 16.8 23 16.8 46.3v68.7c0 6.7 4.6 14.4 17.2 12C424.7 459.4 496 366 496 256 496 119 385 8 248 8z" />
+            </svg>
+          </Link>
         </div>
         <figure>
-            <img src="/img/LogoAgora.png" alt="Logo" />
-            <img src="/img/UE.png" alt="Unión Europea" />
-            <img src="/img/GobEspa.png" alt="Gobierno de España" />
+          <img src="/img/LogoAgora.png" alt="Logo" />
+          <img src="/img/UE.png" alt="Unión Europea" />
+          <img src="/img/GobEspa.png" alt="Gobierno de España" />
         </figure>
       </footer>
 
@@ -56,50 +87,83 @@ function Footer() {
               &times;
             </span>
             <h2>Política de Privacidad</h2>
-                <section>
-                    <h3>1. Responsable del tratamiento:</h3>
-                    <p>El responsable del tratamiento de los datos personales es <strong>AGORA</strong>, con domicilio en [dirección] y correo electrónico de contacto: agora@gmail.com</p>
-                </section>
+            <section>
+              <h3>1. Responsable del tratamiento:</h3>
+              <p>
+                El responsable del tratamiento de los datos personales es{" "}
+                <strong>AGORA</strong>, con domicilio en [dirección] y correo
+                electrónico de contacto: agora@gmail.com
+              </p>
+            </section>
 
-                <section>
-                    <h3>2. Datos que recopilamos:</h3>
-                    <p>Recogemos únicamente los datos necesarios para el correcto funcionamiento del sistema, incluyendo: nombre y apellidos, DNI, nickname, información de empadronamiento y datos de navegación.</p>
-                </section>
-                
-                <section>
-                    <h3>3. Finalidad del tratamiento:</h3>
-                    <p>Los datos se utilizan para gestionar la cuenta, facilitar la votación electrónica sin reidentificación, mejorar la experiencia de usuario y cumplir obligaciones legales.</p>
-                </section>
-                
-                <section>
-                    <h3>4. Base legal:</h3>
-                    <p>El tratamiento se realiza sobre la base del consentimiento del usuario y obligaciones legales.</p>
-                </section>
-                
-                <section>
-                    <h3>5. Conservación de los datos:</h3>
-                    <p>Los datos se conservarán mientras sea necesario para cumplir las finalidades descritas y según la legislación aplicable.</p>
-                </section>
-                
-                <section>
-                    <h3>6. Seguridad de los datos:</h3>
-                    <p>Se aplican medidas técnicas y organizativas para garantizar la confidencialidad, integridad y disponibilidad de los datos, incluyendo encriptación, acceso restringido y trazabilidad.</p>
-                </section>
-                
-                <section>
-                    <h3>7. Derechos del usuario:</h3>
-                    <p>El usuario puede acceder, rectificar, eliminar o limitar el tratamiento de sus datos, retirar el consentimiento y presentar reclamaciones ante la autoridad de control.</p>
-                </section>
-                
-                <section>
-                    <h3>8. Cookies y tecnologías similares:</h3>
-                    <p>Se utilizan cookies propias y de terceros para mejorar la experiencia de usuario y analizar la navegación, siempre con transparencia y consentimiento previo.</p>
-                </section>
-                
-                <section>
-                    <h3>9. Contacto:</h3>
-                    <p>Para cualquier duda o ejercicio de derechos, puede contactarnos en: agora@gmail.com.</p>
-                </section>
+            <section>
+              <h3>2. Datos que recopilamos:</h3>
+              <p>
+                Recogemos únicamente los datos necesarios para el correcto
+                funcionamiento del sistema, incluyendo: nombre y apellidos, DNI,
+                nickname, información de empadronamiento y datos de navegación.
+              </p>
+            </section>
+
+            <section>
+              <h3>3. Finalidad del tratamiento:</h3>
+              <p>
+                Los datos se utilizan para gestionar la cuenta, facilitar la
+                votación electrónica sin reidentificación, mejorar la
+                experiencia de usuario y cumplir obligaciones legales.
+              </p>
+            </section>
+
+            <section>
+              <h3>4. Base legal:</h3>
+              <p>
+                El tratamiento se realiza sobre la base del consentimiento del
+                usuario y obligaciones legales.
+              </p>
+            </section>
+
+            <section>
+              <h3>5. Conservación de los datos:</h3>
+              <p>
+                Los datos se conservarán mientras sea necesario para cumplir las
+                finalidades descritas y según la legislación aplicable.
+              </p>
+            </section>
+
+            <section>
+              <h3>6. Seguridad de los datos:</h3>
+              <p>
+                Se aplican medidas técnicas y organizativas para garantizar la
+                confidencialidad, integridad y disponibilidad de los datos,
+                incluyendo encriptación, acceso restringido y trazabilidad.
+              </p>
+            </section>
+
+            <section>
+              <h3>7. Derechos del usuario:</h3>
+              <p>
+                El usuario puede acceder, rectificar, eliminar o limitar el
+                tratamiento de sus datos, retirar el consentimiento y presentar
+                reclamaciones ante la autoridad de control.
+              </p>
+            </section>
+
+            <section>
+              <h3>8. Cookies y tecnologías similares:</h3>
+              <p>
+                Se utilizan cookies propias y de terceros para mejorar la
+                experiencia de usuario y analizar la navegación, siempre con
+                transparencia y consentimiento previo.
+              </p>
+            </section>
+
+            <section>
+              <h3>9. Contacto:</h3>
+              <p>
+                Para cualquier duda o ejercicio de derechos, puede contactarnos
+                en: agora@gmail.com.
+              </p>
+            </section>
           </div>
         </div>
       )}

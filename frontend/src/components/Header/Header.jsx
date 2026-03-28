@@ -3,8 +3,10 @@ import Sidebar from "./Sidebar";
 import "./Header.css";
 import { Link } from "react-router-dom";
 import { NAV_ITEMS } from "../../config/navigation";
+import { useAuth } from "../../components/PrivateRoute/AuthContext";
 
-function Header({menu}) {
+function Header({ menu }) {
+  const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -14,7 +16,12 @@ function Header({menu}) {
     const handleClickOutside = (e) => {
       const sidebar = document.getElementById("sidebar");
       const bar = document.querySelector(".bar");
-      if (sidebar && bar && !sidebar.contains(e.target) && !bar.contains(e.target)) {
+      if (
+        sidebar &&
+        bar &&
+        !sidebar.contains(e.target) &&
+        !bar.contains(e.target)
+      ) {
         setSidebarOpen(false);
       }
     };
@@ -55,15 +62,38 @@ function Header({menu}) {
 
           {/* NAV escritorio */}
           <nav>
-            {items.map(({ to, label, icon: Icon }) => (
-              <Link key={to} to={to} className="boton">
-                <Icon /> {label} </Link>
-            ))}
+            {items.map(({ to, label, icon: Icon }) => {
+              if (label === "SALIR") {
+                return (
+                  <button 
+                    key={label}  
+                    className="boton" 
+                    onClick={(e) => {
+                      e.preventDefault(); // O sino da error 405 (método no permitido)
+                      logout(); 
+                    }}
+                  >
+                    <Icon /> {label}
+                  </button>
+                );
+              }
+              
+              return (
+                <Link key={to} to={to} className="boton">
+                  <Icon /> {label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </header>
 
-      <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} items={items} />
+      <Sidebar
+        open={sidebarOpen}
+        close={() => setSidebarOpen(false)}
+        items={items}
+        onLogout={logout} 
+      />
     </>
   );
 }
