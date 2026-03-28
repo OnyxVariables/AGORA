@@ -33,7 +33,7 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 
 2. **Iniciar los contenedores de desarrollo:**
    ```bash
-   docker-compose -f compose.dev.yml up --build
+   docker compose -f compose.dev.yml up --build
    ```
 
 3. **Acceder a la aplicación:**
@@ -49,7 +49,7 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 
 2. **Iniciar los contenedores de producción:**
    ```bash
-   docker-compose -f compose.prod.yml up --build -d
+   docker compose -f compose.prod.yml up --build -d
    ```
 
 3. **Acceder a la aplicación:**
@@ -119,8 +119,8 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 ### Limpieza
 **Eliminar todos los contenedores y volúmenes:**
 ```bash
-docker-compose -f compose.dev.yml down -v
-docker-compose -f compose.prod.yml down -v
+docker compose -f compose.dev.yml down -v
+docker compose -f compose.prod.yml down -v
 ```
 
 **Eliminar todas las imágenes de Docker:**
