@@ -136,6 +136,33 @@ services:
       - agora_dev
     restart: unless-stopped
 
+  springboot:
+    container_name: agora_springboot_dev
+    build:
+      context: ./
+      dockerfile: ./docker/springboot/Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:${DB_CONNECTION}://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_SHOW_SQL: "true"
+      WEB3J_CLIENT_URL: http://hardhat:8545
+      WEB3J_CONTRACT_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      SERVER_PORT: ${SPRING_PORT}
+      SPRING_MAIN_LAZY_INITIALIZATION: true
+    depends_on:
+      db:
+        condition: service_healthy
+      hardhat:
+        condition: service_healthy
+    networks:
+      - agora_dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
   # certbot not needed in development
   # certbot:
   #   container_name: agora_certbot_dev
