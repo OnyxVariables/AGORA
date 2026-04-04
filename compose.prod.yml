@@ -48,8 +48,8 @@ services:
       dockerfile: ./docker/php/Dockerfile
     environment:
       # https://stackoverflow.com/a/64418443
-      SESSION_DOMAIN: agorachain.es
-      SANCTUM_STATEFUL_DOMAINS: agorachain.es
+      SESSION_DOMAIN: .agorachain.es
+      SANCTUM_STATEFUL_DOMAINS: agorachain.es,auth.agorachain.es
       DB_HOST: ${DB_HOST:-db}
       DB_PORT: ${DB_PORT:-3306}
       DB_CONNECTION: ${DB_CONNECTION:-mariadb}
