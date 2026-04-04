@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_CONFIG } from "../config/api";
 
 export function useParties() {
   const [partidos, setPartidos] = useState([]);
@@ -7,7 +8,7 @@ export function useParties() {
   useEffect(() => {
     const loadParties = async () => {
       try {
-        const res = await fetch("/api/parties");
+        const res = await fetch(API_CONFIG.endpoints.PARTIES);
         if (!res.ok) throw new Error();
 
         const data = await res.json();

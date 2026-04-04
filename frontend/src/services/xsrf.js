@@ -1,3 +1,5 @@
+import { API_CONFIG } from "../config/api";
+
 export function readXsrfToken() {
     return decodeURIComponent(
         document.cookie
@@ -14,7 +16,7 @@ export async function getXsrfToken() {
         return xsrfToken;
     }
 
-    await fetch("/api/sanctum/csrf-cookie", {
+    await fetch(API_CONFIG.endpoints.CSRF_COOKIE, {
         credentials: "include",
     });
     

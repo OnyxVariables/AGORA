@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS vote(
     municipalityId INT NOT NULL,
 
     CONSTRAINT FK_VOTE_votationId FOREIGN KEY(votationId) REFERENCES votation(id),
-    CONSTRAINT FK_VOTE_partyId FOREIGN KEY(partyId) REFERENCES party(id)
+    CONSTRAINT FK_VOTE_partyId FOREIGN KEY(partyId) REFERENCES party(id),
     CONSTRAINT FK_VOTE_municipalityId FOREIGN KEY(municipalityId) REFERENCES municipality(id)
 );

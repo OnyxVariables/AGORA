@@ -1,0 +1,123 @@
+# Development environment - based on compose.yml
+services:
+  db:
+    container_name: agora_db_dev
+    build:
+      context: ./
+      dockerfile: ./docker/mariadb/Dockerfile
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    networks:
+      - agora_dev
+    volumes:
+      - db_data_dev:/var/lib/mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  db_generator:
+    container_name: agora_generator_dev
+    build:
+      context: ./
+      dockerfile: ./docker/python/Dockerfile
+    environment:
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agora_dev
+    restart: no
+
+  backend:
+    container_name: agora_backend_dev
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    environment:
+      # Development environment settings
+      SESSION_DOMAIN: localhost
+      SANCTUM_STATEFUL_DOMAINS: localhost:5173
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_URL: http://localhost:8000
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_CONNECTION: ${DB_CONNECTION:-mariadb}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - backend_data_dev:/var/www/html
+      - ./.env.dev:/var/www/html/.env  # Development environment file
+    networks:
+      - agora_dev
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
+  frontend:
+    container_name: agora_frontend_dev
+    build:
+      context: ./
+      dockerfile: ./docker/node/Dockerfile
+    environment:
+      VITE_API_URL: http://server:80
+      VITE_APP_URL: http://localhost:5173
+    networks:
+      - agora_dev
+    volumes:
+      - frontend_data_dev:/agora/dist
+      - ./frontend:/agora  # Live reload for development
+      - /agora/node_modules  # Preserve node_modules from build
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--force"]
+
+  server:
+    container_name: agora_server_dev
+    build:
+      context: ./
+      dockerfile: ./docker/nginx/Dockerfile
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "8080:80"
+    volumes:
+      - frontend_data_dev:/var/www/frontend
+      - backend_data_dev:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/default.conf  # Development nginx config
+    networks:
+      - agora_dev
+    restart: unless-stopped
+
+  # certbot not needed in development
+  # certbot:
+  #   container_name: agora_certbot_dev
+  #   ...
+
+volumes:
+  db_data_dev:
+  frontend_data_dev:
+  backend_data_dev:
+
+networks:
+  agora_dev:
+    driver: bridge

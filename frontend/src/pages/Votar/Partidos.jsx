@@ -6,6 +6,7 @@ import { popupError, toastSuccess, popupConfirm } from "../../services/alerts";
 import { useParties } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
 import { keccak256, toUtf8Bytes } from "ethers";
+import { API_CONFIG } from "../../config/api";
 
 // Genera 256 bits seguros
 function generarCodigo() {
@@ -29,7 +30,7 @@ function Partidos() {
   //Datos completos de usuario
   const getUser = async () => {
     try {
-      const res = await fetch("/api/me", {
+      const res = await fetch(API_CONFIG.endpoints.ME, {
         credentials: "include",
       });
 
@@ -66,7 +67,7 @@ function Partidos() {
 
 
     // Cojo la votación activa
-    const resVotation = await fetch("/api/votation/active", {
+    const resVotation = await fetch(API_CONFIG.endpoints.VOTATION_ACTIVE, {
       credentials: "include",
     });
     if (!resVotation.ok) {
@@ -102,7 +103,7 @@ function Partidos() {
       const input = user.nickname + codigo + votationId;
       const voteHash = keccak256(toUtf8Bytes(input));
 
-      const res = await fetch("/api/vote", {
+      const res = await fetch(API_CONFIG.endpoints.VOTE, {
         method: "POST",
         credentials: "include",
         headers: {
