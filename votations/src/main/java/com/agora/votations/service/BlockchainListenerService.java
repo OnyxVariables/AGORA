@@ -11,12 +11,14 @@ import java.math.BigInteger;
 @Service
 public class BlockchainListenerService {
 
-    private final Web3j web3j;
-
     private static final String CONTRACT_ADDRESS = "0xasdfh... no lo tengo por ahora";
 
-    public BlockchainListenerService(Web3j web3j) {
+    private final Web3j web3j;
+    private final VotationService votationService;
+
+    public BlockchainListenerService(Web3j web3j, VotationService votationService) {
         this.web3j = web3j;
+        this.votationService = votationService;
     }
 
     @PostConstruct
@@ -68,6 +70,10 @@ public class BlockchainListenerService {
                 System.out.println("title: " + event.title);
 
                 // actualizar DB (estado active)
+                votationService.updateStatus(
+                    event.votationId.longValue(),
+                    "ACTIVE"
+                );
             });
     }
 
@@ -79,6 +85,10 @@ public class BlockchainListenerService {
                 System.out.println("VotationUpdated: " + event.votationId);
 
                 // actualizar DB (estado active)
+                votationService.updateStatus(
+                    event.votationId.longValue(),
+                    "ACTIVE"
+                );
             });
     }
 
@@ -90,6 +100,10 @@ public class BlockchainListenerService {
                 System.out.println("VotationCancelled: " + event.votationId);
 
                 // actualizar DB (estado cancelled)
+                votationService.updateStatus(
+                    event.votationId.longValue(),
+                    "CANCELLED"
+                );
             });
     }
 
@@ -101,6 +115,10 @@ public class BlockchainListenerService {
                 System.out.println("VotationFinished: " + event.votationId);
 
                 // actualizar DB (estado finished)
+                votationService.updateStatus(
+                    event.votationId.longValue(),
+                    "FINISHED"
+                );
             });
     }
 }
