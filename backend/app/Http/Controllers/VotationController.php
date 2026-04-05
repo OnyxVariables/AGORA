@@ -53,8 +53,21 @@ class VotationController extends Controller
                 ], 503);
             }
 
-            // Enviar transacción a blockchain
+            // 1. Guardar en BD primero
+            $votation = Votation::create([
+                'title' => $data['title'],
+                'description' => $data['description'] ?? '',
+                'startDate' => $data['startDate'],
+                'endDate' => $data['endDate'] ?? null,
+                'state' => 'pending',
+                'startBlockHash' => null,
+                'endBlockHash' => null,
+                'txHash' => null
+            ]);
+
+            // 2. Enviar a blockchain con el ID de la BD
             $blockchainResult = $this->blockchainService->createVotation(
+                $votation->id,
                 $data['title'],
                 $data['description'] ?? '',
                 $data['startDate'],
@@ -68,18 +81,8 @@ class VotationController extends Controller
                 ], 500);
             }
 
-            // Guardar en BD como PENDING
-            $votation = Votation::create([
-                'title' => $data['title'],
-                'description' => $data['description'] ?? '',
-                'startDate' => $data['startDate'],
-                'endDate' => $data['endDate'] ?? null,
-                'state' => 'pending',
-                'startBlockHash' => null,
-                'endBlockHash' => null,
-                'blockchainId' => $blockchainResult['votationId'] ?? null,
-                'txHash' => $blockchainResult['transactionHash']
-            ]);
+            // 3. Actualizar txHash en BD
+            $votation->update(['txHash' => $blockchainResult['transactionHash']]);
 
             DB::commit();
 
@@ -137,7 +140,7 @@ class VotationController extends Controller
 
             // Enviar actualización a blockchain
             $blockchainResult = $this->blockchainService->updateVotation(
-                $votation->blockchainId,
+                $votation->id,
                 $data['title'],
                 $data['description'] ?? '',
                 $data['startDate'],
@@ -206,7 +209,7 @@ class VotationController extends Controller
             
             // Cancelar en blockchain
             $blockchainResult = $this->blockchainService->cancelVotation(
-                $votation->blockchainId,
+                $votation->id,
                 'Cancelada desde sistema'
             );
 

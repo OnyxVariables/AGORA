@@ -145,10 +145,11 @@ class BlockchainService
     }
 
     //Crear votacion
-    public function createVotation($title, $description, $startDate, $endDate)
+    public function createVotation($votationId, $title, $description, $startDate, $endDate)
     {
         try {
             $result = $this->sendTransaction('createVotation', [
+                $votationId,
                 $title,
                 $description,
                 strtotime($startDate),
@@ -159,6 +160,7 @@ class BlockchainService
                 'success' => true,
                 'transactionHash' => $result['txHash'],
                 'blockNumber' => $result['blockNumber'],
+                'votationId' => $votationId,
                 'message' => 'Votación creada en blockchain'
             ];
 

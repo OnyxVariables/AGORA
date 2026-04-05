@@ -94,16 +94,23 @@ contract SimpleVoting {
     // ADMINISTRACION DE VOTACIONES
     // CREATE
     function createVotation(
+        uint256 _votationId,
         string memory _title,
         string memory _description,
         uint256 _startDate,
         uint256 _endDate
-    ) external onlyAdmin returns (uint256) {
+    ) external onlyAdmin {
         require(_startDate < _endDate, "Fechas invalidas");
-        uint256 votationId = _votationCounter++;
-        Votation storage votation = votations[votationId];
+        require(votations[_votationId].creator == address(0), "VotationId ya existe");
+        
+        // Actualizar contador si es necesario
+        if (_votationId >= _votationCounter) {
+            _votationCounter = _votationId + 1;
+        }
+        
+        Votation storage votation = votations[_votationId];
 
-        votation.id = votationId;
+        votation.id = _votationId;
         votation.title = _title;
         votation.description = _description;
         votation.startDate = _startDate;
@@ -114,7 +121,7 @@ contract SimpleVoting {
         votation.updatedAt = block.timestamp;
 
         emit VotationCreated(
-            votationId,
+            _votationId,
             _title,
             _description,
             _startDate,
@@ -122,8 +129,6 @@ contract SimpleVoting {
             msg.sender,
             block.timestamp
         );
-
-        return votationId;
     }
 
     // UPDATE
