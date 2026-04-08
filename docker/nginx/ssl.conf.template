@@ -5,11 +5,6 @@ server {
     ssl_certificate /etc/letsencrypt/live/agorachain.es/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/agorachain.es/privkey.pem;
 
-    # AUTENTICACIÓN POR CERTIFICADO (FNMT)
-    ssl_client_certificate /etc/nginx/certs/fnmt-chain.pem;
-    ssl_verify_client optional;
-    ssl_verify_depth 2;
-
     root /var/www/frontend;
     index index.html;
 
@@ -27,16 +22,48 @@ server {
             fastcgi_pass backend:9000;
             fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
             include fastcgi_params;
-            
+
             fastcgi_param HTTPS on;
             fastcgi_param REQUEST_URI $request_uri;
-
-            # Envío el certificado digital al backend
-            fastcgi_param SSL_CLIENT_VERIFY   $ssl_client_verify;
-            fastcgi_param SSL_CLIENT_S_DN     $ssl_client_s_dn;
-            fastcgi_param SSL_CLIENT_SERIAL   $ssl_client_serial;
-            fastcgi_param SSL_CLIENT_CERT     $ssl_client_escaped_cert;
         }
+    }
+
+    location @laravel {
+        fastcgi_pass backend:9000;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
+        fastcgi_param HTTPS on;
+        fastcgi_param REQUEST_URI $request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name auth.agorachain.es;
+
+    ssl_certificate /etc/letsencrypt/live/agorachain.es/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/agorachain.es/privkey.pem;
+
+    # AUTENTICACIÓN POR CERTIFICADO (FNMT)
+    ssl_client_certificate /etc/nginx/certs/fnmt-chain.pem;
+    ssl_verify_client optional;
+    ssl_verify_depth 2;
+
+    location /cert {
+        add_header 'Access-Control-Allow-Origin' 'https://agorachain.es' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization' always;
+
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
+
+        if ($ssl_client_verify != SUCCESS) {
+            return 403;
+        }
+
+        try_files $uri @laravel;
     }
 
     location @laravel {
@@ -50,5 +77,9 @@ server {
         fastcgi_param SSL_CLIENT_S_DN     $ssl_client_s_dn;
         fastcgi_param SSL_CLIENT_SERIAL   $ssl_client_serial;
         fastcgi_param SSL_CLIENT_CERT     $ssl_client_escaped_cert;
+    }
+
+    location / {
+        return 204;
     }
 }
