@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:24.12.0-alpine
 
 WORKDIR /app
 
@@ -7,7 +7,10 @@ RUN npm install
 
 RUN apk add --no-cache curl
 
-COPY . .
+COPY contracts/ ./contracts/
+COPY scripts/ ./scripts/
+COPY deploy.sh .
+COPY hardhat.config.js .
 
 RUN chmod +x deploy.sh
 

@@ -16,7 +16,7 @@ services:
       - db_data_dev:/var/lib/mysql
     restart: unless-stopped
     ports:
-      - "3306:3306"
+      - "33306:3306"
     healthcheck:
       test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u root -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
       timeout: 20s
@@ -29,8 +29,8 @@ services:
       context: ./
       dockerfile: ./docker/python/Dockerfile
     environment:
-      DB_HOST: ${DB_HOST:-db}
-      DB_PORT: ${DB_PORT:-3306}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -51,7 +51,6 @@ services:
     networks:
       - agora_dev
     volumes:
-      - ./blockchain:/app
       - hardhat_data_dev:/app/data
       - backend_data_dev:/var/www/html  # Para actualizar .env
     restart: unless-stopped
@@ -70,24 +69,23 @@ services:
       dockerfile: ./docker/php/Dockerfile
     environment:
       # Development environment settings
-      SESSION_DOMAIN: localhost
-      SANCTUM_STATEFUL_DOMAINS: localhost:5173
-      APP_ENV: local
+      SESSION_DOMAIN: ${SESSION_DOMAIN}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS}
+      APP_ENV: ${APP_ENV}
       APP_DEBUG: true
-      APP_URL: http://localhost:8000
-      DB_HOST: ${DB_HOST:-db}
-      DB_PORT: ${DB_PORT:-3306}
-      DB_CONNECTION: ${DB_CONNECTION:-mariadb}
-      DB_DATABASE: ${DB_DATABASE:-agora_dev}
-      DB_USERNAME: ${DB_USER_NAME:-agorauser}
-      DB_PASSWORD: ${DB_USER_PASS:-agorapass}
+      APP_URL: ${APP_URL}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_CONNECTION: ${DB_CONNECTION}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USER_NAME}
+      DB_PASSWORD: ${DB_USER_PASS}
       # Variables de Blockchain
-      BESU_RPC_URL: http://hardhat:8545
-      BLOCKCHAIN_ADMIN_ADDRESS: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-      SIMPLE_VOTING_ADDRESS: ${SIMPLE_VOTING_ADDRESS:-}
+      BESU_RPC_URL: ${BESU_RPC_URL}
+      BLOCKCHAIN_ADMIN_ADDRESS: ${BLOCKCHAIN_ADMIN_ADDRESS}
+      SIMPLE_VOTING_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
     volumes:
       - backend_data_dev:/var/www/html
-      - ./.env.dev:/var/www/html/.env  # Development environment file
     networks:
       - agora_dev
     depends_on:
@@ -105,8 +103,8 @@ services:
       context: ./
       dockerfile: ./docker/node/Dockerfile
     environment:
-      VITE_API_URL: http://server:80
-      VITE_APP_URL: http://localhost:5173
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_APP_URL: ${VITE_APP_URL}
     networks:
       - agora_dev
     volumes:
