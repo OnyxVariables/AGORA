@@ -1,0 +1,4 @@
+node_modules
+deployment-simple*.json
+cache
+artifacts

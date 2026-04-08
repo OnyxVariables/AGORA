@@ -2,6 +2,7 @@
 *.txt
 .env
 .env.*
+blockchain.env
 
 tools/*.sql
 

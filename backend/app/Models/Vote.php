@@ -13,6 +13,9 @@ class Vote extends Model
         'votationId',
         'partyId',
         'municipalityId',
+        'blockHash',
+        'txHash',
+        'createdAt'
     ];
     
     public $timestamps = false;
