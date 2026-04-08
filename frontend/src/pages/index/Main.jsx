@@ -3,7 +3,7 @@ import "./Main.css";
 import { useNavigate } from "react-router-dom";
 import { popupError, toastSuccess } from "../../services/alerts";
 import { useAuth } from "../../components/PrivateRoute/AuthContext";
-import { API_CONFIG } from "../../config/api";
+import { AUTH_CONFIG } from "../../config/auth";
 
 export default function Main() {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export default function Main() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch(API_CONFIG.endpoints.LOGIN, {
+      const res = await fetch(AUTH_CONFIG.endpoints.CERTIFICATE, {
         method: "GET",
         credentials: "include", // para sesion
         headers: {

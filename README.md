@@ -21,18 +21,16 @@
 Agora es un proyecto de votación electrónica diseñado con un enfoque **profesional, seguro y escalable**, orientado a entornos donde la **fiabilidad, la trazabilidad y la protección de datos** son requisitos críticos (administraciones públicas, instituciones educativas, organizaciones privadas o procesos internos de alto impacto).
 El sistema combina **autenticación mediante certificado electrónico**, una **arquitectura web moderna** y el uso de **tecnologías blockchain** para garantizar la integridad de los votos y la transparencia del proceso.
 
----
 
-## 🎯 Objetivos del proyecto
+## Objetivos del proyecto
 * Garantizar que **solo usuarios autenticados y válidos** puedan votar.
 * Asegurar que cada voto sea **íntegro, inmutable y verificable**.
 * Proteger la identidad del votante y cumplir con los principios de **seguridad y protección de datos**.
 * Ofrecer una plataforma **escalable**, preparada para miles de usuarios concurrentes.
 * Mantener una arquitectura clara, documentada y mantenible.
+  
 
----
-
-## 🏗️ Arquitectura general
+## Arquitectura general
 Agora está diseñado siguiendo una arquitectura distribuida y modular:
 
 * **Frontend**
@@ -60,9 +58,8 @@ Agora está diseñado siguiendo una arquitectura distribuida y modular:
   * Despligue en AWS con dominio propio (agorachain.es).
   * Preparado para balanceador de carga y alta disponibilidad.
 
----
 
-## 🔐 Seguridad
+## Seguridad
 La seguridad es un pilar fundamental del proyecto:
 * Autenticación mediante **certificado electrónico**.
 * Comunicación cifrada mediante **TLS/HTTPS**.
@@ -70,9 +67,8 @@ La seguridad es un pilar fundamental del proyecto:
 * Registro de operaciones para **auditoría y trazabilidad**.
 * Diseño alineado con principios de **protección de datos (RGPD)**.
 
----
 
-## ⛓️ Blockchain y votaciones
+## Blockchain y votaciones
 Los votos no se almacenan como simples registros modificables:
 * Cada voto se registra como una **transacción**.
 * Las transacciones se agrupan en **bloques**.
@@ -85,16 +81,14 @@ Los votos no se almacenan como simples registros modificables:
   * Transparencia.
   * Imposibilidad de alteración posterior.
 
----
 
-## 📊 Visualización de resultados
+## Visualización de resultados
 El sistema permite mostrar los resultados de forma clara y comprensible:
 * Gráficos de barras.
 * Gráficos pastel.
 * Gráficos temporales.
 * Preparado para incluir mapas de calor por nación.
 
----
 
 ## Escalabilidad y disponibilidad
 Agora está preparado para crecer:
@@ -103,37 +97,32 @@ Agora está preparado para crecer:
 * Integración con **balanceador de carga**.
 * Alta disponibilidad ante caídas de nodos.
 
----
 
-## 🛠️ Tecnologías utilizadas
+## Tecnologías utilizadas
 | Área | Tecnología |
 |------|------------|
 | Frontend | React, HTML, CSS, JavaScript, Chart.js |
 | Backend | Java / Laravel |
 | Blockchain | Hyperledger Besu |
 | Base de datos | MySQL / MariaDB |
-| Infraestructura | Docker, Nginx, AWS |
+| Infraestructura | Docker, K3s, Nginx, AWS |
 | Seguridad | TLS, Certificados electrónicos, SSL generado con let's encrypt |
 
----
 
-## 📁 Estructura del proyecto (simplificada)
-
+## Estructura del proyecto (simplificada)
 ```
 agora/
 ├── backend/
 ├── frontend/
-├── blockchain/
-│   ├── genesis/
-│   ├── nodes/
+├── QBFT-NETWORK/
+├── besu-kubernetes/
 ├── docker/
-├── database/
+├── db/
 └── docs/
 ```
 
----
 
-## 📚 Documentación
+## Documentación
 El proyecto incluirá documentación detallada sobre:
 * Instalación y despliegue.
 * Configuración de certificados electrónicos.
@@ -141,16 +130,15 @@ El proyecto incluirá documentación detallada sobre:
 * Estructura de la base de datos.
 * Casos de uso y diagramas.
 
----
 
 ## Estado del proyecto
 Agora se encuentra en **desarrollo activo**, con un enfoque académico-profesional y una clara orientación a entornos reales de producción.
 
----
 
-## 👤 Autor
+## Autor
 Proyecto desarrollado por Oliver Gamboa Mesa y Rojohn Ibana Ibañares, con especial atención en la **seguridad, robustez y calidad del software**.
 
 ---
 
+> [!NOTE]
 > Agora no es solo una aplicación de votación: es una propuesta de **confianza digital**, donde cada voto cuenta y queda protegido.
