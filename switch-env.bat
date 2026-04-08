@@ -17,14 +17,14 @@ if "%ENVIRONMENT%"=="dev" (
     echo Switching to DEVELOPMENT environment...
     
     REM Stop any running containers
-    docker-compose -f compose.prod.yml down >nul 2>&1
-    docker-compose -f compose.dev.yml down >nul 2>&1
+    docker compose -f compose.prod.yml down >nul 2>&1
+    docker compose -f compose.dev.yml down >nul 2>&1
     
     REM Copy development environment file
     copy .env.dev .env >nul
     
     echo Environment switched to DEVELOPMENT
-    echo Start with: docker-compose -f compose.dev.yml up --build
+    echo Start with: docker compose -f compose.dev.yml up --build
     echo Access at: http://localhost:5173
     goto :end
 )
@@ -33,14 +33,14 @@ if "%ENVIRONMENT%"=="prod" (
     echo Switching to PRODUCTION environment...
     
     REM Stop any running containers
-    docker-compose -f compose.dev.yml down >nul 2>&1
-    docker-compose -f compose.prod.yml down >nul 2>&1
+    docker compose -f compose.dev.yml down >nul 2>&1
+    docker compose -f compose.prod.yml down >nul 2>&1
     
     REM Copy production environment file
     copy .env.prod .env >nul
     
     echo Environment switched to PRODUCTION
-    echo Start with: docker-compose -f compose.prod.yml up --build -d
+    echo Start with: docker compose -f compose.prod.yml up --build -d
     echo Access at: https://agorachain.es
     goto :end
 )
@@ -51,4 +51,4 @@ exit /b 1
 
 :end
 echo Current environment: %ENVIRONMENT%
-echo To check configuration: docker-compose config
+echo To check configuration: docker compose config

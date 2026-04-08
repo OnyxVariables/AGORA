@@ -9,7 +9,8 @@ if [ ! -d "/etc/letsencrypt/live/agorachain.es" ]; then
         --agree-tos \
         --no-eff-email \
         -d agorachain.es \
-        -d www.agorachain.es
+        -d www.agorachain.es \
+        -d auth.agorachain.es
 fi
 
 echo "Iniciando renovación automática"

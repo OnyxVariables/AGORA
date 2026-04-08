@@ -42,6 +42,15 @@ class VotationController extends Controller
             'endDate' => 'nullable|date',
         ]);
 
+        // Primero verificar conexión blockchain antes de iniciar transacción
+        $connection = $this->blockchainService->checkConnection();
+        if (!$connection['success']) {
+            return response()->json([
+                'error' => 'Blockchain no disponible',
+                'details' => $connection['error']
+            ], 503);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -120,6 +129,15 @@ class VotationController extends Controller
 
         $votation = Votation::findOrFail($id);
 
+        // Primero verificar conexión blockchain antes de iniciar transacción
+        $connection = $this->blockchainService->checkConnection();
+        if (!$connection['success']) {
+            return response()->json([
+                'error' => 'Blockchain no disponible',
+                'details' => $connection['error']
+            ], 503);
+        }
+
         $data = $request->validate([
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
@@ -130,14 +148,6 @@ class VotationController extends Controller
         DB::beginTransaction();
 
         try {
-            $connection = $this->blockchainService->checkConnection();
-            if (!$connection['success']) {
-                return response()->json([
-                    'error' => 'Blockchain no disponible',
-                    'details' => $connection['error']
-                ], 503);
-            }
-
             // Enviar actualización a blockchain
             $blockchainResult = $this->blockchainService->updateVotation(
                 $votation->id,
@@ -196,17 +206,18 @@ class VotationController extends Controller
 
         $votation = Votation::findOrFail($id);
 
+        // Primero verificar conexión blockchain antes de iniciar transacción
+        $connection = $this->blockchainService->checkConnection();
+        if (!$connection['success']) {
+            return response()->json([
+                'error' => 'Blockchain no disponible',
+                'details' => $connection['error']
+            ], 503);
+        }
+
         DB::beginTransaction();
 
         try {
-            $connection = $this->blockchainService->checkConnection();
-            if (!$connection['success']) {
-                return response()->json([
-                    'error' => 'Blockchain no disponible',
-                    'details' => $connection['error']
-                ], 503);
-            }
-            
             // Cancelar en blockchain
             $blockchainResult = $this->blockchainService->cancelVotation(
                 $votation->id,

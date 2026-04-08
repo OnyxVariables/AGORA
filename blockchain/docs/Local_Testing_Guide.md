@@ -6,9 +6,10 @@
 3. [Despliegue del Contrato](#despliegue-del-contrato)
 4. [Resumen de comandos](#resumen-de-comandos)
 5. [Arquitectura del Sistema](#arquitectura-del-sistema)
-6. [Integración con Backend](#integración-con-backend) (Por hacer)
-7. [Scripts de Producción](#scripts-de-producción) (Por hacer)
-8. [Soporte y Recursos](#soporte-y-recursos)
+6. [Flujo de Votaciones](#flujo-de-votaciones)
+7. [Cálculo de Resultados](#cálculo-de-resultados-spring-boot)
+8. [Seguridad y Diseño](#seguridad-y-diseño)
+9. [Soporte y Recursos](#soporte-y-recursos)
 
 
 ## Introducción
@@ -196,7 +197,134 @@ sequenceDiagram
 ```
 
 
-## Soporte y Recursos
+## Flujo de Votaciones
+### 1. Creación de Votación (Laravel → Blockchain)
+El administrador crea una votación desde el frontend que se envía a Laravel.
+
+**Laravel realiza:**
+- Validación de datos de entrada
+- Verificación de conexión blockchain
+- Envío de transacción `createVotation` al smart contract
+- Guardado en BD con state: **`pending`**
+- Almacenamiento de `txHash` para trazabilidad
+
+> [!IMPORTANT]
+> Laravel **NO** marca la votación como `active`. La activación real ocurre cuando Spring Boot confirma el evento.
+
+### 2. Confirmación en Blockchain (Spring Boot)
+Spring Boot escucha constantemente eventos del contrato.
+
+**Cuando se emite `VotationCreated`:**
+1. Spring Boot detecta el evento
+2. Actualiza la BD:
+   - Estado → **`active`**
+   - Asocia `blockchainId` (no se cómo lo haré, estoy pensando que es lo más óptimo para en un futuro tener más votaciones con diferentes blockchains)
+
+### 3. Envío de Votos (Laravel → Blockchain)
+El usuario vota desde el frontend.
+
+**Laravel valida:**
+- Autenticación del usuario
+- Estado del usuario (`isActive`)
+- Formato de `voteHash` (bytes32 válido)
+- Que la votación esté **`active`**
+- Rango de fechas válido (`startDate` < now < `endDate`)
+
+**Proceso:**
+1. Envía transacción `submitVote` con reintentos automáticos (máx. 3)
+2. Retorna `txHash` al frontend
+
+> [!IMPORTANT]
+> Laravel **NO** guarda el voto en BD. Solo blockchain y Spring Boot procesan el voto.
+
+### 4. Recepción de Votos (Spring Boot)
+Spring Boot escucha el evento `VoteSubmitted`.
+
+**Cuando llega un voto:**
+1. Guarda el voto en BD de forma **anónima**:
+   - `voteHash`
+   - `votationId`
+   - `party_Id`
+   - `municipalityId`
+   - `blockHash`
+   - `txHash`
+   - `createdAt`
+> [!NOTE]   
+> **No se guarda:** usuario ni identidad del votante
+
+### 5. Actualización / Cancelación de Votaciones
+**Desde Laravel:**
+- Envía transacción (`updateVotation`, `cancelVotation`)
+- Marca en BD como **`pending`**
+
+**Spring Boot escucha:**
+- `VotationUpdated` → Actualiza datos, estado → `active`
+- `VotationCancelled` → Estado → `cancelled`
+
+### 6. Finalización de Votación
+1. Se ejecuta `finishVotation` en blockchain
+2. Laravel marca como `pending`
+3. Spring Boot escucha `VotationFinished`
+
+
+
+## Cálculo de Resultados (Spring Boot)
+Cuando la votación termina:
+
+1. Obtiene todos los votos desde BD
+2. Agrupa por:
+   - Provincia (via `municipality → province`)
+   - Partido
+3. Aplica **Ley D'Hondt** por provincia:
+   - Usa número de escaños por provincia
+4. Guarda resultados finales en BD
+5. Frontend los lee y los muestra en los gráficos
+
+
+## Seguridad y Diseño
+### Principios de Seguridad
+| Principio | Implementación |
+|-------------|----------------|
+| **Validación estricta** | `voteHash` como bytes32 válido |
+| **Anonimato real** | No se almacena identidad del votante |
+| **Fuente de verdad** | Blockchain como autoridad final |
+| **No confianza propia** | Laravel espera confirmación externa (Spring Boot) |
+| **Sincronizador fiable** | Spring Boot actúa como puente verificado |
+
+### Manejo de Errores
+#### Laravel:
+- Validaciones estrictas de entrada
+- Reintentos de transacciones (máx. 3 intentos)
+- Manejo de errores blockchain con rollback
+- Verificación de conexión antes de transacción
+
+#### BlockchainService:
+- Timeout configurado
+- Reintentos automáticos
+- Espera de transaction receipt
+
+#### Spring Boot:
+- Listener resiliente a eventos
+- Procesamiento asíncrono
+- Cola de eventos para procesamiento ordenado
+
+**Flujo de confianza:**
+```mermaid
+flowchart LR
+    L[Laravel<br/>Inicia acción] -->|Envía transacción| BC[Blockchain]
+    BC -->|Emite evento| SB[Spring Boot]
+    SB -->|Confirma| DB[(Base de Datos)]
+    
+    style L fill:#ff6b6b,color:#fff
+    style BC fill:#4ecdc4,color:#000
+    style SB fill:#45b7d1,color:#fff
+    style DB fill:#96ceb4,color:#000
+```
+> [!NOTE]
+> **Laravel NO actualiza BD directamente** — Espera la confirmación de Spring Boot basada en eventos blockchain
+
+
+# Soporte y Recursos
 ### Documentación
 - [Hardhat Documentation](https://hardhat.org/docs)
 - [Ethers.js Documentation](https://docs.ethers.org/)
