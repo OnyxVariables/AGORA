@@ -1,0 +1,84 @@
+services:
+  node1:
+    image: hyperledger/besu:latest
+    container_name: besu-node1
+    network_mode: host
+    volumes:
+      - ./genesis.json:/genesis.json
+      - ./Node-1/data:/opt/besu/data
+      - ./static-nodes.json:/opt/besu/data/static-nodes.json
+      #Eth por convención utiliza estos puertos
+    command: >
+      --data-path=/opt/besu/data
+      --genesis-file=/genesis.json
+      --rpc-http-enabled
+      --rpc-http-api=ETH,NET,QBFT,WEB3
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+      --p2p-port=30303
+      --nat-method=NONE
+      --p2p-host=3.213.244.251
+      --profile=ENTERPRISE
+
+  node2:
+    image: hyperledger/besu:latest
+    container_name: besu-node2
+    network_mode: host
+    volumes:
+      - ./genesis.json:/genesis.json
+      - ./Node-2/data:/opt/besu/data
+      - ./static-nodes.json:/opt/besu/data/static-nodes.json
+    command: >
+      --data-path=/opt/besu/data
+      --genesis-file=/genesis.json
+      --p2p-port=30303
+      --rpc-http-enabled
+      --rpc-http-api=ETH,NET,QBFT,WEB3
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+      --rpc-http-port=8545
+      --nat-method=NONE
+      --p2p-host=34.200.30.81
+      --profile=ENTERPRISE
+
+  node3:
+    image: hyperledger/besu:latest
+    container_name: besu-node3
+    network_mode: host
+    volumes:
+      - ./genesis.json:/genesis.json
+      - ./Node-3/data:/opt/besu/data
+      - ./static-nodes.json:/opt/besu/data/static-nodes.json
+    command: >
+      --data-path=/opt/besu/data
+      --genesis-file=/genesis.json
+      --p2p-port=30303
+      --rpc-http-enabled
+      --rpc-http-api=ETH,NET,QBFT,WEB3
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+      --rpc-http-port=8545
+      --nat-method=NONE
+      --p2p-host=52.23.131.93
+      --profile=ENTERPRISE
+
+  node4:
+    image: hyperledger/besu:latest
+    container_name: besu-node4
+    network_mode: host
+    volumes:
+      - ./genesis.json:/genesis.json
+      - ./Node-4/data:/opt/besu/data
+      - ./static-nodes.json:/opt/besu/data/static-nodes.json
+    command: >
+      --data-path=/opt/besu/data
+      --genesis-file=/genesis.json
+      --p2p-port=30303
+      --rpc-http-enabled
+      --rpc-http-api=ETH,NET,QBFT,WEB3
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+      --rpc-http-port=8545
+      --nat-method=NONE
+      --p2p-host=54.144.58.95
+      --profile=ENTERPRISE

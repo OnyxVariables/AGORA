@@ -19,14 +19,14 @@ case $ENVIRONMENT in
         echo "Switching to DEVELOPMENT environment..."
         
         # Stop any running containers
-        docker-compose -f compose.prod.yml down 2>/dev/null || true
-        docker-compose -f compose.dev.yml down 2>/dev/null || true
+        docker compose -f compose.prod.yml down 2>/dev/null || true
+        docker compose -f compose.dev.yml down 2>/dev/null || true
         
         # Copy development environment file
         cp .env.dev .env
         
         echo "Environment switched to DEVELOPMENT"
-        echo "Start with: docker-compose -f compose.dev.yml up --build"
+        echo "Start with: docker compose -f compose.dev.yml up --build"
         echo "Access at: http://localhost:5173"
         ;;
         
@@ -34,14 +34,14 @@ case $ENVIRONMENT in
         echo "Switching to PRODUCTION environment..."
         
         # Stop any running containers
-        docker-compose -f compose.dev.yml down 2>/dev/null || true
-        docker-compose -f compose.prod.yml down 2>/dev/null || true
+        docker compose -f compose.dev.yml down 2>/dev/null || true
+        docker compose -f compose.prod.yml down 2>/dev/null || true
         
         # Copy production environment file
         cp .env.prod .env
         
         echo "Environment switched to PRODUCTION"
-        echo "Start with: docker-compose -f compose.prod.yml up --build -d"
+        echo "Start with: docker compose -f compose.prod.yml up --build -d"
         echo "Access at: https://agorachain.es"
         ;;
         
@@ -53,4 +53,4 @@ case $ENVIRONMENT in
 esac
 
 echo "Current environment: $ENVIRONMENT"
-echo "To check configuration: docker-compose config"
+echo "To check configuration: docker compose config"
