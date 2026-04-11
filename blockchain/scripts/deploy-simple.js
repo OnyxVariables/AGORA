@@ -21,40 +21,40 @@ async function main() {
   const contractAddress = await simpleVoting.getAddress();
   console.log("SimpleVoting desplegado en:", contractAddress);
 
-  // Crear votación
-  console.log("\nCreando votación de ejemplo");
-  const tx = await simpleVoting.createVotation(
-    "Elecciones Municipales 2026",
-    "Votación de prueba de ejemplo",
-    Math.floor(Date.now() / 1000),           // startDate ahora
-    Math.floor(Date.now() / 1000) + 3600     // endDate +1 hora
-  );
-  const receipt = await tx.wait();
+  // // Crear votación
+  // console.log("\nCreando votación de ejemplo");
+  // const tx = await simpleVoting.createVotation(
+  //   "Elecciones Municipales 2026",
+  //   "Votación de prueba de ejemplo",
+  //   Math.floor(Date.now() / 1000),           // startDate ahora
+  //   Math.floor(Date.now() / 1000) + 3600     // endDate +1 hora
+  // );
+  // const receipt = await tx.wait();
   
-  // Arreglar lectura de eventos
-  let votationId = null;
-  try {
-    // Intentar parsear eventos
-    for (const log of receipt.logs) {
-      try {
-        const parsed = simpleVoting.interface.parseLog(log);
-        if (parsed.name === 'VotationCreated') {
-          votationId = parsed.args[0];
-          console.log("Evento VotationCreated encontrado");
-          break;
-        }
-      } catch (e) {
-        // Ignorar logs que no son del contrato
-        continue;
-      }
-    }
-  } catch (error) {
-    console.log("No se pudo parsear el evento, usando timestamp como ID");
-    votationId = Math.floor(Date.now() / 1000);
-  }
+  // // Arreglar lectura de eventos
+  // let votationId = null;
+  // try {
+  //   // Intentar parsear eventos
+  //   for (const log of receipt.logs) {
+  //     try {
+  //       const parsed = simpleVoting.interface.parseLog(log);
+  //       if (parsed.name === 'VotationCreated') {
+  //         votationId = parsed.args[0];
+  //         console.log("Evento VotationCreated encontrado");
+  //         break;
+  //       }
+  //     } catch (e) {
+  //       // Ignorar logs que no son del contrato
+  //       continue;
+  //     }
+  //   }
+  // } catch (error) {
+  //   console.log("No se pudo parsear el evento, usando timestamp como ID");
+  //   votationId = Math.floor(Date.now() / 1000);
+  // }
   
-  console.log("Votación creada con ID:", votationId?.toString());
-  console.log("Transaction:", tx.hash);
+  // console.log("Votación creada con ID:", votationId?.toString());
+  // console.log("Transaction:", tx.hash);
 
   // Guardar info de despliegue
   const deploymentInfo = {
@@ -64,9 +64,9 @@ async function main() {
     contracts: {
       SimpleVoting: contractAddress
     },
-    exampleVotation: votationId?.toString(),
-    transactionHash: tx.hash,
-    deployedAt: new Date().toISOString()
+    // exampleVotation: votationId?.toString(),
+    // transactionHash: tx.hash,
+    // deployedAt: new Date().toISOString()
   };
 
   const fileName = `deployment-simple-${deploymentInfo.network}-${Date.now()}.json`;

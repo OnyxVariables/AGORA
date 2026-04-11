@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Web3\Web3;
 use Web3\Contract;
-use Web3Providers\HttpProvider;
+use Web3\Providers\HttpProvider;
 use Illuminate\Support\Facades\Log;
 
 class BlockchainService
@@ -49,13 +49,33 @@ class BlockchainService
         $attempts = 0;
 
         while ($receipt === null && $attempts < $maxAttempts) {
+            $callbackCompleted = false;
+            $callbackError = null;
+            $callbackResult = null;
+
             try {
-                $this->web3->eth->getTransactionReceipt($txHash, function ($err, $r) use (&$receipt) {
+                $this->web3->eth->getTransactionReceipt($txHash, function ($err, $r) use (&$callbackCompleted, &$callbackError, &$callbackResult) {
                     if ($err !== null) {
-                        throw $err;
+                        $callbackError = $err;
+                    } else {
+                        $callbackResult = $r;
                     }
-                    $receipt = $r;
+                    $callbackCompleted = true;
                 });
+
+                // Esperar a que el callback se ejecute
+                $waitStart = time();
+                while (!$callbackCompleted && (time() - $waitStart) < 5) {
+                    usleep(100000); // 100ms
+                }
+
+                if ($callbackCompleted) {
+                    if ($callbackError !== null) {
+                        Log::warning("Error al obtener receipt: {$callbackError->getMessage()}");
+                    } else {
+                        $receipt = $callbackResult;
+                    }
+                }
             } catch (\Exception $e) {
                 Log::warning("Intento $attempts fallido al obtener receipt: {$e->getMessage()}");
             }
@@ -87,17 +107,49 @@ class BlockchainService
 
         do {
             try {
-                $txHash = $this->simpleVoting->send($method, $params, [
-                    'from' => $from,
-                    'gas' => '0x' . dechex($gas)
-                ]);
+                $txHash = null;
+                $error = null;
+
+                // web3.php requiere callback como último parámetro
+                // Los parámetros deben pasarse individuales, no como array
+                $completed = false;
+                $callback = function ($err, $result) use (&$txHash, &$error, &$completed) {
+                    if ($err) {
+                        $error = $err;
+                    } else {
+                        $txHash = $result;
+                    }
+                    $completed = true;
+                };
+
+                // Preparar argumentos: método, params individuales, opciones, callback
+                $args = array_merge([$method], $params, [['from' => $from, 'gas' => '0x' . dechex($gas)], $callback]);
+                call_user_func_array([$this->simpleVoting, 'send'], $args);
+
+                // Esperar a que el callback se ejecute (max 10 segundos)
+                $waitStart = time();
+                while (!$completed && (time() - $waitStart) < 10) {
+                    usleep(100000); // 100ms
+                }
+
+                if (!$completed) {
+                    throw new \Exception("Timeout esperando respuesta del nodo");
+                }
+
+                if ($error !== null) {
+                    throw new \Exception($error->getMessage());
+                }
+
+                if ($txHash === null) {
+                    throw new \Exception("No se obtuvo hash de transacción");
+                }
 
                 $receipt = $this->waitForReceipt($txHash);
-                
+
                 return [
                     'txHash' => $txHash,
-                    'blockNumber' => $receipt->blockNumber ? $receipt->blockNumber->toString() : null,
-                    'gasUsed' => $receipt->gasUsed ? $receipt->gasUsed->toString() : null,
+                    'blockNumber' => $receipt->blockNumber ? (is_object($receipt->blockNumber) ? $receipt->blockNumber->toString() : $receipt->blockNumber) : null,
+                    'gasUsed' => $receipt->gasUsed ? (is_object($receipt->gasUsed) ? $receipt->gasUsed->toString() : $receipt->gasUsed) : null,
                     'receipt' => $receipt
                 ];
 
@@ -152,8 +204,8 @@ class BlockchainService
                 $votationId,
                 $title,
                 $description,
-                strtotime($startDate),
-                strtotime($endDate)
+                $startDate,
+                $endDate
             ]);
 
             return [

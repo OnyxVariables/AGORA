@@ -7,6 +7,7 @@ COPY ./docker/nginx/http.conf /docker_nginx/http.conf
 COPY ./docker/nginx/http_redirect.conf /docker_nginx/http_redirect.conf
 COPY ./docker/nginx/ssl.conf.template /docker_nginx/ssl.conf.template
 COPY ./docker/nginx/start.sh /start.sh
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 RUN chmod +x /start.sh
 
 ENTRYPOINT ["/start.sh"]

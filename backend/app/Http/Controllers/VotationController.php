@@ -42,6 +42,8 @@ class VotationController extends Controller
             'endDate' => 'nullable|date',
         ]);
 
+        Log::info("Data: " . $data['startDate']);
+
         // Primero verificar conexión blockchain antes de iniciar transacción
         $connection = $this->blockchainService->checkConnection();
         if (!$connection['success']) {
@@ -75,13 +77,19 @@ class VotationController extends Controller
             ]);
 
             // 2. Enviar a blockchain con el ID de la BD
+            // Convertir fechas ISO a timestamps Unix para el contrato
+            $startTimestamp = strtotime($data['startDate']);
+            $endTimestamp = $data['endDate'] ? strtotime($data['endDate']) : $startTimestamp + 86400; // +1 día por defecto
+
             $blockchainResult = $this->blockchainService->createVotation(
                 $votation->id,
                 $data['title'],
                 $data['description'] ?? '',
-                $data['startDate'],
-                $data['endDate'] ?? $data['startDate']
+                $startTimestamp,
+                $endTimestamp
             );
+            
+            Log::info('Blockhain result: ' . ($startTimestamp . ' ******************** ' . $endTimestamp));
 
             if (!$blockchainResult['success']) {
                 DB::rollBack();

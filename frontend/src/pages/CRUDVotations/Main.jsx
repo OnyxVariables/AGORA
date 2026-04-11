@@ -28,6 +28,7 @@ export default function App() {
 
   const columnNames = {
     id: "ID",
+    txHash: "HASH",
     title: "TÍTULO",
     description: "DESCRIPCIÓN",
     startDate: "FECHA INICIO",
@@ -147,14 +148,14 @@ export default function App() {
       </main>
     );
 
-  const headers = votations[0] ? Object.keys(votations[0]) : [];
-
-  // Add action column
-  headers.push("actions");
-  const votationsWithActions = votations.map((votation) => ({
-    ...votation,
-    actions: (
-      <div className="action-container">
+    const headers = votations[0] ? Object.keys(votations[0]) : [];
+    
+    // Add action column
+    headers.push("actions");
+    const votationsWithActions = votations.map((votation) => ({
+      ...votation,
+      actions: (
+        <div className="action-container">
         <ButtonEdit onClick={() => openEditForm(votation)} />
         <ButtonDelete onClick={() => handleDelete(votation.id)} />
       </div>
@@ -181,8 +182,8 @@ export default function App() {
             id="crudvotations"
             headings={headers.map((header) => columnNames[header])}
             rows={votationsWithActions}
-          />
-        )}
+            />
+          )}
       </section>
     </main>
   );
