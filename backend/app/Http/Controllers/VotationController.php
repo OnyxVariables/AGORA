@@ -42,6 +42,8 @@ class VotationController extends Controller
             'endDate' => 'nullable|date',
         ]);
 
+        Log::info("Data: " . $data['startDate']);
+
         // Primero verificar conexión blockchain antes de iniciar transacción
         $connection = $this->blockchainService->checkConnection();
         if (!$connection['success']) {
@@ -54,13 +56,39 @@ class VotationController extends Controller
         DB::beginTransaction();
 
         try {
-            // Enviar transacción a blockchain
+            $connection = $this->blockchainService->checkConnection();
+            if (!$connection['success']) {
+                return response()->json([
+                    'error' => 'Blockchain no disponible',
+                    'details' => $connection['error']
+                ], 503);
+            }
+
+            // 1. Guardar en BD primero
+            $votation = Votation::create([
+                'title' => $data['title'],
+                'description' => $data['description'] ?? '',
+                'startDate' => $data['startDate'],
+                'endDate' => $data['endDate'] ?? null,
+                'state' => 'pending',
+                'startBlockHash' => null,
+                'endBlockHash' => null,
+                'txHash' => null
+            ]);
+
+            // 2. Enviar a blockchain con el ID de la BD
+            // Convertir fechas ISO a timestamps Unix para el contrato
+            $startTimestamp = strtotime($data['startDate']);
+            $endTimestamp = $data['endDate'] ? strtotime($data['endDate']) : $startTimestamp + 86400; // +1 día por defecto
+
             $blockchainResult = $this->blockchainService->createVotation(
                 $data['title'],
                 $data['description'] ?? '',
-                $data['startDate'],
-                $data['endDate'] ?? $data['startDate']
+                $startTimestamp,
+                $endTimestamp
             );
+            
+            Log::info('Blockhain result: ' . ($startTimestamp . ' ******************** ' . $endTimestamp));
 
             if (!$blockchainResult['success']) {
                 DB::rollBack();
