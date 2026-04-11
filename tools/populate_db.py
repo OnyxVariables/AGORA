@@ -172,6 +172,10 @@ def populate_user(numMunicipalities):
     query = query[:query.rfind(',')]
     query += ";"
 
+    query += "INSERT INTO user (name, roleId, registerDate, isActive, dni, municipalityId) VALUES\n"
+    query += "('Admin User', 1, NOW(), TRUE, '38660052L', 1),\n"
+    query += "('Citizen User', 2, NOW(), TRUE, '60840966D', 1);"
+    
     return query
 
 query = ""
