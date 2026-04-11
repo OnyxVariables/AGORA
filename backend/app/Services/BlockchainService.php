@@ -225,13 +225,17 @@ class BlockchainService
     public function updateVotation($votationId, $title, $description, $startDate, $endDate, $state)
     {
         try {
+            // Convertir state string a uint8 para enum de Solidity
+            $stateMap = ['pending' => 0, 'active' => 1, 'completed' => 2, 'cancelled' => 3];
+            $stateInt = $stateMap[strtolower($state)] ?? 0;
+
             $result = $this->sendTransaction('updateVotation', [
                 $votationId,
                 $title,
                 $description,
-                strtotime($startDate),
-                strtotime($endDate),
-                $state
+                $startDate,
+                $endDate,
+                $stateInt
             ]);
 
             return [

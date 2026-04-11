@@ -153,6 +153,10 @@ class VotationController extends Controller
             'endDate' => 'nullable|date',
         ]);
 
+        // Convertir fechas a timestamps igual que en create
+        $startTimestamp = strtotime($data['startDate']);
+        $endTimestamp = $data['endDate'] ? strtotime($data['endDate']) : $startTimestamp + 86400;
+
         DB::beginTransaction();
 
         try {
@@ -161,8 +165,8 @@ class VotationController extends Controller
                 $votation->id,
                 $data['title'],
                 $data['description'] ?? '',
-                $data['startDate'],
-                $data['endDate'] ?? $data['startDate'],
+                $startTimestamp,
+                $endTimestamp,
                 'pending'
             );
 
