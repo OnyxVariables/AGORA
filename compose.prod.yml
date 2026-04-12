@@ -107,6 +107,31 @@ services:
       - letsencrypt_data:/etc/letsencrypt
     restart: unless-stopped
 
+  springboot:
+    container_name: agora_springboot
+    build:
+      context: ./
+      dockerfile: ./docker/springboot/Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:${DB_CONNECTION}://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: "false"
+      WEB3J_CLIENT_URL: ${BESU_RPC_URL:-http://hardhat:8545}
+      WEB3J_CONTRACT_ADDRESS: ${SIMPLE_VOTING_ADDRESS:-}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      SERVER_PORT: ${SPRING_PORT}
+      SPRING_MAIN_LAZY_INITIALIZATION: true
+    depends_on:
+      db:
+        condition: service_healthy
+      hardhat:
+        condition: service_healthy
+    networks:
+      - agora
+    restart: unless-stopped
+
 volumes:
   db_data:
   frontend_data:

@@ -42,6 +42,51 @@ class BlockchainService
         return $from;
     }
 
+    // Obtener bloque completo por hash para extraer parentHash
+    public function getBlockByHash($blockHash)
+    {
+        $block = null;
+        $error = null;
+        $completed = false;
+
+        $callback = function ($err, $result) use (&$block, &$error, &$completed) {
+            if ($err) {
+                $error = $err;
+            } else {
+                $block = $result;
+            }
+            $completed = true;
+        };
+
+        $this->web3->eth->getBlockByHash($blockHash, false, $callback);
+
+        $waitStart = time();
+        while (!$completed && (time() - $waitStart) < 5) {
+            usleep(100000);
+        }
+
+        if (!$completed || $error) {
+            Log::warning("No se pudo obtener bloque por hash: {$blockHash}");
+            return null;
+        }
+
+        // Formatear datos del bloque
+        $blockNumber = $block->number ?? null;
+        if (is_string($blockNumber) && str_starts_with($blockNumber, '0x')) {
+            $blockNumber = hexdec(substr($blockNumber, 2));
+        } elseif (is_object($blockNumber) && method_exists($blockNumber, 'toString')) {
+            $blockNumber = (int) $blockNumber->toString();
+        }
+
+        return [
+            'hash' => $block->hash ?? $blockHash,
+            'blockNumber' => $blockNumber,
+            'parentHash' => $block->parentHash ?? null,
+            'timestamp' => $block->timestamp ?? null,
+            'transactions' => count($block->transactions ?? [])
+        ];
+    }
+
     // Esperar receipt de la transaccion con timeout y reintentos
     private function waitForReceipt($txHash, $maxAttempts = 15, $sleepSeconds = 1)
     {
@@ -146,9 +191,29 @@ class BlockchainService
 
                 $receipt = $this->waitForReceipt($txHash);
 
+                // Convertir blockNumber a decimal si es hex, por ejemplo 0x1, 0x2, 0x3, etc.
+                $blockNumber = $receipt->blockNumber;
+                if (is_string($blockNumber) && str_starts_with($blockNumber, '0x')) {
+                    $blockNumber = hexdec(substr($blockNumber, 2));
+                } elseif (is_object($blockNumber) && method_exists($blockNumber, 'toString')) {
+                    $blockNumber = (int) $blockNumber->toString();
+                }
+
+                // Obtengo bloque completo para extraer parentHash (previousHash)
+                $blockHash = $receipt->blockHash ?? null;
+                $parentHash = null;
+                if ($blockHash) {
+                    $block = $this->getBlockByHash($blockHash);
+                    if ($block && isset($block['parentHash'])) {
+                        $parentHash = $block['parentHash'];
+                    }
+                }
+
                 return [
                     'txHash' => $txHash,
-                    'blockNumber' => $receipt->blockNumber ? (is_object($receipt->blockNumber) ? $receipt->blockNumber->toString() : $receipt->blockNumber) : null,
+                    'blockNumber' => $blockNumber,
+                    'blockHash' => $blockHash,
+                    'parentHash' => $parentHash,
                     'gasUsed' => $receipt->gasUsed ? (is_object($receipt->gasUsed) ? $receipt->gasUsed->toString() : $receipt->gasUsed) : null,
                     'receipt' => $receipt
                 ];
@@ -197,10 +262,11 @@ class BlockchainService
     }
 
     //Crear votacion
-    public function createVotation($title, $description, $startDate, $endDate)
+    public function createVotation($votationId, $title, $description, $startDate, $endDate)
     {
         try {
             $result = $this->sendTransaction('createVotation', [
+                $votationId,
                 $title,
                 $description,
                 $startDate,
@@ -211,6 +277,9 @@ class BlockchainService
                 'success' => true,
                 'transactionHash' => $result['txHash'],
                 'blockNumber' => $result['blockNumber'],
+                'blockHash' => $result['blockHash'],
+                'parentHash' => $result['parentHash'],
+                'votationId' => $votationId,
                 'message' => 'Votación creada en blockchain'
             ];
 
@@ -223,19 +292,25 @@ class BlockchainService
     public function updateVotation($votationId, $title, $description, $startDate, $endDate, $state)
     {
         try {
+            // Convertir state string a uint8 para enum de Solidity
+            $stateMap = ['pending' => 0, 'active' => 1, 'completed' => 2, 'cancelled' => 3];
+            $stateInt = $stateMap[strtolower($state)] ?? 0;
+
             $result = $this->sendTransaction('updateVotation', [
                 $votationId,
                 $title,
                 $description,
-                strtotime($startDate),
-                strtotime($endDate),
-                $state
+                $startDate,
+                $endDate,
+                $stateInt
             ]);
 
             return [
                 'success' => true,
                 'transactionHash' => $result['txHash'],
                 'blockNumber' => $result['blockNumber'],
+                'blockHash' => $result['blockHash'],
+                'parentHash' => $result['parentHash'],
                 'message' => 'Votación actualizada en blockchain'
             ];
 
@@ -257,6 +332,8 @@ class BlockchainService
                 'success' => true,
                 'transactionHash' => $result['txHash'],
                 'blockNumber' => $result['blockNumber'],
+                'blockHash' => $result['blockHash'],
+                'parentHash' => $result['parentHash'],
                 'message' => 'Votación cancelada'
             ];
 
@@ -277,6 +354,8 @@ class BlockchainService
                 'success' => true,
                 'transactionHash' => $result['txHash'],
                 'blockNumber' => $result['blockNumber'],
+                'blockHash' => $result['blockHash'],
+                'parentHash' => $result['parentHash'],
                 'message' => 'Votación finalizada'
             ];
 
