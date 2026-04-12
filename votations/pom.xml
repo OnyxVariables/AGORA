@@ -42,12 +42,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -93,6 +87,23 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.web3j</groupId>
+				<artifactId>web3j-maven-plugin</artifactId>
+				<version>4.10.3</version>
+				<configuration>
+					<packageName>com.agora.votations.contract</packageName>
+					<sourceDestination>${project.basedir}/src/main/java</sourceDestination>
+					<nativeJavaType>true</nativeJavaType>
+					<outputFormat>java</outputFormat>
+					<soliditySourceFiles>
+						<directory>${project.basedir}/src/main/resources/contracts</directory>
+						<includes>
+							<include>**/*.sol</include>
+						</includes>
+					</soliditySourceFiles>
 				</configuration>
 			</plugin>
 			<plugin>

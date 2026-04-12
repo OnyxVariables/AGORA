@@ -161,7 +161,7 @@ services:
       - agora_dev
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8081"
 
   # certbot not needed in development
   # certbot:
