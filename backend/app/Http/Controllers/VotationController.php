@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Votation;
+use App\Models\Block;
 use App\Services\BlockchainService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,36 @@ class VotationController extends Controller
     public function __construct(BlockchainService $blockchainService)
     {
         $this->blockchainService = $blockchainService;
+    }
+
+    // Asegurarse que el bloque existe en BD antes de referenciarlo (recursivo para ancestros)
+    private function ensureBlockExists($blockHash, $blockNumber, $previousHash = null)
+    {
+        if (!$blockHash) return;
+
+        $exists = Block::where('hash', $blockHash)->exists();
+        if ($exists) return;
+
+        // Si hay previousHash y no es el genesis (0x0...0), insertar primero el padre
+        $isGenesis = !$previousHash || $previousHash === '0x0000000000000000000000000000000000000000000000000000000000000000';
+        if (!$isGenesis && !Block::where('hash', $previousHash)->exists()) {
+            // Busco bloque padre en blockchain e insertar recursivamente
+            $parentBlock = $this->blockchainService->getBlockByHash($previousHash);
+            if ($parentBlock) {
+                $parentNumber = $parentBlock['blockNumber'];
+                $parentHash = $parentBlock['parentHash'] ?? null;
+                $this->ensureBlockExists($previousHash, $parentNumber, $parentHash);
+            }
+        }
+
+        Block::create([
+            'hash' => $blockHash,
+            'blockNumber' => $blockNumber ?? 0,
+            'previousHash' => $previousHash,
+            'transactions' => 1,
+            'isValid' => true
+        ]);
+        Log::info("Bloque insertado: {$blockHash}", ['parentHash' => $previousHash]);
     }
 
     // READ
@@ -98,8 +129,17 @@ class VotationController extends Controller
                 ], 500);
             }
 
-            // 3. Actualizar txHash en BD
-            $votation->update(['txHash' => $blockchainResult['transactionHash']]);
+            // 3. Guardar bloque en BD si no existe, luego actualizar votación
+            $this->ensureBlockExists(
+                $blockchainResult['blockHash'],
+                $blockchainResult['blockNumber'],
+                $blockchainResult['parentHash']
+            );
+
+            $votation->update([
+                'txHash' => $blockchainResult['transactionHash'],
+                'startBlockHash' => $blockchainResult['blockHash']
+            ]);
 
             DB::commit();
 
@@ -177,10 +217,18 @@ class VotationController extends Controller
                 ], 500);
             }
 
+            // Guardar bloque si no existe
+            $this->ensureBlockExists(
+                $blockchainResult['blockHash'],
+                $blockchainResult['blockNumber'],
+                $blockchainResult['parentHash']
+            );
+
             // Actualizar BD local como PENDING
             $votation->update(array_merge($data, [
                 'state' => 'pending',
-                'txHash' => $blockchainResult['transactionHash']
+                'txHash' => $blockchainResult['transactionHash'],
+                'startBlockHash' => $blockchainResult['blockHash']
             ]));
 
             DB::commit();
@@ -243,10 +291,18 @@ class VotationController extends Controller
                 ], 500);
             }
 
+            // Guardar bloque si no existe
+            $this->ensureBlockExists(
+                $blockchainResult['blockHash'],
+                $blockchainResult['blockNumber'],
+                $blockchainResult['parentHash']
+            );
+
             // Marcar BD como pending hasta que Spring Boot confirme
             $votation->update([
                 'state' => 'pending',
-                'txHash' => $blockchainResult['transactionHash']
+                'txHash' => $blockchainResult['transactionHash'],
+                'startBlockHash' => $blockchainResult['blockHash']
             ]);
 
             DB::commit();
