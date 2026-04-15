@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.tx.ReadonlyTransactionManager;
@@ -16,6 +17,7 @@ import java.math.BigInteger;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "agora.blockchain-listener.enabled", havingValue = "true", matchIfMissing = true)
 public class BlockchainListenerService {
 
     @Value("${blockchain.contract.address:}")
@@ -23,6 +25,7 @@ public class BlockchainListenerService {
 
     private final Web3j web3j;
     private final VotationService votationService;
+    private final VoteProcessingService voteProcessingService;
 
     @PostConstruct
     public void init() {
@@ -75,6 +78,11 @@ public class BlockchainListenerService {
             .subscribe(event -> {
                 log.info("VoteSubmitted evento recibido - voteId: {}, votationId: {}", event.voteId, event.votationId);
                 // actualizar usuario en DB a inactive
+                try {
+                    voteProcessingService.processVoteSubmitted(event);
+                } catch (Exception e) {
+                    log.error("Error procesando VoteSubmitted: {}", e.getMessage(), e);
+                }
             }, error -> {
                 log.error("Error en listener VoteSubmitted: {}", error.getMessage(), error);
             });

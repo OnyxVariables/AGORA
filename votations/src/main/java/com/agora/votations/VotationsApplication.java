@@ -2,6 +2,7 @@ package com.agora.votations;
 
 import com.agora.votations.service.BlockchainListenerService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,9 +17,10 @@ public class VotationsApplication {
 	}
 
 	@Bean
-	CommandLineRunner verifyBeans(BlockchainListenerService listener) {
+	CommandLineRunner verifyBeans(ObjectProvider<BlockchainListenerService> listener) {
 		return args -> {
-			log.info("VERIFICACION: BlockchainListenerService bean exists: {}", listener != null);
+			BlockchainListenerService bean = listener.getIfAvailable();
+			log.info("VERIFICACION: BlockchainListenerService bean exists: {}", bean != null);
 		};
 	}
 
