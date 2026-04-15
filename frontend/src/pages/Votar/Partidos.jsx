@@ -76,7 +76,7 @@ function Partidos() {
     }
     const votationData = await resVotation.json();
 
-    const votationId = votationData.id.toString();
+    const votationId = Number(votationData.id);
     const partido = partidos.find((p) => p.value === selection);
     if (!partido) {
       popupError("Partido no válido");
@@ -100,8 +100,13 @@ function Partidos() {
 
       //Genero codigo y hash
       const codigo = generarCodigo();
-      const input = user.nickname + codigo + votationId;
+      const input = user.nickname + codigo + String(votationId);
       const voteHash = keccak256(toUtf8Bytes(input));
+
+      if (!user.municipalityId) {
+        popupError("No se pudo determinar el municipio del usuario");
+        return;
+      }
 
       const res = await fetch(API_CONFIG.endpoints.VOTE, {
         method: "POST",
@@ -111,12 +116,10 @@ function Partidos() {
           "X-XSRF-TOKEN": xsrfToken,
         },
         body: JSON.stringify({
-          vote: {
-            voteHash: voteHash,
-            partyId: partido.id,
-            municipality: user.municipio,
-            votationId: votationId,
-          },
+          partyId: partido.id,
+          municipalityId: user.municipalityId,
+          votationId: votationId,
+          voteHash: voteHash,
         }),
       });
 
