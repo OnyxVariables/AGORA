@@ -1,0 +1,23 @@
+# Root build context (compose.dev.yml uses context: ./ for frontend, backend, springboot, etc.)
+# Exclude host dependencies — especially frontend/node_modules on Windows (symlinks in .bin
+# break BuildKit with "invalid file request .../.bin/acorn"). Images run their own install.
+
+frontend/node_modules
+frontend/dist
+frontend/.vite
+frontend/coverage
+
+backend/vendor
+backend/node_modules
+
+# Avoid copying host bootstrap cache (e.g. packages.php listing laravel/pail) into an image built with --no-dev
+backend/bootstrap/cache/*.php
+
+blockchain/node_modules
+blockchain/artifacts
+blockchain/cache
+
+votations/target
+
+.git
+**/.DS_Store
