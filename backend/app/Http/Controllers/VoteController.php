@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Vote;
 use App\Models\User;
 use App\Models\Votation;
-use App\Models\Municipality;
+use App\Models\VoteIntent;
 use App\Services\BlockchainService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +30,7 @@ class VoteController extends Controller
                 'regex:/^0x[a-fA-F0-9]{64}$/'
             ]
         ]);
+        $data['voteHash'] = strtolower($data['voteHash']);
 
         $user = Auth::user();
 
@@ -47,7 +47,7 @@ class VoteController extends Controller
         }
 
         $votation = Votation::where('id', $data['votationId'])
-            ->where('state', 'active')
+            ->votableForCitizens()
             ->first();
 
         if (!$votation) {
@@ -62,7 +62,7 @@ class VoteController extends Controller
             ], 400);
         }
 
-        if (now()->gt($votation->endDate)) {
+        if ($votation->endDate !== null && now()->gt($votation->endDate)) {
             return response()->json([
                 'error' => 'La votación ha finalizado'
             ], 400);
@@ -80,8 +80,16 @@ class VoteController extends Controller
         $attempt = 0;
         $tx = null;
 
+        VoteIntent::where('userId', $user->id)->delete();
+
+        $intent = VoteIntent::create([
+            'userId' => $user->id,
+            'voteHash' => $data['voteHash'],
+            'votationId' => $data['votationId'],
+        ]);
+
         try {
-            do{
+            do {
                 $tx = $this->blockchainService->submitVote(
                     $data['partyId'],
                     $data['votationId'],
@@ -99,14 +107,15 @@ class VoteController extends Controller
             } while ($attempt < $maxRetries);
 
             if (!$tx['success']) {
+                $intent->delete();
+
                 return response()->json([
                     'error' => 'Error en blockchain tras ' . $maxRetries . ' intentos',
                     'details' => $tx['error'] ?? null
                 ], 500);
             }
 
-            // No se pasa usuario a inactive aquí porque si la transacción falla en blockchain, el usuario no va a poder votar de nuevo
-            // Se pasa a inactive en Spring Boot cuando se confirma el voto en la blockchain y escucha el evento
+            // isActive se pone a false en Spring Boot al confirmar VoteSubmitted (correlación por vote_intent)
 
             return response()->json([
                 'message' => 'Voto enviado',
@@ -115,6 +124,7 @@ class VoteController extends Controller
 
         } catch (\Exception $e) {
             Log::error($e->getMessage());
+            $intent->delete();
 
             return response()->json(['error' => 'Error interno'], 500, [], JSON_UNESCAPED_UNICODE);
         }

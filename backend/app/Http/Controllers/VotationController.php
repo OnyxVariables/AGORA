@@ -336,14 +336,35 @@ class VotationController extends Controller
     // OBTENER VOTACIÓN ACTIVA (para frontend)
     public function active()
     {
-        $votation = Votation::where('state', 'active')
-            ->where('endDate', '>', now())
+        $votation = Votation::votableForCitizens()
+            ->orderByDesc('id')
             ->first();
 
         if (!$votation) {
+            $this->logVotationActiveMiss();
+
             return response()->json(['error' => 'No hay votación activa'], 404);
         }
 
         return response()->json($votation);
+    }
+
+    // DEBUG
+    private function logVotationActiveMiss(): void
+    {
+        $counts = Votation::query()
+            ->selectRaw('state, COUNT(*) as c')
+            ->groupBy('state')
+            ->pluck('c', 'state')
+            ->all();
+
+        $latest = Votation::query()->orderByDesc('id')->first();
+
+        Log::warning('votation.active: ninguna fila votable', [
+            'counts_by_state' => $counts,
+            'latest' => $latest ? $latest->only(['id', 'state', 'txHash', 'startDate', 'endDate']) : null,
+            'now_app' => (string) now(),
+            'hint' => 'Requiere state=active, o pending con txHash; startDate<=ahora; endDate null o futuro.',
+        ]);
     }
 }
