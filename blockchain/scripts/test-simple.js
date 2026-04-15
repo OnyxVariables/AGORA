@@ -45,7 +45,9 @@ async function main() {
     console.log("Timestamp del bloque:", blockTimestamp);
     console.log("Timestamp del script:", Math.floor(Date.now() / 1000));
     
+    const proposedVotationId = BigInt(blockTimestamp);
     const tx1 = await simpleVoting.createVotation(
+      proposedVotationId,
       "Elecciones Test 2024",
       "Votación de prueba interactiva",
       blockTimestamp, // startDate = timestamp del bloque
@@ -54,7 +56,7 @@ async function main() {
     const receipt1 = await tx1.wait();
     
     // Extraer el ID de la votación creada desde el evento
-    let newVotationId = null;
+    let newVotationId = proposedVotationId;
     for (const log of receipt1.logs) {
       try {
         const parsed = simpleVoting.interface.parseLog(log);
