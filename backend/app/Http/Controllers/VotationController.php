@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Votation;
 use App\Models\Block;
+use App\Models\Auditory;
 use App\Services\BlockchainService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -149,6 +150,15 @@ class VotationController extends Controller
                 'txHash' => $blockchainResult['transactionHash']
             ]);
 
+            // Registrar auditoría
+            Auditory::log(
+                Auth::id(),
+                'CREATE_VOTATION',
+                "Creación de votación '{$votation->title}' (ID: {$votation->id})",
+                $blockchainResult['transactionHash'],
+                $blockchainResult['blockHash']
+            );
+
             return response()->json([
                 'message' => 'Votación enviada a blockchain (pending)',
                 'votation' => $votation
@@ -238,6 +248,15 @@ class VotationController extends Controller
                 'txHash' => $blockchainResult['transactionHash']
             ]);
 
+            // Registrar auditoría
+            Auditory::log(
+                Auth::id(),
+                'UPDATE_VOTATION',
+                "Actualización de votación '{$votation->title}' (ID: {$votation->id})",
+                $blockchainResult['transactionHash'],
+                $blockchainResult['blockHash']
+            );
+
             return response()->json([
                 'message' => 'Votación actualizada (pending)',
                 'votation' => $votation
@@ -312,6 +331,15 @@ class VotationController extends Controller
                 'txHash' => $blockchainResult['transactionHash']
             ]);
 
+            // Registrar auditoría
+            Auditory::log(
+                Auth::id(),
+                'CANCEL_VOTATION',
+                "Cancelación de votación '{$votation->title}' (ID: {$id})",
+                $blockchainResult['transactionHash'],
+                $blockchainResult['blockHash']
+            );
+
             return response()->json([
                 'message' => 'Votación cancelada (pending)'
             ]);
@@ -366,5 +394,16 @@ class VotationController extends Controller
             'now_app' => (string) now(),
             'hint' => 'Requiere state=active, o pending con txHash; startDate<=ahora; endDate null o futuro.',
         ]);
+    }
+
+    // Listado público de votaciones (p. ej. selector en /resultados y verificación de voto)
+    public function publicSummary()
+    {
+        $rows = Votation::query()
+            ->whereIn('state', ['active', 'finished', 'pending'])
+            ->orderByDesc('id')
+            ->get(['id', 'title', 'state', 'startDate', 'endDate']);
+
+        return response()->json($rows, 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
