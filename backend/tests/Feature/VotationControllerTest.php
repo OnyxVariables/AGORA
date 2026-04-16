@@ -44,6 +44,30 @@ class VotationControllerTest extends TestCase
         });
     }
 
+<<<<<<< Updated upstream
+=======
+    public function test_public_summary_returns_votations_without_auth(): void
+    {
+        $this->refreshAgoraSchema();
+        $this->seedMinimalLocation();
+
+        Votation::create([
+            'title' => 'Pública',
+            'description' => '',
+            'startDate' => now()->subHour(),
+            'endDate' => now()->addDay(),
+            'state' => 'active',
+        ]);
+
+        $response = $this->getJson('/api/votations/summary');
+
+        $response->assertOk();
+        $data = $response->json();
+        $this->assertCount(1, $data);
+        $this->assertSame('Pública', $data[0]['title']);
+    }
+
+>>>>>>> Stashed changes
     public function test_non_admin_cannot_list_votations(): void
     {
         $this->refreshAgoraSchema();

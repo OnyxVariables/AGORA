@@ -8,7 +8,11 @@ vi.mock("sweetalert2", () => ({
   },
 }));
 
+<<<<<<< Updated upstream
 import { popupConfirm, toastSuccess } from "../../services/alerts";
+=======
+import { popupConfirm, popupInfo, toastSuccess } from "../../services/alerts";
+>>>>>>> Stashed changes
 
 describe("alerts", () => {
   beforeEach(() => {
@@ -32,4 +36,15 @@ describe("alerts", () => {
     const r = await popupConfirm("t", "x");
     expect(r).toBe(true);
   });
+<<<<<<< Updated upstream
+=======
+
+  it("popupInfo triggers fire", async () => {
+    sharedFire.mockResolvedValue({});
+    await popupInfo("Titulo", "Texto");
+    expect(sharedFire).toHaveBeenCalledWith(
+      expect.objectContaining({ icon: "success", title: "Titulo", text: "Texto" }),
+    );
+  });
+>>>>>>> Stashed changes
 });
