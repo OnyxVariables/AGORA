@@ -17,6 +17,7 @@
     "cypress:run": "cypress run"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.0.0",
     "chart.js": "^4.5.1",
     "ethers": "^6.16.0",
     "ogl": "^1.0.11",
@@ -24,6 +25,7 @@
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",
+    "sockjs-client": "^1.6.1",
     "sweetalert2": "^11.26.18"
   },
   "devDependencies": {

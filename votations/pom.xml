@@ -26,6 +26,13 @@
 		<tag/>
 		<url/>
 	</scm>
+	<repositories>
+		<repository>
+			<id>consensys</id>
+			<name>ConsenSys</name>
+			<url>https://artifacts.consensys.net/public/maven/maven/</url>
+		</repository>
+	</repositories>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
@@ -64,7 +71,7 @@
 		<dependency>
 			<groupId>org.web3j</groupId>
 			<artifactId>core</artifactId>
-			<version>4.10.3</version>
+			<version>4.11.3</version>
 		</dependency>
 		<!-- MariaDB Driver for production database -->
 		<dependency>
@@ -76,6 +83,10 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -96,7 +107,7 @@
 			<plugin>
 				<groupId>org.web3j</groupId>
 				<artifactId>web3j-maven-plugin</artifactId>
-				<version>4.10.3</version>
+				<version>4.11.3</version>
 				<configuration>
 					<packageName>com.agora.votations.contract</packageName>
 					<sourceDestination>${project.basedir}/src/main/java</sourceDestination>
