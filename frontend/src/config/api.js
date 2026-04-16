@@ -10,8 +10,11 @@ export const API_CONFIG = {
     CSRF_COOKIE: '/api/sanctum/csrf-cookie',
     NICKNAME: '/api/nickname',
     VOTATIONS: '/api/votations',
+    VOTATIONS_SUMMARY: '/api/votations/summary',
     VOTATION_ACTIVE: '/api/votation/active',
     VOTE: '/api/vote',
+    VOTE_VERIFY: '/api/vote/verify',
+    METRICS_VOTATION: (id) => `/api/metrics/votation/${id}`,
     PARTIES: '/api/parties',
   }
 };

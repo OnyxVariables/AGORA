@@ -21,6 +21,8 @@ const Popup = Swal.mixin({
   },
 });
 
+export { Popup };
+
 export const popupConfirm = async (title, text = "") => {
   const result = await Popup.fire({
     icon: "question",
@@ -39,5 +41,8 @@ export const popupConfirm = async (title, text = "") => {
 };
 
 export const popupError = (title) => Popup.fire({ icon: "error", title });
+
+export const popupInfo = (title, text = "") =>
+  Popup.fire({ icon: "success", title, text });
 
 export const toastSuccess = (title) => Toast.fire({ icon: "success", title });
