@@ -5,11 +5,8 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Votation;
 use App\Services\BlockchainService;
-<<<<<<< Updated upstream
-=======
 use Illuminate\Support\Facades\DB;
 use kornrunner\Keccak;
->>>>>>> Stashed changes
 use Tests\TestCase;
 
 class VoteControllerTest extends TestCase
@@ -168,8 +165,6 @@ class VoteControllerTest extends TestCase
             'voteHash' => 'not-a-hash',
         ])->assertStatus(422);
     }
-<<<<<<< Updated upstream
-=======
 
     public function test_verify_vote_requires_auth(): void
     {

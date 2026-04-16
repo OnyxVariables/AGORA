@@ -97,8 +97,6 @@ return new class extends Migration
             $table->unsignedInteger('votationId');
             $table->timestamp('createdAt')->useCurrent();
         });
-<<<<<<< Updated upstream
-=======
 
         Schema::create('auditory', function (Blueprint $table) {
             $table->increments('id');
@@ -109,15 +107,11 @@ return new class extends Migration
             $table->string('blockHash', 130)->nullable();
             $table->timestamp('createdAt')->useCurrent();
         });
->>>>>>> Stashed changes
     }
 
     public function down(): void
     {
-<<<<<<< Updated upstream
-=======
         Schema::dropIfExists('auditory');
->>>>>>> Stashed changes
         Schema::dropIfExists('vote_intent');
         Schema::dropIfExists('vote');
         Schema::dropIfExists('party');

@@ -44,8 +44,6 @@ class VotationControllerTest extends TestCase
         });
     }
 
-<<<<<<< Updated upstream
-=======
     public function test_public_summary_returns_votations_without_auth(): void
     {
         $this->refreshAgoraSchema();
@@ -67,7 +65,6 @@ class VotationControllerTest extends TestCase
         $this->assertSame('Pública', $data[0]['title']);
     }
 
->>>>>>> Stashed changes
     public function test_non_admin_cannot_list_votations(): void
     {
         $this->refreshAgoraSchema();
