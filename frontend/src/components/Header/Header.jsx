@@ -77,6 +77,21 @@ function Header({ menu }) {
                   </button>
                 );
               }
+
+              if (label === "EXPORTAR") {
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    className="boton"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent("agora-export-metrics"));
+                    }}
+                  >
+                    <Icon /> {label}
+                  </button>
+                );
+              }
               
               return (
                 <Link key={to} to={to} className="boton">

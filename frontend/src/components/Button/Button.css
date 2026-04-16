@@ -53,3 +53,33 @@
     padding: 8px 16px;
     border-radius: 6px;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .btn--create {
+        padding: 10px;
+    }
+    
+    .btn--cancel,
+    .btn--save {
+        padding: 10px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .btn--cancel,
+    .btn--save {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}

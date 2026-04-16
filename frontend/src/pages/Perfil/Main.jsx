@@ -84,7 +84,7 @@ function Main() {
       >
         <Particles
           particleColors={["#d4a0ff", "#a066ff", "#6a00d4"]}
-          particleCount={20000}
+          particleCount={5000}
           particleSpread={10}
           speed={0.1}
           particleBaseSize={100}

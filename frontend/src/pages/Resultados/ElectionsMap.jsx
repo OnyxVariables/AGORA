@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
 import Particles from "../../components/Particles/Particles";
+import { API_CONFIG } from "../../config/api";
+import { popupError, popupInfo } from "../../services/alerts";
+import { getXsrfToken } from "../../services/xsrf";
 import {
   BarChart,
   HeatChart,
@@ -15,6 +18,9 @@ export default function ElectionsMap() {
   const [showDialog, setShowDialog] = useState(false);
   const [totalVotes, setTotalVotes] = useState(0);
   const [seatsAssigned, setSeatsAssigned] = useState(0);
+  const [votationSummaries, setVotationSummaries] = useState([]);
+  const [selectedVotationId, setSelectedVotationId] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
 
   const levels = [
     { value: "nation", label: "Nación" },
@@ -22,6 +28,73 @@ export default function ElectionsMap() {
     { value: "province", label: "Provincia" },
     { value: "municipality", label: "Municipio" },
   ];
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadSummaries = async () => {
+      try {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATIONS_SUMMARY}`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled || !Array.isArray(data)) return;
+        setVotationSummaries(data);
+        if (data.length > 0) {
+          setSelectedVotationId(String(data[0].id));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadSummaries();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleVerifyVote = async () => {
+    const code = verificationCode.trim().toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(code)) {
+      popupError("El código debe ser 64 caracteres hexadecimales (el que guardaste al votar).");
+      return;
+    }
+    if (!selectedVotationId) {
+      popupError("Selecciona la votación correspondiente.");
+      return;
+    }
+    try {
+      const xsrf = await getXsrfToken();
+      if (!xsrf) {
+        popupError("No se pudo obtener la sesión segura. ¿Has iniciado sesión?");
+        return;
+      }
+      const res = await fetch(`${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTE_VERIFY}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-XSRF-TOKEN": xsrf,
+        },
+        body: JSON.stringify({
+          code,
+          votationId: Number(selectedVotationId),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        popupError(data.error || "No se encontró el voto");
+        return;
+      }
+      await popupInfo(
+        `${data.nickname} votó a ${data.partyName}`,
+        `Votación #${data.votationId}`,
+      );
+    } catch (err) {
+      console.error(err);
+      popupError("Servicio no disponible");
+    }
+  };
 
   useEffect(() => {
     // Colores por CCAA
@@ -649,7 +722,7 @@ export default function ElectionsMap() {
       >
         <Particles
           particleColors={["#d4a0ff", "#a066ff", "#6a00d4"]}
-          particleCount={20000}
+          particleCount={5000}
           particleSpread={10}
           speed={0.1}
           particleBaseSize={100}
@@ -661,13 +734,21 @@ export default function ElectionsMap() {
       <section className="section1">
         <article className="article1">
           <h2>Elecciones Generales</h2>
-          <select className="select" defaultValue="">
-            <option value="" disabled>
-              ID:
-            </option>
-            <option value="2026">2026</option>
-            <option value="2030">2030</option>
-            <option value="2034">2034</option>
+          <select
+            className="select"
+            value={selectedVotationId}
+            onChange={(e) => setSelectedVotationId(e.target.value)}
+            aria-label="Votación"
+          >
+            {votationSummaries.length === 0 ? (
+              <option value="">Cargando votaciones…</option>
+            ) : (
+              votationSummaries.map((v) => (
+                <option key={v.id} value={String(v.id)}>
+                  #{v.id} — {v.title} ({v.state})
+                </option>
+              ))
+            )}
           </select>
         </article>
         <article className="article2">
@@ -676,8 +757,24 @@ export default function ElectionsMap() {
       </section>
 
       <section className="section2">
-        <label>Buscar por nickname:</label>
-        <input className="nickname" placeholder="  ..." />
+        <label htmlFor="verification-code">
+          Buscar por código de verificación (64 caracteres, recibido al votar):
+        </label>
+        <input
+          id="verification-code"
+          className="nickname"
+          placeholder="Pega aquí tu código…"
+          value={verificationCode}
+          onChange={(e) => setVerificationCode(e.target.value)}
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          className="verify-vote-button"
+          onClick={handleVerifyVote}
+        >
+          Verificar mi voto
+        </button>
       </section>
 
       <section className="section3">

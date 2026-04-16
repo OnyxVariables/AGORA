@@ -9,18 +9,59 @@
     margin-top: 10em;
     display: flex;
     flex-direction: column;
+    padding: 0 1rem;
+    min-height: calc(100vh - 6em);
 }
 
 .crudvotations .container {
     margin: 0 auto;
-    width: 90%;
+    width: 100%;
+    max-width: 1200px;
 }
-
 
 /* TABLA */
 .action-container {
-    display: grid;
-    grid-template-columns: repeat(2, 50%);
-    gap: 1em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
     justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .crudvotations {
+        margin-top: 4em;
+        padding: 0 0.5rem;
+    }
+    
+    .crudvotations .container {
+        width: 100%;
+    }
+    
+    .action-container {
+        flex-direction: column;
+        gap: 0.3em;
+    }
+    
+    .action-container button {
+        width: 100%;
+        padding: 8px 4px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .crudvotations {
+        margin-top: 3.5em;
+        padding: 0 0.25rem;
+    }
+    
+    .action-container {
+        gap: 0.2em;
+    }
+    
+    .action-container button {
+        font-size: 0.75rem;
+        padding: 6px 4px;
+    }
 }

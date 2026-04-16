@@ -44,14 +44,18 @@ export function PieChart({ data }) {
         }
       });
 
+      if (totalVotes === 0) {
+        return;
+      }
+
       meta.data.forEach((element, index) => {
         if (element.hidden) {
           return;
         }
 
         const partyVotes = dataset.data[index];
-        const percentage = ((partyVotes / totalVotes) * 100).toFixed(0);
-        if (percentage < 5) {
+        const percentage = totalVotes > 0 ? ((partyVotes / totalVotes) * 100).toFixed(0) : 0;
+        if (percentage < 5 || percentage === 0) {
           return;
         }
 
@@ -168,7 +172,7 @@ export function LineChart({ labels, partidos, series }) {
 
       return {
         label: p.nombre,
-        data: series[p.value] ?? [],
+        data: series[p.nombre] ?? [],
         borderColor,
         backgroundColor,
         strokeColor, // Custom property for legend
@@ -230,54 +234,90 @@ export function HeatChart({ data }) {
   );
 }
 
-export default function ChartSection() {
+export default function ChartSection({ voteMetrics, selectedVotation }) {
   const { partidos, loading } = useParties();
 
   if (loading) {
     return <div className="charts">Cargando datos...</div>;
   }
 
-  // NOTE(srvariable): Fake data for testing purposes
+  if (!voteMetrics) {
+    return <div className="charts">Selecciona una votación para ver métricas</div>;
+  }
+
+  if (!partidos || partidos.length === 0) {
+    return <div className="charts">Cargando datos de partidos...</div>;
+  }
+
+  // Mapear votesByParty (que usa partyId) a los nombres de partidos
+  const votesByPartyId = voteMetrics.votesByParty || {};
+  console.log("DEBUG votesByPartyId:", votesByPartyId);
+  console.log("DEBUG partidos:", partidos.map(p => ({ value: p.value, nombre: p.nombre })));
+  
+  const partyData = partidos.map(p => {
+    const votosRaw = votesByPartyId[p.id];
+    const votos = Number(votosRaw) || 0;
+    console.log(`DEBUG partido ${p.nombre} (id=${p.id}): votosRaw=${votosRaw}, votos=${votos}`);
+    return {
+      id: p.id,
+      nombre: p.nombre,
+      colorFondo: p.colores?.fondo || '#ccc',
+      colorTitulo: p.colores?.titulo || '#000',
+      votos: votos,
+    };
+  });
+
+  // Filtrar partidos con votos para los graficos
+  const partidosConVotos = partyData.filter(p => p.votos > 0);
+  
+  // Datos para Pie y Bar (solo partidos con votos, o todos si no hay ninguno)
+  const chartData = partidosConVotos.length > 0 ? partidosConVotos : partyData;
+  
   const aggregatedData = {
-    labels: partidos.map((p) => p.nombre),
+    labels: chartData.map((p) => p.nombre),
     datasets: [
       {
         label: "Votos",
-        data: partidos.map(() => Math.floor(40000 + Math.random() * 20000)),
-        backgroundColor: partidos.map((p) => p.colores.fondo),
-        borderColor: partidos.map((p) => p.colores.titulo),
+        data: chartData.map((p) => p.votos),
+        backgroundColor: chartData.map((p) => p.colorFondo),
+        borderColor: chartData.map((p) => p.colorTitulo),
         borderWidth: 1,
       },
     ],
   };
+  console.log("DEBUG aggregatedData:", JSON.stringify(aggregatedData, null, 2));
 
-  // For the line chart
-  const timeLabels = ["01-01-2026", "02-01-2026", "03-01-2026", "04-01-2026"];
-  const timeSeriesData = {
-    PP: [12000, 24000, 36000, aggregatedData.datasets[0].data[0]],
-    PSOE: [10000, 18000, 26000, aggregatedData.datasets[0].data[1]],
-    PODEMOS: [15000, 19000, 24000, aggregatedData.datasets[0].data[2]],
-    CS: [14000, 18000, 22000, aggregatedData.datasets[0].data[3]],
-    VOX: [7000, 14000, 21000, aggregatedData.datasets[0].data[4]],
-    ehbildu: [12000, 14000, 26000, aggregatedData.datasets[0].data[5]],
-    compromis: [13000, 16000, 29000, aggregatedData.datasets[0].data[6]],
-    cc: [11000, 12000, 23000, aggregatedData.datasets[0].data[7]],
-    junst: [12500, 15000, 27500, aggregatedData.datasets[0].data[8]],
-    madrid: [16000, 18000, 24000, aggregatedData.datasets[0].data[9]],
-  };
+  // Para el line chart - historial simplificado (placeholder, se mejorara en futura version)
+  const timeLabels = ["Inicio", "Actual"];
+  const timeSeriesData = {};
+  partyData.forEach(p => {
+    timeSeriesData[p.nombre] = [0, p.votos];
+  });
+
+  // Info adicional para mostrar
+  const totalVotos = voteMetrics.totalVotes || 0;
 
   return (
-    <section className="charts">
-      <PieChart data={aggregatedData} />
-      <BarChart data={aggregatedData} />
+    <section className={`charts ${totalVotos > 0 ? "" : "charts-empty"}`}>
+      {totalVotos > 0 ? (
+        <>
+          <PieChart data={aggregatedData} />
+          <BarChart data={aggregatedData} />
 
-      <LineChart
-        labels={timeLabels}
-        partidos={partidos}
-        series={timeSeriesData}
-      />
+          <LineChart
+            labels={timeLabels}
+            partidos={partidos}
+            series={timeSeriesData}
+          />
 
-      <HeatChart data={null} />
+          <HeatChart data={voteMetrics.votesByMunicipality} />
+        </>
+      ) : (
+        <div className="no-votes">
+          <p>Aún no hay votos registrados para esta votación.</p>
+          <p>Los gráficos aparecerán cuando lleguen los primeros votos.</p>
+        </div>
+      )}
     </section>
   );
 }

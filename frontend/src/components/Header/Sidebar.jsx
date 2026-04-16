@@ -21,6 +21,23 @@ function Sidebar({ open, close, items, onLogout }) {
               </button>
             );
           }
+
+          if (label === "EXPORTAR") {
+            return (
+              <button
+                key={label}
+                type="button"
+                className="value"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("agora-export-metrics"));
+                  close();
+                }}
+              >
+                <Icon />
+                <span>{label}</span>
+              </button>
+            );
+          }
           
           return (
             <Link key={to} to={to} className="value" onClick={close}>

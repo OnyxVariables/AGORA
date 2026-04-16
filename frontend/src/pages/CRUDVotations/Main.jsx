@@ -154,6 +154,9 @@ export default function App() {
     headers.push("actions");
     const votationsWithActions = votations.map((votation) => ({
       ...votation,
+      txHash: votation.txHash ? `${votation.txHash.slice(0, 14)}…` : "—",
+      startBlockHash: votation.startBlockHash ? `${votation.startBlockHash.slice(0, 14)}…` : "—",
+      endBlockHash: votation.endBlockHash ? `${votation.endBlockHash.slice(0, 14)}…` : "—",
       actions: (
         <div className="action-container">
         <ButtonEdit onClick={() => openEditForm(votation)} />

@@ -11,15 +11,15 @@ function Main() {
       <div
         style={{
           width: "100%",
-          height: "100%",
-          position: "absolute",
+          height: "100vh",
+          position: "fixed",
           inset: 0,
           zIndex: -1,
         }}
       >
         <Particles
           particleColors={["#d4a0ff", "#a066ff", "#6a00d4"]}
-          particleCount={50000} //Queda bonito asi pero tarda un poco más en cargar
+          particleCount={5000}
           particleSpread={10}
           speed={0.1}
           particleBaseSize={100}

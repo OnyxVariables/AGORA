@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
-import { popupError, toastSuccess, popupConfirm } from "../../services/alerts";
+import { popupError, toastSuccess, popupConfirm, Popup } from "../../services/alerts";
 import { useParties } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
 import { keccak256, toUtf8Bytes } from "ethers";
@@ -18,6 +19,7 @@ function generarCodigo() {
 }
 
 function Partidos() {
+  const navigate = useNavigate();
   const { partidos, loading } = useParties();
   const [selection, setSelection] = useState(null);
 
@@ -61,7 +63,13 @@ function Partidos() {
     const user = await getUser();
 
     if (!user?.nickname) {
-      popupError("Es necesario un nickname para votar");
+      Popup.fire({
+        icon: "error",
+        title: "Es necesario un nickname para votar",
+        confirmButtonText: "Ir a perfil",
+      }).then(() => {
+        navigate("/perfil");
+      });
       return;
     }
 
@@ -131,11 +139,9 @@ function Partidos() {
       }
 
       await popupConfirm(
-        `Voto registrado correctamente.
-        Tu código de verificación es: ${codigo}
-        GUARDA ESTE CÓDIGO.
-        Es la única forma de consultar tu voto.`,
-        "Código de verificación"
+        `Código de verificación: ${codigo}
+        GUARDA ESTE CÓDIGO`,
+        "Es la única forma de consultar tu voto"
       );
       toastSuccess(data.message);
     } catch (err) {
@@ -162,7 +168,7 @@ function Partidos() {
       >
         <Particles
           particleColors={["#d4a0ff", "#a066ff", "#6a00d4"]}
-          particleCount={20000}
+          particleCount={5000}
           particleSpread={10}
           speed={0.1}
           particleBaseSize={100}

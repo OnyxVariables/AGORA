@@ -1,8 +1,16 @@
 import "./Table.css";
 
-export default function Table({ id, headings, rows }) {
+/**
+ * @param {object} props
+ * @param {string} props.id
+ * @param {string[]} props.headings
+ * @param {Record<string, unknown>[]} props.rows
+ * @param {string[]} [props.rowKeys]
+ */
+export default function Table({ id, headings, rows, rowKeys = null }) {
   return (
-    <table id={id} className="table">
+    <div className="table-wrapper">
+      <table id={id} className="table">
       <thead>
         <tr>
           {headings &&
@@ -18,14 +26,15 @@ export default function Table({ id, headings, rows }) {
         {rows &&
           rows.map((row, index) => (
             <tr key={index}>
-              {Object.values(row).map((value, i) => (
-                <td className="cell" key={i}>
-                  {value}
+              {(rowKeys ?? Object.keys(row)).map((key) => (
+                <td className="cell" key={key}>
+                  {row[key]}
                 </td>
               ))}
             </tr>
           ))}
       </tbody>
-    </table>
+      </table>
+    </div>
   );
 }
