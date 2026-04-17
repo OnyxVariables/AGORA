@@ -26,6 +26,7 @@ public class BlockchainListenerService {
     private final Web3j web3j;
     private final VotationService votationService;
     private final VoteProcessingService voteProcessingService;
+    private final DHondtCalculationService dHondtCalculationService;
 
     @PostConstruct
     public void init() {
@@ -170,6 +171,11 @@ public class BlockchainListenerService {
                     log.info("Estado de votacion {} actualizado a FINISHED", event.votationId);
                 } catch (Exception e) {
                     log.error("Error al actualizar estado de votacion: {}", e.getMessage(), e);
+                }
+                try {
+                    dHondtCalculationService.calculateAndStore(event.votationId.intValue());
+                } catch (Exception e) {
+                    log.error("Error calculando D'Hondt para votacion {}: {}", event.votationId, e.getMessage(), e);
                 }
             }, error -> {
                 log.error("Error en listener VotationFinished: {}", error.getMessage(), error);
