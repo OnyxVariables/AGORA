@@ -99,6 +99,40 @@ services:
     ports:
       - "8000:8000"
 
+  # Sheduler de Laravel
+  # Sin este proceso, las votaciones no pasan a cadena ni a state=active solas
+  scheduler:
+    container_name: agora_scheduler_dev
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    environment:
+      SESSION_DOMAIN: ${SESSION_DOMAIN}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS}
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: true
+      APP_URL: ${APP_URL}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_CONNECTION: ${DB_CONNECTION}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      BESU_RPC_URL: ${BESU_RPC_URL}
+      BLOCKCHAIN_ADMIN_ADDRESS: ${BLOCKCHAIN_ADMIN_ADDRESS}
+      SIMPLE_VOTING_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
+    volumes:
+      - backend_data_dev:/var/www/html
+    networks:
+      - agora_dev
+    depends_on:
+      db:
+        condition: service_healthy
+      hardhat:
+        condition: service_healthy
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+
   frontend:
     container_name: agora_frontend_dev
     build:
