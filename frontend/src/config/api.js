@@ -15,6 +15,8 @@ export const API_CONFIG = {
     VOTE: '/api/vote',
     VOTE_VERIFY: '/api/vote/verify',
     METRICS_VOTATION: (id) => `/api/metrics/votation/${id}`,
+    VOTATION_RESULTS: (id) => `/api/votations/${id}/results`,
+    VOTATION_RESULTS_SUMMARY: (id) => `/api/votations/${id}/results/summary`,
     PARTIES: '/api/parties',
   }
 };
