@@ -258,10 +258,14 @@ export default function Main() {
       id: r.id,
       party: r.partyName,
       municipio: r.municipalityId,
-      bloque: r.blockHash ? `${r.blockHash.slice(0, 10)}…` : "—",
-      tx: r.txHash ? `${r.txHash.slice(0, 10)}…` : "—",
+      bloque: r.blockHash ? (
+        <>{r.blockHash.slice(0, 10)}…<CopyButton text={r.blockHash} /></>
+      ) : "—",
+      tx: r.txHash ? (
+        <>{r.txHash.slice(0, 10)}…<CopyButton text={r.txHash} /></>
+      ) : "—",
     }));
-  }, [bundle, selectedBlock]);
+  }, [bundle, selectedBlock, CopyButton]);
 
   const auditRows = useMemo(() => {
     let rows = bundle?.audit ?? [];
