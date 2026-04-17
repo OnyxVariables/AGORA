@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -13,6 +14,7 @@ import {
 import { Pie, Bar, Line } from "react-chartjs-2";
 import "./ChartSection.css";
 import { useParties } from "../../data/partidos";
+import SpainMap from "../SpainMap/SpainMap";
 
 ChartJS.register(
   ArcElement,
@@ -223,13 +225,50 @@ export function LineChart({ labels, partidos, series }) {
   );
 }
 
-export function HeatChart({ data }) {
+// Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
+export function HeatChart({ data, votesByProvinceName = {} }) {
+  const byProvince =
+    votesByProvinceName && Object.keys(votesByProvinceName).length > 0
+      ? votesByProvinceName
+      : {};
+
+  const maxVotes = Math.max(1, ...Object.values(byProvince).map((v) => Number(v) || 0));
+
+  const getFeatureStyle = useCallback(
+    (feature) => {
+      const name = feature.properties?.name ?? "";
+      if (
+        name === "Africa Norte" ||
+        name === "Portugal" ||
+        name === "Francia Sur"
+      ) {
+        return { fill: "#D1D1D1", pointerEvents: "none" };
+      }
+      const n = Number(byProvince[name]) || 0;
+      const t = n / maxVotes;
+      const r = Math.round(240 - t * 200);
+      const g = Math.round(240 - t * 220);
+      const b = Math.round(255 - t * 120);
+      return { fill: `rgb(${r},${g},${b})` };
+    },
+    [byProvince, maxVotes],
+  );
+
+  const hasData = Object.keys(byProvince).length > 0;
+
   return (
     <div className="chart-container heat-chart">
-      TODO
-      {/* TODO(srvariable): Think about a heatmap implementation, an option could be to
-      reuse the map from /resultados and color the regions based on the data provided.
-      But the map has to be componentized first, and it is out of scope right now. */}
+      <p className="heat-chart-legend">
+        Intensidad = votos por provincia (más oscuro = más votos).
+      </p>
+      {!hasData && (
+        <p className="heat-chart-empty">
+          Sin datos por provincia para esta votación (espera a que existan votos).
+        </p>
+      )}
+      <div className="heat-chart-map-wrap">
+        <SpainMap level="province" getFeatureStyle={getFeatureStyle} />
+      </div>
     </div>
   );
 }
@@ -251,13 +290,10 @@ export default function ChartSection({ voteMetrics, selectedVotation }) {
 
   // Mapear votesByParty (que usa partyId) a los nombres de partidos
   const votesByPartyId = voteMetrics.votesByParty || {};
-  console.log("DEBUG votesByPartyId:", votesByPartyId);
-  console.log("DEBUG partidos:", partidos.map(p => ({ value: p.value, nombre: p.nombre })));
-  
+
   const partyData = partidos.map(p => {
     const votosRaw = votesByPartyId[p.id];
     const votos = Number(votosRaw) || 0;
-    console.log(`DEBUG partido ${p.nombre} (id=${p.id}): votosRaw=${votosRaw}, votos=${votos}`);
     return {
       id: p.id,
       nombre: p.nombre,
@@ -285,8 +321,6 @@ export default function ChartSection({ voteMetrics, selectedVotation }) {
       },
     ],
   };
-  console.log("DEBUG aggregatedData:", JSON.stringify(aggregatedData, null, 2));
-
   // Para el line chart - historial simplificado (placeholder, se mejorara en futura version)
   const timeLabels = ["Inicio", "Actual"];
   const timeSeriesData = {};
@@ -310,7 +344,10 @@ export default function ChartSection({ voteMetrics, selectedVotation }) {
             series={timeSeriesData}
           />
 
-          <HeatChart data={voteMetrics.votesByMunicipality} />
+          <HeatChart
+            data={voteMetrics.votesByMunicipality}
+            votesByProvinceName={voteMetrics.votesByProvinceName}
+          />
         </>
       ) : (
         <div className="no-votes">

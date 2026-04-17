@@ -116,6 +116,7 @@ export default function Main() {
             totalVotes: data.metrics.totalVotes,
             votesByParty: data.metrics.votesByParty || {},
             votesByMunicipality: data.metrics.votesByMunicipality || {},
+            votesByProvinceName: data.metrics.votesByProvinceName || {},
             timestamp: data.metrics.timestamp,
           });
         }
@@ -135,6 +136,7 @@ export default function Main() {
         totalVotes: voteData.totalVotes,
         votesByParty: voteData.votesByParty || {},
         votesByMunicipality: voteData.votesByMunicipality || {},
+        votesByProvinceName: voteData.votesByProvinceName || {},
         timestamp: voteData.timestamp,
       });
       setBundle((prev) => {

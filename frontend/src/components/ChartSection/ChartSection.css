@@ -54,3 +54,20 @@
       "heatChart";
   }
 }
+
+.heat-chart-map-wrap {
+  width: 100%;
+  min-height: 420px;
+  height: 440px;
+}
+
+.heat-chart-legend {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.heat-chart-empty {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}

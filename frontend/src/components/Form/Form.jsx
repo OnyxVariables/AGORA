@@ -25,31 +25,24 @@ export default function Form({
         }
       />
 
-      <input
-        type="date"
-        value={formData.startDate}
-        onChange={(e) =>
-          setFormData({ ...formData, startDate: e.target.value })
-        }
-        required
-        min={!props.editingId ? new Date().toISOString().split("T")[0] : ""}
-      />
-
-      <input
-        type="date"
-        value={formData.endDate}
-        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-        min={formData.startDate}
-      />
-
-      <select
-        value={formData.state}
-        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-      >
-        <option value="pending">Pending</option>
-        <option value="active">Active</option>
-        <option value="finished">Finished</option>
-      </select>
+      <label className="form-label-datetime">
+        Fecha y hora de inicio (duración fija: 12 h en servidor)
+        <input
+          type="datetime-local"
+          value={formData.startDate}
+          onChange={(e) =>
+            setFormData({ ...formData, startDate: e.target.value })
+          }
+          required
+          min={
+            !props.editId
+              ? new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+                  .toISOString()
+                  .slice(0, 16)
+              : undefined
+          }
+        />
+      </label>
 
       <div className="form-actions">
         <ButtonCancel onClick={onCancel} />
