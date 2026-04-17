@@ -2,52 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Votation;
-use App\Models\Block;
 use App\Models\Auditory;
+use App\Models\Seat;
+use App\Models\Votation;
 use App\Services\BlockchainService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class VotationController extends Controller
 {
-    protected $blockchainService;
-
-    public function __construct(BlockchainService $blockchainService)
-    {
-        $this->blockchainService = $blockchainService;
+    public function __construct(
+        protected BlockchainService $blockchainService
+    ) {
     }
 
-    // Asegurarse que el bloque existe en BD antes de referenciarlo (recursivo para ancestros)
-    private function ensureBlockExists($blockHash, $blockNumber, $previousHash = null)
+    private const VOTATION_DURATION_HOURS = 12;
+
+    private function hasOverlappingVotation(Carbon $start, Carbon $end, ?int $excludeId = null): bool
     {
-        if (!$blockHash) return;
+        $query = Votation::query()
+            ->whereIn('state', ['pending', 'active'])
+            ->where('startDate', '<', $end)
+            ->whereRaw('COALESCE(endDate, ?) > ?', ['9999-12-31 23:59:59', $start]);
 
-        $exists = Block::where('hash', $blockHash)->exists();
-        if ($exists) return;
-
-        // Si hay previousHash y no es el genesis (0x0...0), insertar primero el padre
-        $isGenesis = !$previousHash || $previousHash === '0x0000000000000000000000000000000000000000000000000000000000000000';
-        if (!$isGenesis && !Block::where('hash', $previousHash)->exists()) {
-            // Busco bloque padre en blockchain e insertar recursivamente
-            $parentBlock = $this->blockchainService->getBlockByHash($previousHash);
-            if ($parentBlock) {
-                $parentNumber = $parentBlock['blockNumber'];
-                $parentHash = $parentBlock['parentHash'] ?? null;
-                $this->ensureBlockExists($previousHash, $parentNumber, $parentHash);
-            }
+        if ($excludeId !== null) {
+            $query->where('id', '!=', $excludeId);
         }
 
-        Block::create([
-            'hash' => $blockHash,
-            'blockNumber' => $blockNumber ?? 0,
-            'previousHash' => $previousHash,
-            'transactions' => 1,
-            'isValid' => true
-        ]);
-        Log::info("Bloque insertado: {$blockHash}", ['parentHash' => $previousHash]);
+        return $query->exists();
     }
 
     // READ
@@ -60,7 +45,7 @@ class VotationController extends Controller
         return response()->json(Votation::all(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    // CREATE (BD (pending) + Blockchain)
+    // Crear votación solo en BD (pending). La cadena se activa por scheduler al llegar startDate
     public function store(Request $request)
     {
         if (Auth::user()->roleId !== 1) {
@@ -71,114 +56,48 @@ class VotationController extends Controller
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
             'startDate' => 'required|date',
-            'endDate' => 'nullable|date',
         ]);
 
-        Log::info("Data: " . $data['startDate']);
+        $start = Carbon::parse($data['startDate']);
+        $end = $start->copy()->addHours(self::VOTATION_DURATION_HOURS);
 
-        // Primero verificar conexión blockchain antes de iniciar transacción
-        $connection = $this->blockchainService->checkConnection();
-        if (!$connection['success']) {
+        if ($this->hasOverlappingVotation($start, $end, null)) {
             return response()->json([
-                'error' => 'Blockchain no disponible',
-                'details' => $connection['error']
-            ], 503);
+                'error' => 'Ya existe una votación pendiente o activa que solapa con este horario (misma ventana de 12 h).',
+            ], 422);
         }
 
-        DB::beginTransaction();
+        $votation = Votation::create([
+            'title' => $data['title'],
+            'description' => $data['description'] ?? '',
+            'startDate' => $start,
+            'endDate' => $end,
+            'state' => 'pending',
+            'startBlockHash' => null,
+            'endBlockHash' => null,
+            'txHash' => null,
+        ]);
 
-        try {
-            $connection = $this->blockchainService->checkConnection();
-            if (!$connection['success']) {
-                return response()->json([
-                    'error' => 'Blockchain no disponible',
-                    'details' => $connection['error']
-                ], 503);
-            }
+        Log::info('Votación creada en BD (pending, sin cadena aún)', [
+            'user_id' => Auth::id(),
+            'votation_id' => $votation->id,
+        ]);
 
-            // 1. Guardar en BD primero
-            $votation = Votation::create([
-                'title' => $data['title'],
-                'description' => $data['description'] ?? '',
-                'startDate' => $data['startDate'],
-                'endDate' => $data['endDate'] ?? null,
-                'state' => 'pending',
-                'startBlockHash' => null,
-                'endBlockHash' => null,
-                'txHash' => null
-            ]);
+        Auditory::log(
+            Auth::id(),
+            'CREATE_VOTATION',
+            "Creación programada de votación '{$votation->title}' (ID: {$votation->id})",
+            null,
+            null
+        );
 
-            // 2. Enviar a blockchain con el ID de la BD
-            // Convertir fechas ISO a timestamps Unix para el contrato
-            $startTimestamp = strtotime($data['startDate']);
-            $endTimestamp = $data['endDate'] ? strtotime($data['endDate']) : $startTimestamp + 86400; // +1 día por defecto
-
-            $blockchainResult = $this->blockchainService->createVotation(
-                $votation->id,
-                $data['title'],
-                $data['description'] ?? '',
-                $startTimestamp,
-                $endTimestamp
-            );
-            
-            Log::info('Blockhain result: ' . ($startTimestamp . ' ******************** ' . $endTimestamp));
-
-            if (!$blockchainResult['success']) {
-                DB::rollBack();
-                return response()->json([
-                    'error' => 'Error en blockchain: ' . $blockchainResult['error']
-                ], 500);
-            }
-
-            // 3. Guardar bloque en BD si no existe, luego actualizar votación
-            $this->ensureBlockExists(
-                $blockchainResult['blockHash'],
-                $blockchainResult['blockNumber'],
-                $blockchainResult['parentHash']
-            );
-
-            $votation->update([
-                'txHash' => $blockchainResult['transactionHash'],
-                'startBlockHash' => $blockchainResult['blockHash']
-            ]);
-
-            DB::commit();
-
-            Log::info('Votación creada (pending)', [
-                'user_id' => Auth::id(),
-                'votation_id' => $votation->id,
-                'txHash' => $blockchainResult['transactionHash']
-            ]);
-
-            // Registrar auditoría
-            Auditory::log(
-                Auth::id(),
-                'CREATE_VOTATION',
-                "Creación de votación '{$votation->title}' (ID: {$votation->id})",
-                $blockchainResult['transactionHash'],
-                $blockchainResult['blockHash']
-            );
-
-            return response()->json([
-                'message' => 'Votación enviada a blockchain (pending)',
-                'votation' => $votation
-            ], 201);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error creando votación', [
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'error' => 'Error creando votación'
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Votación creada (pending). Se enviará a blockchain al iniciar la fecha.',
+            'votation' => $votation,
+        ], 201);
     }
 
-    // UPDATE (BD (pending) + Blockchain)
-    //All (Oliver): pensar en algo para poder seguir votando si actualizo / cancelo ya que pasa a pending y solo se puede votar cuando esta active
+    // Editar solo en BD mientras no esté active. No envía transacciones a blockchain
     public function update(Request $request, $id)
     {
         if (Auth::user()->roleId !== 1) {
@@ -187,96 +106,57 @@ class VotationController extends Controller
 
         $votation = Votation::findOrFail($id);
 
-        // Primero verificar conexión blockchain antes de iniciar transacción
-        $connection = $this->blockchainService->checkConnection();
-        if (!$connection['success']) {
+        if ($votation->state === 'active') {
             return response()->json([
-                'error' => 'Blockchain no disponible',
-                'details' => $connection['error']
-            ], 503);
+                'error' => 'No se puede editar una votación activa.',
+            ], 403);
+        }
+
+        if (in_array($votation->state, ['finished', 'cancelled'], true)) {
+            return response()->json([
+                'error' => 'No se puede editar una votación finalizada o cancelada.',
+            ], 403);
         }
 
         $data = $request->validate([
             'title' => 'required|string|max:100',
             'description' => 'nullable|string',
             'startDate' => 'required|date',
-            'endDate' => 'nullable|date',
         ]);
 
-        // Convertir fechas a timestamps igual que en create
-        $startTimestamp = strtotime($data['startDate']);
-        $endTimestamp = $data['endDate'] ? strtotime($data['endDate']) : $startTimestamp + 86400;
+        $start = Carbon::parse($data['startDate']);
+        $end = $start->copy()->addHours(self::VOTATION_DURATION_HOURS);
 
-        DB::beginTransaction();
-
-        try {
-            // Enviar actualización a blockchain
-            $blockchainResult = $this->blockchainService->updateVotation(
-                $votation->id,
-                $data['title'],
-                $data['description'] ?? '',
-                $startTimestamp,
-                $endTimestamp,
-                'pending'
-            );
-
-            if (!$blockchainResult['success']) {
-                DB::rollBack();
-                return response()->json([
-                    'error' => 'Error actualizando en blockchain: ' . $blockchainResult['error']
-                ], 500);
-            }
-
-            // Guardar bloque si no existe
-            $this->ensureBlockExists(
-                $blockchainResult['blockHash'],
-                $blockchainResult['blockNumber'],
-                $blockchainResult['parentHash']
-            );
-
-            // Actualizar BD local como PENDING
-            $votation->update(array_merge($data, [
-                'state' => 'pending',
-                'txHash' => $blockchainResult['transactionHash'],
-                'startBlockHash' => $blockchainResult['blockHash']
-            ]));
-
-            DB::commit();
-
-            Log::info('Votación actualizada (pending)', [
-                'votation_id' => $id,
-                'txHash' => $blockchainResult['transactionHash']
-            ]);
-
-            // Registrar auditoría
-            Auditory::log(
-                Auth::id(),
-                'UPDATE_VOTATION',
-                "Actualización de votación '{$votation->title}' (ID: {$votation->id})",
-                $blockchainResult['transactionHash'],
-                $blockchainResult['blockHash']
-            );
-
+        if ($this->hasOverlappingVotation($start, $end, (int) $votation->id)) {
             return response()->json([
-                'message' => 'Votación actualizada (pending)',
-                'votation' => $votation
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error actualizando votación', [
-                'votation_id' => $id,
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'error' => 'Error actualizando votación'
-            ], 500);
+                'error' => 'Ya existe otra votación que solapa con este horario.',
+            ], 422);
         }
+
+        $votation->update([
+            'title' => $data['title'],
+            'description' => $data['description'] ?? '',
+            'startDate' => $start,
+            'endDate' => $end,
+        ]);
+
+        Log::info('Votación actualizada en BD', ['votation_id' => $id]);
+
+        Auditory::log(
+            Auth::id(),
+            'UPDATE_VOTATION',
+            "Actualización de votación '{$votation->title}' (ID: {$votation->id})",
+            null,
+            null
+        );
+
+        return response()->json([
+            'message' => 'Votación actualizada',
+            'votation' => $votation->fresh(),
+        ]);
     }
 
-    // CANCEL (BD (pending) + Blockchain)
+    // Cancelar: si ya hay tx en cadena, cancelVotation; si no, solo BD
     public function destroy($id)
     {
         if (Auth::user()->roleId !== 1) {
@@ -285,19 +165,45 @@ class VotationController extends Controller
 
         $votation = Votation::findOrFail($id);
 
-        // Primero verificar conexión blockchain antes de iniciar transacción
+        if ($votation->state === 'active') {
+            return response()->json([
+                'error' => 'No se puede cancelar una votación activa.',
+            ], 403);
+        }
+
+        if (in_array($votation->state, ['finished', 'cancelled'], true)) {
+            return response()->json([
+                'error' => 'La votación ya está finalizada o cancelada.',
+            ], 403);
+        }
+
+        $hasChainRecord = !empty($votation->txHash);
+
+        if (!$hasChainRecord) {
+            $votation->update(['state' => 'cancelled']);
+
+            Auditory::log(
+                Auth::id(),
+                'CANCEL_VOTATION',
+                "Cancelación local de votación '{$votation->title}' (ID: {$id})",
+                null,
+                null
+            );
+
+            return response()->json(['message' => 'Votación cancelada']);
+        }
+
         $connection = $this->blockchainService->checkConnection();
         if (!$connection['success']) {
             return response()->json([
                 'error' => 'Blockchain no disponible',
-                'details' => $connection['error']
+                'details' => $connection['error'],
             ], 503);
         }
 
         DB::beginTransaction();
 
         try {
-            // Cancelar en blockchain
             $blockchainResult = $this->blockchainService->cancelVotation(
                 $votation->id,
                 'Cancelada desde sistema'
@@ -305,61 +211,44 @@ class VotationController extends Controller
 
             if (!$blockchainResult['success']) {
                 DB::rollBack();
+
                 return response()->json([
-                    'error' => 'Error cancelando en blockchain: ' . $blockchainResult['error']
+                    'error' => 'Error cancelando en blockchain: '.$blockchainResult['error'],
                 ], 500);
             }
 
-            // Guardar bloque si no existe
-            $this->ensureBlockExists(
+            $this->blockchainService->ensureBlockExists(
                 $blockchainResult['blockHash'],
                 $blockchainResult['blockNumber'],
-                $blockchainResult['parentHash']
+                $blockchainResult['parentHash'] ?? null
             );
 
-            // Marcar BD como pending hasta que Spring Boot confirme
             $votation->update([
-                'state' => 'pending',
                 'txHash' => $blockchainResult['transactionHash'],
-                'startBlockHash' => $blockchainResult['blockHash']
+                'startBlockHash' => $blockchainResult['blockHash'],
             ]);
 
             DB::commit();
 
-            Log::info('Votación cancelada (pending)', [
-                'votation_id' => $id,
-                'txHash' => $blockchainResult['transactionHash']
-            ]);
-
-            // Registrar auditoría
             Auditory::log(
                 Auth::id(),
                 'CANCEL_VOTATION',
-                "Cancelación de votación '{$votation->title}' (ID: {$id})",
+                "Cancelación en cadena de votación '{$votation->title}' (ID: {$id})",
                 $blockchainResult['transactionHash'],
                 $blockchainResult['blockHash']
             );
 
-            return response()->json([
-                'message' => 'Votación cancelada (pending)'
-            ]);
-
+            return response()->json(['message' => 'Votación cancelada (cadena)']);
         } catch (\Exception $e) {
             DB::rollBack();
-
             Log::error('Error cancelando votación', [
                 'votation_id' => $id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
-            return response()->json([
-                'error' => 'Error cancelando votación'
-            ], 500);
+            return response()->json(['error' => 'Error cancelando votación'], 500);
         }
     }
-
-    //All (Oliver): pensar en algo que automaticamente cambie el estado de la votación a finished cuando endDate sea menor a now() y lo haga
-    // desde Spring Boot escuchando el evento
 
     // OBTENER VOTACIÓN ACTIVA (para frontend)
     public function active()
@@ -405,5 +294,124 @@ class VotationController extends Controller
             ->get(['id', 'title', 'state', 'startDate', 'endDate']);
 
         return response()->json($rows, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // Resultados detallados (escaños y votos por provincia/partido) — solo votación finalizada
+    public function results(int $id)
+    {
+        $votation = Votation::findOrFail($id);
+
+        if ($votation->state !== 'finished') {
+            return response()->json([
+                'error' => 'Los resultados solo están disponibles cuando la votación está finalizada.',
+            ], 403);
+        }
+
+        $seats = Seat::query()
+            ->with(['province.autonomousCommunity', 'party'])
+            ->where('votationId', $id)
+            ->orderBy('provinceId')
+            ->orderByDesc('seatsAssigned')
+            ->get();
+
+        $byProvince = [];
+        foreach ($seats as $row) {
+            $pName = $row->province->name ?? 'Provincia '.$row->provinceId;
+            $ccaaName = $row->province->autonomousCommunity->name ?? null;
+            if (! isset($byProvince[$pName])) {
+                $byProvince[$pName] = [
+                    'provinceId' => $row->provinceId,
+                    'provinceName' => $pName,
+                    'autonomousCommunityName' => $ccaaName,
+                    'parties' => [],
+                ];
+            }
+            $byProvince[$pName]['parties'][] = [
+                'partyId' => $row->partyId,
+                'partyName' => $row->party->name ?? 'Partido '.$row->partyId,
+                'votes' => (int) $row->votes,
+                'seatsAssigned' => (int) $row->seatsAssigned,
+                'colorBackground' => $row->party->color_background ?? null,
+                'colorTitle' => $row->party->color_title ?? null,
+            ];
+        }
+
+        return response()->json([
+            'votation' => $votation->only(['id', 'title', 'state', 'startDate', 'endDate']),
+            'byProvince' => array_values($byProvince),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // Resumen agregado por CCAA y nacional (votos y escaños por partido)
+    public function resultsSummary(int $id)
+    {
+        $votation = Votation::findOrFail($id);
+
+        if ($votation->state !== 'finished') {
+            return response()->json([
+                'error' => 'Los resultados solo están disponibles cuando la votación está finalizada.',
+            ], 403);
+        }
+
+        $seats = Seat::query()
+            ->with(['province.autonomousCommunity', 'party'])
+            ->where('votationId', $id)
+            ->get();
+
+        $national = [];
+        $byCcaa = [];
+
+        foreach ($seats as $row) {
+            $partyName = $row->party->name ?? 'Partido '.$row->partyId;
+            $pid = (int) $row->partyId;
+            $votes = (int) $row->votes;
+            $s = (int) $row->seatsAssigned;
+
+            if (! isset($national[$pid])) {
+                $national[$pid] = [
+                    'partyId' => $pid,
+                    'partyName' => $partyName,
+                    'votes' => 0,
+                    'seats' => 0,
+                    'colorBackground' => $row->party->color_background ?? null,
+                    'colorTitle' => $row->party->color_title ?? null,
+                ];
+            }
+            $national[$pid]['votes'] += $votes;
+            $national[$pid]['seats'] += $s;
+
+            $ccaa = $row->province->autonomousCommunity->name ?? 'Sin CCAA';
+            if (! isset($byCcaa[$ccaa])) {
+                $byCcaa[$ccaa] = [];
+            }
+            if (! isset($byCcaa[$ccaa][$pid])) {
+                $byCcaa[$ccaa][$pid] = [
+                    'partyId' => $pid,
+                    'partyName' => $partyName,
+                    'votes' => 0,
+                    'seats' => 0,
+                    'colorBackground' => $row->party->color_background ?? null,
+                    'colorTitle' => $row->party->color_title ?? null,
+                ];
+            }
+            $byCcaa[$ccaa][$pid]['votes'] += $votes;
+            $byCcaa[$ccaa][$pid]['seats'] += $s;
+        }
+
+        $normalize = fn ($map) => array_values($map);
+
+        $byCcaaOut = [];
+        foreach ($byCcaa as $ccaaName => $parties) {
+            $byCcaaOut[] = [
+                'autonomousCommunityName' => $ccaaName,
+                'parties' => $normalize($parties),
+            ];
+        }
+
+        return response()->json([
+            'votation' => $votation->only(['id', 'title', 'state', 'startDate', 'endDate']),
+            'national' => $normalize($national),
+            'byAutonomousCommunity' => $byCcaaOut,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

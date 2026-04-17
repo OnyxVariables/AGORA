@@ -14,6 +14,8 @@ Route::get('/parties', [PartyController::class, 'index']);
 // Ruta pública - no requiere autenticación (por ahora)
 Route::get('/votation/active', [VotationController::class, 'active']);
 Route::get('/votations/summary', [VotationController::class, 'publicSummary']);
+Route::get('/votations/{id}/results', [VotationController::class, 'results']);
+Route::get('/votations/{id}/results/summary', [VotationController::class, 'resultsSummary']);
 
 // Ruta protegida por Sanctum donde solo puede acceder usuario autenticado
 Route::middleware('auth:sanctum')->group(function () {

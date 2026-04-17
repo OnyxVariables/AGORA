@@ -9,6 +9,13 @@ class Province extends Model
     protected $table = 'province';
     public $timestamps = false;
 
+    protected $fillable = [
+        'ineId',
+        'autonomousCommunityId',
+        'name',
+        'totalSeats',
+    ];
+
     public function autonomousCommunity()
     {
         return $this->belongsTo(AutonomousCommunity::class, 'autonomousCommunityId');

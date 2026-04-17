@@ -67,6 +67,21 @@ class MetricsController extends Controller
         $votesByParty = $votes->groupBy('partyId')->map(fn ($g) => $g->count())->all();
         $votesByMunicipality = $votes->groupBy('municipalityId')->map(fn ($g) => $g->count())->all();
 
+        $municipalities = DB::table('municipality')->select('id', 'provinceId')->get()->keyBy('id');
+        $provinceNames = DB::table('province')->pluck('name', 'id');
+        $votesByProvinceName = [];
+        foreach ($votes as $v) {
+            $m = $municipalities->get($v->municipalityId);
+            if (!$m) {
+                continue;
+            }
+            $pName = $provinceNames[$m->provinceId] ?? null;
+            if ($pName === null || $pName === '') {
+                continue;
+            }
+            $votesByProvinceName[$pName] = ($votesByProvinceName[$pName] ?? 0) + 1;
+        }
+
         $auditRows = [];
         if (Schema::hasTable('auditory')) {
             $auditRows = DB::table('auditory')
@@ -95,6 +110,7 @@ class MetricsController extends Controller
                 'totalVotes' => $totalVotes,
                 'votesByParty' => $votesByParty,
                 'votesByMunicipality' => $votesByMunicipality,
+                'votesByProvinceName' => $votesByProvinceName,
                 'registeredCitizens' => $registeredCitizens,
                 'participationRate' => $registeredCitizens > 0
                     ? round(($totalVotes / $registeredCitizens) * 100, 2)
