@@ -22,8 +22,6 @@ export default function App() {
     title: "",
     description: "",
     startDate: "",
-    endDate: "",
-    state: "pending",
   };
 
   const columnNames = {
@@ -72,13 +70,19 @@ export default function App() {
     setIsFormVisible(true);
   };
 
+  const toDatetimeLocalValue = (isoOrMysql) => {
+    if (!isoOrMysql) return "";
+    const d = new Date(isoOrMysql);
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const openEditForm = (votation) => {
     setFormData({
       title: votation.title,
       description: votation.description,
-      startDate: votation.startDate.split("T")[0],
-      endDate: votation.endDate ? votation.endDate.split("T")[0] : "",
-      state: votation.state,
+      startDate: toDatetimeLocalValue(votation.startDate),
     });
     setEditId(votation.id);
     setIsFormVisible(true);
@@ -154,12 +158,21 @@ export default function App() {
     headers.push("actions");
     const votationsWithActions = votations.map((votation) => ({
       ...votation,
+      txHash: votation.txHash ? `${votation.txHash.slice(0, 14)}…` : "—",
+      startBlockHash: votation.startBlockHash ? `${votation.startBlockHash.slice(0, 14)}…` : "—",
+      endBlockHash: votation.endBlockHash ? `${votation.endBlockHash.slice(0, 14)}…` : "—",
       actions: (
         <div className="action-container">
-        <ButtonEdit onClick={() => openEditForm(votation)} />
-        <ButtonDelete onClick={() => handleDelete(votation.id)} />
-      </div>
-    ),
+ <ButtonEdit
+            disabled={votation.state === "active"}
+            onClick={() => openEditForm(votation)}
+          />
+          <ButtonDelete
+            disabled={votation.state === "active"}
+            onClick={() => handleDelete(votation.id)}
+          />
+        </div>
+      ),
   }));
 
   return (

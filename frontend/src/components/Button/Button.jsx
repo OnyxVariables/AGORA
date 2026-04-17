@@ -1,8 +1,19 @@
 import "./Button.css";
 
-export function Button({ children, onClick, className = "" }) {
+export function Button({
+  children,
+  onClick,
+  className = "",
+  disabled = false,
+  type = "button",
+}) {
   return (
-    <button className={`btn ${className}`} onClick={onClick}>
+    <button
+      type={type}
+      className={`btn ${className}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
@@ -16,17 +27,17 @@ export function ButtonCreate({ onClick }) {
   );
 }
 
-export function ButtonEdit({ onClick }) {
+export function ButtonEdit({ onClick, disabled = false }) {
   return (
-    <Button className="btn--edit" onClick={onClick}>
+    <Button className="btn--edit" onClick={onClick} disabled={disabled}>
       Editar
     </Button>
   );
 }
 
-export function ButtonDelete({ onClick }) {
+export function ButtonDelete({ onClick, disabled = false }) {
   return (
-    <Button className="btn--delete" onClick={onClick}>
+    <Button className="btn--delete" onClick={onClick} disabled={disabled}>
       Eliminar
     </Button>
   );
@@ -34,7 +45,7 @@ export function ButtonDelete({ onClick }) {
 
 export function ButtonCancel({ onClick }) {
   return (
-    <Button className="btn--cancel" onClick={onClick}>
+    <Button type="button" className="btn--cancel" onClick={onClick}>
       Cancelar
     </Button>
   );
@@ -42,7 +53,7 @@ export function ButtonCancel({ onClick }) {
 
 export function ButtonSave({ onClick }) {
   return (
-    <Button className="btn--save" onClick={onClick}>
+    <Button type="submit" className="btn--save" onClick={onClick}>
       Guardar
     </Button>
   );

@@ -1,36 +1,61 @@
 package com.agora.votations.service;
 
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
+import org.web3j.tx.ReadonlyTransactionManager;
+import org.web3j.tx.gas.StaticGasProvider;
 
 import com.agora.votations.contract.SimpleVoting;
 
 import java.math.BigInteger;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
+@ConditionalOnProperty(name = "agora.blockchain-listener.enabled", havingValue = "true", matchIfMissing = true)
 public class BlockchainListenerService {
 
-    private static final String CONTRACT_ADDRESS = "0xasdfh... no lo tengo por ahora";
+    @Value("${blockchain.contract.address:}")
+    private String contractAddress;
 
     private final Web3j web3j;
     private final VotationService votationService;
-
-    public BlockchainListenerService(Web3j web3j, VotationService votationService) {
-        this.web3j = web3j;
-        this.votationService = votationService;
-    }
+    private final VoteProcessingService voteProcessingService;
+    private final DHondtCalculationService dHondtCalculationService;
 
     @PostConstruct
+    public void init() {
+        log.info("BlockchainListenerService PostConstruct");
+        log.info("Contract address: '{}'", contractAddress);
+        startListening();
+    }
+
     public void startListening() {
+        log.info("Iniciando escucha de eventos...");
+
         try {
-            SimpleVoting contract = SimpleVoting.load(
-                    CONTRACT_ADDRESS,
-                    web3j,
-                    org.web3j.tx.ClientTransactionManager(web3j, "0x0"),
-                    BigInteger.valueOf(0),
-                    BigInteger.valueOf(0)
+            // Usar StaticGasProvider con valores apropiados para red local
+            StaticGasProvider gasProvider = new StaticGasProvider(
+                    BigInteger.valueOf(0),  // gas price 0 para hardhat
+                    BigInteger.valueOf(3000000)  // gas limit
             );
+
+            // ReadonlyTransactionManager para operaciones de solo lectura (escuchar eventos)
+            ReadonlyTransactionManager txManager = new ReadonlyTransactionManager(web3j, contractAddress);
+
+            SimpleVoting contract = SimpleVoting.load(
+                    contractAddress,
+                    web3j,
+                    txManager,
+                    gasProvider
+            );
+
+            log.info("Contrato cargado correctamente. Escuchando eventos desde el bloque 0...");
 
             listenVoteSubmitted(contract);
             listenVotationCreated(contract);
@@ -38,87 +63,122 @@ public class BlockchainListenerService {
             listenVotationCancelled(contract);
             listenVotationFinished(contract);
 
-            System.out.println("Escuchando eventos blockchain");
+            log.info("Listener de eventos blockchain iniciado correctamente");
 
         } catch (Exception e) {
+            log.error("Error al iniciar listener de blockchain: {}", e.getMessage(), e);
             e.printStackTrace();
         }
     }
 
     // EVENTOS
     private void listenVoteSubmitted(SimpleVoting contract) {
-        contract.voteSubmittedEventFlowable(org.web3j.protocol.core.DefaultBlockParameterName.LATEST,
+        contract.voteSubmittedEventFlowable(
+                org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST,
                 org.web3j.protocol.core.DefaultBlockParameterName.LATEST)
             .subscribe(event -> {
-                System.out.println("VoteSubmitted:");
-                System.out.println("voteId: " + event.voteId);
-                System.out.println("votationId: " + event.votationId);
-                System.out.println("partyId: " + event.partyId);
-                System.out.println("timestamp: " + event.timestamp);
-
+                log.info("VoteSubmitted evento recibido - voteId: {}, votationId: {}", event.voteId, event.votationId);
                 // actualizar usuario en DB a inactive
+                try {
+                    voteProcessingService.processVoteSubmitted(event);
+                } catch (Exception e) {
+                    log.error("Error procesando VoteSubmitted: {}", e.getMessage(), e);
+                }
+            }, error -> {
+                log.error("Error en listener VoteSubmitted: {}", error.getMessage(), error);
             });
     }
 
     private void listenVotationCreated(SimpleVoting contract) {
         contract.votationCreatedEventFlowable(
-                org.web3j.protocol.core.DefaultBlockParameterName.LATEST,
+                org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST,
                 org.web3j.protocol.core.DefaultBlockParameterName.LATEST)
             .subscribe(event -> {
-                System.out.println("VotationCreated:");
-                System.out.println("id: " + event.votationId);
-                System.out.println("title: " + event.title);
+                log.info("VotationCreated evento recibido - id: {}, title: {}", event.votationId, event.title);
 
                 // actualizar DB (estado active)
-                votationService.updateStatus(
-                    event.votationId.longValue(),
-                    "ACTIVE"
-                );
+                try {
+                    votationService.updateStatus(
+                        event.votationId.longValue(),
+                        "ACTIVE"
+                    );
+                    log.info("Estado de votacion {} actualizado a ACTIVE", event.votationId);
+                } catch (Exception e) {
+                    log.error("Error al actualizar estado de votacion: {}", e.getMessage(), e);
+                }
+            }, error -> {
+                log.error("Error en listener VotationCreated: {}", error.getMessage(), error);
             });
     }
 
     private void listenVotationUpdated(SimpleVoting contract) {
         contract.votationUpdatedEventFlowable(
-                org.web3j.protocol.core.DefaultBlockParameterName.LATEST,
+                org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST,
                 org.web3j.protocol.core.DefaultBlockParameterName.LATEST)
             .subscribe(event -> {
-                System.out.println("VotationUpdated: " + event.votationId);
+                log.info("VotationUpdated evento recibido - id: {}", event.votationId);
 
                 // actualizar DB (estado active)
-                votationService.updateStatus(
-                    event.votationId.longValue(),
-                    "ACTIVE"
-                );
+                try {
+                    votationService.updateStatus(
+                        event.votationId.longValue(),
+                        "ACTIVE"
+                    );
+                    log.info("Estado de votacion {} actualizado a ACTIVE", event.votationId);
+                } catch (Exception e) {
+                    log.error("Error al actualizar estado de votacion: {}", e.getMessage(), e);
+                }
+            }, error -> {
+                log.error("Error en listener VotationUpdated: {}", error.getMessage(), error);
             });
     }
 
     private void listenVotationCancelled(SimpleVoting contract) {
         contract.votationCancelledEventFlowable(
-                org.web3j.protocol.core.DefaultBlockParameterName.LATEST,
+                org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST,
                 org.web3j.protocol.core.DefaultBlockParameterName.LATEST)
             .subscribe(event -> {
-                System.out.println("VotationCancelled: " + event.votationId);
+                log.info("VotationCancelled evento recibido - id: {}", event.votationId);
 
                 // actualizar DB (estado cancelled)
-                votationService.updateStatus(
-                    event.votationId.longValue(),
-                    "CANCELLED"
-                );
+                try {
+                    votationService.updateStatus(
+                        event.votationId.longValue(),
+                        "CANCELLED"
+                    );
+                    log.info("Estado de votacion {} actualizado a CANCELLED", event.votationId);
+                } catch (Exception e) {
+                    log.error("Error al actualizar estado de votacion: {}", e.getMessage(), e);
+                }
+            }, error -> {
+                log.error("Error en listener VotationCancelled: {}", error.getMessage(), error);
             });
     }
 
     private void listenVotationFinished(SimpleVoting contract) {
         contract.votationFinishedEventFlowable(
-                org.web3j.protocol.core.DefaultBlockParameterName.LATEST,
+                org.web3j.protocol.core.DefaultBlockParameterName.EARLIEST,
                 org.web3j.protocol.core.DefaultBlockParameterName.LATEST)
             .subscribe(event -> {
-                System.out.println("VotationFinished: " + event.votationId);
+                log.info("VotationFinished evento recibido - id: {}", event.votationId);
 
                 // actualizar DB (estado finished)
-                votationService.updateStatus(
-                    event.votationId.longValue(),
-                    "FINISHED"
-                );
+                try {
+                    votationService.updateStatus(
+                        event.votationId.longValue(),
+                        "FINISHED"
+                    );
+                    log.info("Estado de votacion {} actualizado a FINISHED", event.votationId);
+                } catch (Exception e) {
+                    log.error("Error al actualizar estado de votacion: {}", e.getMessage(), e);
+                }
+                try {
+                    dHondtCalculationService.calculateAndStore(event.votationId.intValue());
+                } catch (Exception e) {
+                    log.error("Error calculando D'Hondt para votacion {}: {}", event.votationId, e.getMessage(), e);
+                }
+            }, error -> {
+                log.error("Error en listener VotationFinished: {}", error.getMessage(), error);
             });
     }
 }

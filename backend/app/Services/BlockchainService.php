@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Block;
 use Web3\Web3;
 use Web3\Contract;
 use Web3\Providers\HttpProvider;
@@ -364,29 +365,96 @@ class BlockchainService
         }
     }
 
-    // Verificar conexion (es como un ping a mis nodos de BESU)
+    /**
+     * web3.php usa callbacks asíncronos: hay que esperar al callback
+     * o devuelvo directamente success antes de tener respuesta del nodo.
+     */
     public function checkConnection()
     {
         try {
             $blockNumber = null;
-            $this->web3->eth->blockNumber(function ($err, $bn) use (&$blockNumber) {
-                if ($err !== null) throw $err;
-                $blockNumber = $bn->toString();
+            $rpcError = null;
+            $completed = false;
+
+            $this->web3->eth->blockNumber(function ($err, $bn) use (&$blockNumber, &$rpcError, &$completed) {
+                if ($err !== null) {
+                    $rpcError = $err;
+                } elseif ($bn !== null) {
+                    $blockNumber = $bn->toString();
+                }
+                $completed = true;
             });
+
+            $waitMs = 0;
+            while (!$completed && $waitMs < 5000) {
+                usleep(100000);
+                $waitMs += 100;
+            }
+
+            if (!$completed) {
+                return [
+                    'success' => false,
+                    'error' => 'Timeout esperando respuesta RPC (blockNumber)',
+                    'message' => 'Error de conexión',
+                ];
+            }
+
+            if ($rpcError !== null) {
+                $msg = is_object($rpcError) && method_exists($rpcError, 'getMessage')
+                    ? $rpcError->getMessage()
+                    : (string) $rpcError;
+
+                return [
+                    'success' => false,
+                    'error' => $msg,
+                    'message' => 'Error de conexión',
+                ];
+            }
 
             return [
                 'success' => true,
                 'blockNumber' => $blockNumber,
-                'message' => 'Conectado a blockchain'
+                'message' => 'Conectado a blockchain',
             ];
         } catch (\Exception $e) {
             Log::error("checkConnection error: {$e->getMessage()}");
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
-                'message' => 'Error de conexión'
+                'message' => 'Error de conexión',
             ];
         }
+    }
+
+    // Verificación extra para asegurar que el bloque (y ancestros necesarios) existan en BD antes de referenciarlos
+    public function ensureBlockExists($blockHash, $blockNumber, $previousHash = null): void
+    {
+        if (!$blockHash) {
+            return;
+        }
+
+        if (Block::where('hash', $blockHash)->exists()) {
+            return;
+        }
+
+        $isGenesis = !$previousHash || $previousHash === '0x0000000000000000000000000000000000000000000000000000000000000000';
+        if (!$isGenesis && !Block::where('hash', $previousHash)->exists()) {
+            $parentBlock = $this->getBlockByHash($previousHash);
+            if ($parentBlock) {
+                $parentNumber = $parentBlock['blockNumber'];
+                $parentHash = $parentBlock['parentHash'] ?? null;
+                $this->ensureBlockExists($previousHash, $parentNumber, $parentHash);
+            }
+        }
+
+        Block::create([
+            'hash' => $blockHash,
+            'blockNumber' => $blockNumber ?? 0,
+            'previousHash' => $previousHash,
+            'transactions' => 1,
+            'isValid' => true,
+        ]);
+        Log::info("Bloque insertado: {$blockHash}", ['parentHash' => $previousHash]);
     }
 
     // Manejo de errores

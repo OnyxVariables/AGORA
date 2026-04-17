@@ -2,8 +2,13 @@
 *.txt
 .env
 .env.*
+!.env.example
 blockchain.env
 
+# CURSOR
+.cursor/
+.agents/
+skills-lock.json
 tools/*.sql
 
 !requirements.txt

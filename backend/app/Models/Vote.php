@@ -22,16 +22,16 @@ class Vote extends Model
 
     public function votation()
     {
-        return $this->belongsTo(Votation::class, 'id');
+        return $this->belongsTo(Votation::class, 'votationId');
     }
 
     public function party()
     {
-        return $this->belongsTo(Party::class, 'id');
+        return $this->belongsTo(Party::class, 'partyId');
     }
 
     public function municipality()
     {
-        return $this->belongsTo(Municipality::class, 'id');
+        return $this->belongsTo(Municipality::class, 'municipalityId');
     }
 }

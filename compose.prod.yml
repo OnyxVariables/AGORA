@@ -65,6 +65,32 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  scheduler:
+    container_name: agora_scheduler
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    environment:
+      SESSION_DOMAIN: ${SESSION_DOMAIN}
+      SANCTUM_STATEFUL_DOMAINS: ${SESSION_DOMAIN},${SESSION_DOMAIN_AUTH}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_CONNECTION: ${DB_CONNECTION}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - backend_data:/var/www/html
+    networks:
+      - agora
+    depends_on:
+      db:
+        condition: service_healthy
+      hardhat:
+        condition: service_healthy
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+
   frontend:
     container_name: agora_frontend
     build:

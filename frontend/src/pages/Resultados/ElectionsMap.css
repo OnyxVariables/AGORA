@@ -24,7 +24,6 @@
 }
 
 .electionsMap .select {
-    width: 10%;
     border-radius: 0.5em;
 }
 
@@ -55,6 +54,23 @@
     padding: 0.3em;
     width: 100%;
     margin-top: 0.5em;
+}
+
+.electionsMap .verify-vote-button {
+    display: block;
+    margin-top: 0.75em;
+    padding: 0.5em 1.25em;
+    font-weight: bold;
+    border-radius: 0.5em;
+    border: 2px solid black;
+    background: white;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #8c00dd20;
+}
+
+.electionsMap .verify-vote-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0 #00000020;
 }
 
 

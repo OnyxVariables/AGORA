@@ -26,6 +26,13 @@
 		<tag/>
 		<url/>
 	</scm>
+	<repositories>
+		<repository>
+			<id>consensys</id>
+			<name>ConsenSys</name>
+			<url>https://artifacts.consensys.net/public/maven/maven/</url>
+		</repository>
+	</repositories>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
@@ -42,11 +49,9 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
-
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -55,12 +60,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -71,13 +71,22 @@
 		<dependency>
 			<groupId>org.web3j</groupId>
 			<artifactId>core</artifactId>
-			<version>4.10.3</version>
+			<version>4.11.3</version>
 		</dependency>
 		<!-- MariaDB Driver for production database -->
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -93,6 +102,23 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.web3j</groupId>
+				<artifactId>web3j-maven-plugin</artifactId>
+				<version>4.11.3</version>
+				<configuration>
+					<packageName>com.agora.votations.contract</packageName>
+					<sourceDestination>${project.basedir}/src/main/java</sourceDestination>
+					<nativeJavaType>true</nativeJavaType>
+					<outputFormat>java</outputFormat>
+					<soliditySourceFiles>
+						<directory>${project.basedir}/src/main/resources/contracts</directory>
+						<includes>
+							<include>**/*.sol</include>
+						</includes>
+					</soliditySourceFiles>
 				</configuration>
 			</plugin>
 			<plugin>

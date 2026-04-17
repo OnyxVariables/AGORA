@@ -1,3 +1,12 @@
+# AGORA — Frontend
+Aplicación React (Vite): rutas de ciudadano, administración CRUD de votaciones, métricas (mapa de calor por provincia), resultados electorales con mapa SVG. Consume la API Laravel (`VITE_API_URL`); las métricas en tiempo real usan WebSocket Spring (`VITE_SPRING_WS_URL`).
+
+Documentación del repositorio: 
+- [../docs/Arquitectura_Runtime.md](../docs/Arquitectura_Runtime.md)
+- [../README.md](../README.md)
+
+---
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

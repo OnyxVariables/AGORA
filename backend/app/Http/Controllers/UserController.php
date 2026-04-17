@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Auditory;
 
 class UserController extends Controller
 {
@@ -29,6 +30,7 @@ class UserController extends Controller
             'apellidos' => $apellidos,
             'dni' => $user->dni,
             'nickname' => $user->nicknamePassword ?? null,
+            'municipalityId' => $user->municipalityId,
             'municipio' => $user->municipality->name ?? null,
             'provincia' => $user->municipality->province->name ?? null,
             'comunidad' => $user->municipality->province->autonomouscommunity->name ?? null,
@@ -59,6 +61,13 @@ class UserController extends Controller
 
         $user->nicknamePassword = $request->input('nickname');
         $user->save();
+
+        // Registrar auditoría
+        Auditory::log(
+            $user->id,
+            'SET_NICKNAME',
+            "Usuario estableció nickname '{$request->input('nickname')}'"
+        );
 
         return response()->json([
             'message' => 'Nickname actualizado'

@@ -5,7 +5,7 @@
     "lineChart . . heatChart";
   justify-content: center;
   align-items: center;
-  gap: 5em;
+  gap: 2em;
   margin: 2em 0;
 }
 
@@ -13,8 +13,12 @@
   display: grid;
   justify-items: center;
   align-items: center;
-  width: 25rem;
-  height: 25rem;
+  width: 30rem;
+  height: 30rem;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .pie-chart {
@@ -31,8 +35,14 @@
 
 .heat-chart {
   grid-area: heatChart;
-  background: #000;
-  color: #fff;
+  background-color: white;
+  color: #111;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.charts-empty {
+  gap: 0em;
 }
 
 @media (max-width: 1200px) {
@@ -43,4 +53,21 @@
       "lineChart"
       "heatChart";
   }
+}
+
+.heat-chart-map-wrap {
+  width: 100%;
+  min-height: 420px;
+  height: 440px;
+}
+
+.heat-chart-legend {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.heat-chart-empty {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
 }

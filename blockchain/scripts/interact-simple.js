@@ -68,8 +68,9 @@ async function main() {
         const block = await provider.getBlock("latest");
         const now = block.timestamp;
         const end = now + 3600; // +1 hora
+        const votationId = now;
         try {
-          const tx = await simpleVoting.createVotation(title, desc, now, end);
+          const tx = await simpleVoting.createVotation(votationId, title, desc, now, end);
           const receipt = await tx.wait();
           
           // Extraer ID del evento

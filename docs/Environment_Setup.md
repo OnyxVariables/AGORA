@@ -10,10 +10,12 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 ### Desarrollo
 - **Archivo Compose**: `compose.dev.yml`
 - **Archivo de entorno**: `.env.dev`
-- **URLs**: 
-  - Frontend: `http://localhost:5173`
-  - Backend API: `http://localhost:8000`
-  - Base de datos: `agora_dev`
+- **URLs** (según cómo accedas; en Docker suele usarse Nginx como puerta única):
+  - Frontend (Vite directo): `http://localhost:5173`
+  - Nginx (frontend + API): `http://localhost:8080`
+  - Backend Laravel (directo al contenedor): `http://localhost:8000`
+  - Spring Boot (WebSocket y actuator): `http://localhost:8081` — WebSocket métricas: `ws://localhost:8081/ws` (`VITE_SPRING_WS_URL`)
+  - Base de datos: `agora_dev` (MariaDB en `localhost:33306` si está mapeada en `compose.dev.yml`)
 
 ### Producción
 - **Archivo Compose**: `compose.prod.yml`
@@ -75,8 +77,26 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 ### Variables de Entorno del Frontend
 | Variable | Descripción | Desarrollo | Producción |
 |----------|-------------|-------------|------------|
-| `VITE_API_URL` | URL del API del backend | `http://localhost:8000` | `https://agorachain.es` |
+| `VITE_API_URL` | URL del API del backend (en dev con Nginx suele ser el mismo host/puerto que el front) | `http://localhost:8080` | `https://agorachain.es` |
 | `VITE_APP_URL` | URL del frontend | `http://localhost:5173` | `https://agorachain.es` |
+| `VITE_SPRING_WS_URL` | WebSocket Spring (métricas tiempo real) | `ws://localhost:8081/ws` | Ajustar a tu dominio/puerto TLS |
+
+### Scheduler Laravel (votaciones programadas)
+El comando `votations:process-lifecycle` está registrado para ejecutarse **cada minuto**. **Si nadie ejecuta la agenda de Laravel, el estado en BD no pasará a `active` ni se llamará a `createVotation`**, aunque la hora de inicio ya haya llegado.
+
+**Docker (`compose.dev.yml`):** existe el servicio **`scheduler`**, que arranca `php artisan schedule:work` con el mismo código y `.env` que el backend. Debe estar levantado (`docker compose -f compose.dev.yml up -d` incluye el scheduler). Si solo corres el contenedor `backend` sin el scheduler, el fallo es el esperado.
+
+**Sin Docker:** en una terminal aparte:
+```bash
+cd backend
+php artisan schedule:work
+```
+
+(o un cron del sistema que ejecute `php artisan schedule:run` cada minuto).
+
+**RPC desde contenedores:** en `BESU_RPC_URL` usa el hostname del nodo en la red Docker (p. ej. `http://hardhat:8545`), no `localhost`, si Laravel corre dentro de Compose.
+
+Ver [Arquitectura_Runtime.md](Arquitectura_Runtime.md).
 
 
 ## Diferencias Clave entre Entornos

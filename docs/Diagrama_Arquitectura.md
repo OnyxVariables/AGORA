@@ -1,5 +1,7 @@
 # Arquitectura y Despliegue del Sistema de Votación Electrónica con Blockchain
 
+> **Nota:** La descripción detallada del comportamiento real (quién envía transacciones, cómo se programa el ciclo de vida de la votación, de dónde lee D’Hondt los datos) está en [**Arquitectura_Runtime.md**](Arquitectura_Runtime.md). Este documento conserva la visión de capas y despliegue
+
 ## Índice
 1. [Introducción](#1-introducción)  
 2. [Objetivos de la Arquitectura](#2-objetivos-de-la-arquitectura)  
@@ -74,11 +76,13 @@ Los nodos se organizan como un **cluster distribuido**, eliminando puntos único
 
 <a id="servicio-calculo-electoral"></a>
 ## 6. Servicio de Cálculo Electoral (Spring Boot – Ley D’Hondt)
-El cálculo de escaños y resultados electorales se realiza mediante un servicio **Spring Boot** independiente, que:
-- Consulta los votos directamente desde la blockchain.
-- Aplica el algoritmo de reparto conforme a la **Ley D’Hondt**.
-- Persiste resultados agregados en MariaDB.
-- Proporciona los datos al frontend para su visualización.
+El cálculo de escaños se ejecuta en **Spring Boot** tras el evento de cadena de **votación finalizada** (`VotationFinished`). El servicio:
+- Lee los votos desde **MariaDB** (tabla `vote`), enlazando municipio → provincia.
+- Aplica la **Ley D’Hondt** por circunscripción (escaños por provincia según `province.totalSeats`).
+- Persiste el resultado en la tabla **`seat`**.
+- El frontend de resultados consume principalmente la **API Laravel** (`/api/votations/{id}/results`), que lee esas filas.
+
+Además, Spring Boot **escucha eventos** del contrato (Web3j), actualiza estados de votación en BD y ofrece **WebSocket** para métricas en vivo; **no sustituye** a Laravel en el envío de transacciones de creación de votación o de voto.
 
 Esta separación garantiza:
 - Transparencia del proceso de votación.
@@ -90,20 +94,18 @@ Esta separación garantiza:
 ![Arquitectura del sistema](img/architecture.svg)
 
 
-
 ## 8. Flujo de Votación
-1. El usuario accede al sistema mediante HTTPS.
-2. Nginx enruta la petición al frontend React.
+1. El usuario accede al sistema mediante HTTPS (o HTTP en desarrollo).
+2. Nginx (o acceso directo a Vite en dev) sirve el frontend React.
 3. React interactúa con Laravel para autenticación y validación.
-4. Laravel registra el voto en la blockchain Besu.
-5. El voto queda almacenado de forma inmutable.
-
+4. Laravel construye y envía la transacción `submitVote` al nodo EVM (Besu/Hardhat); el contrato emite eventos.
+5. Spring Boot procesa el evento y persiste el voto en MariaDB; la cadena conserva la prueba inmutable del registro.
 
 ## 9. Proceso de Cálculo Electoral
-1. El servicio Spring Boot consulta los votos desde la blockchain.
-2. Se aplica el algoritmo de la Ley D’Hondt.
-3. Los resultados se almacenan en MariaDB.
-4. React consume los resultados para su visualización.
+1. Tras `finishVotation` en cadena, Spring Boot recibe el evento y marca la votación como finalizada en BD.
+2. Se ejecuta el algoritmo de la Ley D’Hondt sobre los votos ya persistidos en MariaDB.
+3. Los escaños por provincia/partido se guardan en la tabla `seat`.
+4. React (pantalla de resultados) obtiene los agregados vía API Laravel.
 
 
 ## 10. Consideraciones de Seguridad
