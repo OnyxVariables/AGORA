@@ -20,6 +20,7 @@ class VotationController extends Controller
     }
 
     private const VOTATION_DURATION_HOURS = 12;
+    # private const VOTATION_DURATION_MINUTES = 5;
 
     private function hasOverlappingVotation(Carbon $start, Carbon $end, ?int $excludeId = null): bool
     {
@@ -59,7 +60,7 @@ class VotationController extends Controller
         ]);
 
         $start = Carbon::parse($data['startDate']);
-        $end = $start->copy()->addHours(self::VOTATION_DURATION_HOURS);
+        #$end = $start->copy()->addMinutes(self::VOTATION_DURATION_MINUTES);
 
         if ($this->hasOverlappingVotation($start, $end, null)) {
             return response()->json([
@@ -126,7 +127,8 @@ class VotationController extends Controller
 
         $start = Carbon::parse($data['startDate']);
         $end = $start->copy()->addHours(self::VOTATION_DURATION_HOURS);
-
+        # $end = $start->copy()->addMinutes(self::VOTATION_DURATION_MINUTES);
+        
         if ($this->hasOverlappingVotation($start, $end, (int) $votation->id)) {
             return response()->json([
                 'error' => 'Ya existe otra votación que solapa con este horario.',
