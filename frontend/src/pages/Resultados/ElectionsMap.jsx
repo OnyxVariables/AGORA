@@ -1,33 +1,222 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Particles from "../../components/Particles/Particles";
+import SpainMap from "../../components/SpainMap/SpainMap";
 import { API_CONFIG } from "../../config/api";
 import { popupError, popupInfo } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
-import {
-  BarChart,
-  HeatChart,
-  LineChart,
-  PieChart,
-} from "../../components/ChartSection/ChartSection";
+import { BarChart, PieChart } from "../../components/ChartSection/ChartSection";
 
 import "./ElectionsMap.css";
+
+const ccaaColors = {
+  Andalucía: "#4CAF50",
+  Aragon: "#FF9800",
+  Asturias: "#2196F3",
+  Cantabria: "#c4cf5eff",
+  "Castilla y León": "#E91E63",
+  "Castilla la Mancha": "#795548",
+  Cataluña: "#3F51B5",
+  Ceuta: "#009688",
+  "Comunidad Valenciana": "#F44336",
+  Extremadura: "#8BC34A",
+  Galicia: "#FF9800",
+  "Islas Baleares": "#FF5722",
+  "Islas Canarias": "#673AB7",
+  "La Rioja": "#6f16ffff",
+  "Comunidad de Madrid": "#FFC107",
+  Melilla: "#00BCD4",
+  Murcia: "#CDDC39",
+  "Navarra, Comunidad Foral de": "#FFEB3B",
+  "País Vasco": "#c800ffff",
+};
+
+const provinceToCCAA = {
+  Almería: "Andalucía",
+  Cádiz: "Andalucía",
+  Córdoba: "Andalucía",
+  Granada: "Andalucía",
+  Huelva: "Andalucía",
+  Jaén: "Andalucía",
+  Málaga: "Andalucía",
+  Sevilla: "Andalucía",
+  Huesca: "Aragon",
+  Teruel: "Aragon",
+  Zaragoza: "Aragon",
+  Asturias: "Asturias",
+  Cantabria: "Cantabria",
+  Ávila: "Castilla y León",
+  Burgos: "Castilla y León",
+  León: "Castilla y León",
+  Palencia: "Castilla y León",
+  Salamanca: "Castilla y León",
+  Segovia: "Castilla y León",
+  Soria: "Castilla y León",
+  Valladolid: "Castilla y León",
+  Zamora: "Castilla y León",
+  Albacete: "Castilla la Mancha",
+  "Ciudad Real": "Castilla la Mancha",
+  Cuenca: "Castilla la Mancha",
+  Guadalajara: "Castilla la Mancha",
+  Toledo: "Castilla la Mancha",
+  Barcelona: "Cataluña",
+  Gerona: "Cataluña",
+  Lérida: "Cataluña",
+  Tarragona: "Cataluña",
+  Ceuta: "Ceuta",
+  Valencia: "Comunidad Valenciana",
+  Alicante: "Comunidad Valenciana",
+  Castellón: "Comunidad Valenciana",
+  Badajoz: "Extremadura",
+  Cáceres: "Extremadura",
+  "La Coruña": "Galicia",
+  Lugo: "Galicia",
+  Orense: "Galicia",
+  Pontevedra: "Galicia",
+  Baleares: "Islas Baleares",
+  "Las Palmas": "Islas Canarias",
+  "Santa Cruz de Tenerife": "Islas Canarias",
+  "La Rioja": "La Rioja",
+  Madrid: "Comunidad de Madrid",
+  Melilla: "Melilla",
+  Murcia: "Murcia",
+  Navarra: "Navarra, Comunidad Foral de",
+  Álava: "País Vasco",
+  Gipuzkoa: "País Vasco",
+  Bizkaia: "País Vasco",
+};
+
+function hexToRgb(hex) {
+  hex = hex.replace("#", "");
+  return {
+    r: parseInt(hex.substring(0, 2), 16),
+    g: parseInt(hex.substring(2, 4), 16),
+    b: parseInt(hex.substring(4, 6), 16),
+  };
+}
+
+function rgbToHex(r, g, b) {
+  return (
+    "#" +
+    r.toString(16).padStart(2, "0") +
+    g.toString(16).padStart(2, "0") +
+    b.toString(16).padStart(2, "0")
+  );
+}
+
+function generateProvinceColor(baseHex, index, total) {
+  const rgb = hexToRgb(baseHex);
+  const factor = 1 - (0.5 * index) / total;
+  return rgbToHex(
+    Math.round(rgb.r * factor),
+    Math.round(rgb.g * factor),
+    Math.round(rgb.b * factor),
+  );
+}
+
+function aggregateRegionResults(resultsDetail, regionName, level) {
+  if (!resultsDetail?.byProvince) {
+    return { parties: [], totalVotes: 0, totalSeats: 0 };
+  }
+  const provinces = resultsDetail.byProvince;
+  let relevant = [];
+  if (level === "nation" && regionName === "Spain") {
+    relevant = provinces;
+  } else if (level === "ccaa") {
+    relevant = provinces.filter(
+      (p) => p.autonomousCommunityName === regionName,
+    );
+  } else if (level === "province") {
+    relevant = provinces.filter((p) => p.provinceName === regionName);
+  }
+  const partyMap = new Map();
+  for (const prov of relevant) {
+    for (const row of prov.parties ?? []) {
+      const k = row.partyId;
+      if (!partyMap.has(k)) {
+        partyMap.set(k, {
+          partyId: k,
+          partyName: row.partyName,
+          votes: 0,
+          seatsAssigned: 0,
+          colorBackground: row.colorBackground,
+          colorTitle: row.colorTitle,
+        });
+      }
+      const agg = partyMap.get(k);
+      agg.votes += row.votes;
+      agg.seatsAssigned += row.seatsAssigned;
+    }
+  }
+  const parties = Array.from(partyMap.values());
+  const totalVotes = parties.reduce((s, p) => s + p.votes, 0);
+  const totalSeats = parties.reduce((s, p) => s + p.seatsAssigned, 0);
+  return { parties, totalVotes, totalSeats };
+}
+
+function buildChartData(parties) {
+  const labels = parties.map((p) => p.partyName);
+  const votes = parties.map((p) => p.votes);
+  const colors = parties.map(
+    (p) => p.colorBackground || "#cccccc",
+  );
+  const borders = parties.map((p) => p.colorTitle || "#333333");
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Votos",
+        data: votes,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth: 1,
+      },
+    ],
+  };
+}
+
+function buildSeatsPieData(parties) {
+  const withSeats = parties.filter((p) => p.seatsAssigned > 0);
+  const labels = withSeats.map((p) => p.partyName);
+  const data = withSeats.map((p) => p.seatsAssigned);
+  const colors = withSeats.map((p) => p.colorBackground || "#cccccc");
+  const borders = withSeats.map((p) => p.colorTitle || "#333333");
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Escaños",
+        data,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth: 1,
+      },
+    ],
+  };
+}
 
 export default function ElectionsMap() {
   const [selectedName, setSelectedName] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [totalVotes, setTotalVotes] = useState(0);
   const [seatsAssigned, setSeatsAssigned] = useState(0);
+  const [pieData, setPieData] = useState(null);
+  const [barData, setBarData] = useState(null);
   const [votationSummaries, setVotationSummaries] = useState([]);
+  /** Solo finalizadas: mapa y resultados */
   const [selectedVotationId, setSelectedVotationId] = useState("");
+  /** Cualquier estado devuelto por /summary: verificación de voto */
+  const [verifyVotationId, setVerifyVotationId] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
+  const [mapLevel, setMapLevel] = useState("nation");
+  const [resultsDetail, setResultsDetail] = useState(null);
+  const [resultsLoading, setResultsLoading] = useState(false);
+  const [resultsError, setResultsError] = useState(null);
 
-  const levels = [
-    { value: "nation", label: "Nación" },
-    { value: "ccaa", label: "Comunidad" },
-    { value: "province", label: "Provincia" },
-    { value: "municipality", label: "Municipio" },
-  ];
+  const finishedVotations = useMemo(
+    () => votationSummaries.filter((v) => v.state === "finished"),
+    [votationSummaries],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -39,9 +228,6 @@ export default function ElectionsMap() {
         const data = await res.json();
         if (cancelled || !Array.isArray(data)) return;
         setVotationSummaries(data);
-        if (data.length > 0) {
-          setSelectedVotationId(String(data[0].id));
-        }
       } catch (e) {
         console.error(e);
       }
@@ -52,35 +238,98 @@ export default function ElectionsMap() {
     };
   }, []);
 
+  useEffect(() => {
+    if (votationSummaries.length > 0 && verifyVotationId === "") {
+      setVerifyVotationId(String(votationSummaries[0].id));
+    }
+  }, [votationSummaries, verifyVotationId]);
+
+  useEffect(() => {
+    if (finishedVotations.length === 0) {
+      setSelectedVotationId("");
+      setResultsDetail(null);
+      return;
+    }
+    setSelectedVotationId((prev) => {
+      if (prev && finishedVotations.some((v) => String(v.id) === prev)) {
+        return prev;
+      }
+      return String(finishedVotations[0].id);
+    });
+  }, [finishedVotations]);
+
+  useEffect(() => {
+    if (!selectedVotationId) {
+      setResultsDetail(null);
+      setResultsError(null);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      setResultsLoading(true);
+      setResultsError(null);
+      try {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATION_RESULTS(Number(selectedVotationId))}`;
+        const res = await fetch(url);
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!res.ok) {
+          setResultsDetail(null);
+          setResultsError(data.error || "No se pudieron cargar los resultados");
+          return;
+        }
+        setResultsDetail(data);
+      } catch (e) {
+        if (!cancelled) {
+          setResultsError("Servicio no disponible");
+          setResultsDetail(null);
+        }
+      } finally {
+        if (!cancelled) setResultsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVotationId]);
+
   const handleVerifyVote = async () => {
     const code = verificationCode.trim().toLowerCase();
     if (!/^[a-f0-9]{64}$/.test(code)) {
-      popupError("El código debe ser 64 caracteres hexadecimales (el que guardaste al votar).");
+      popupError(
+        "El código debe ser 64 caracteres hexadecimales (el que guardaste al votar).",
+      );
       return;
     }
-    if (!selectedVotationId) {
+    if (!verifyVotationId) {
       popupError("Selecciona la votación correspondiente.");
       return;
     }
     try {
       const xsrf = await getXsrfToken();
       if (!xsrf) {
-        popupError("No se pudo obtener la sesión segura. ¿Has iniciado sesión?");
+        popupError(
+          "No se pudo obtener la sesión segura. ¿Has iniciado sesión?",
+        );
         return;
       }
-      const res = await fetch(`${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTE_VERIFY}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "X-XSRF-TOKEN": xsrf,
+      const res = await fetch(
+        `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTE_VERIFY}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-XSRF-TOKEN": xsrf,
+          },
+          body: JSON.stringify({
+            code,
+            votationId: Number(verifyVotationId),
+          }),
         },
-        body: JSON.stringify({
-          code,
-          votationId: Number(selectedVotationId),
-        }),
-      });
+      );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         popupError(data.error || "No se encontró el voto");
@@ -96,440 +345,40 @@ export default function ElectionsMap() {
     }
   };
 
-  useEffect(() => {
-    // Colores por CCAA
-    const ccaaColors = {
-      Andalucía: "#4CAF50",
-      Aragon: "#FF9800",
-      Asturias: "#2196F3",
-      Cantabria: "#c4cf5eff",
-      "Castilla y León": "#E91E63",
-      "Castilla la Mancha": "#795548",
-      Cataluña: "#3F51B5",
-      Ceuta: "#009688",
-      "Comunidad Valenciana": "#F44336",
-      Extremadura: "#8BC34A",
-      Galicia: "#FF9800",
-      "Islas Baleares": "#FF5722",
-      "Islas Canarias": "#673AB7",
-      "La Rioja": "#6f16ffff",
-      "Comunidad de Madrid": "#FFC107",
-      Melilla: "#00BCD4",
-      Murcia: "#CDDC39",
-      "Navarra, Comunidad Foral de": "#FFEB3B",
-      "País Vasco": "#c800ffff",
-    };
-
-    // Relación provincia / CCAA
-    const provinceToCCAA = {
-      Almería: "Andalucía",
-      Cádiz: "Andalucía",
-      Córdoba: "Andalucía",
-      Granada: "Andalucía",
-      Huelva: "Andalucía",
-      Jaén: "Andalucía",
-      Málaga: "Andalucía",
-      Sevilla: "Andalucía",
-      Huesca: "Aragon",
-      Teruel: "Aragon",
-      Zaragoza: "Aragon",
-      Asturias: "Asturias",
-      Cantabria: "Cantabria",
-      Ávila: "Castilla y León",
-      Burgos: "Castilla y León",
-      León: "Castilla y León",
-      Palencia: "Castilla y León",
-      Salamanca: "Castilla y León",
-      Segovia: "Castilla y León",
-      Soria: "Castilla y León",
-      Valladolid: "Castilla y León",
-      Zamora: "Castilla y León",
-      Albacete: "Castilla la Mancha",
-      "Ciudad Real": "Castilla la Mancha",
-      Cuenca: "Castilla la Mancha",
-      Guadalajara: "Castilla la Mancha",
-      Toledo: "Castilla la Mancha",
-      Barcelona: "Cataluña",
-      Gerona: "Cataluña",
-      Lérida: "Cataluña",
-      Tarragona: "Cataluña",
-      Ceuta: "Ceuta",
-      Valencia: "Comunidad Valenciana",
-      Alicante: "Comunidad Valenciana",
-      Castellón: "Comunidad Valenciana",
-      Badajoz: "Extremadura",
-      Cáceres: "Extremadura",
-      "La Coruña": "Galicia",
-      Lugo: "Galicia",
-      Orense: "Galicia",
-      Pontevedra: "Galicia",
-      Baleares: "Islas Baleares",
-      "Las Palmas": "Islas Canarias",
-      "Santa Cruz de Tenerife": "Islas Canarias",
-      "La Rioja": "La Rioja",
-      Madrid: "Comunidad de Madrid",
-      Melilla: "Melilla",
-      Murcia: "Murcia",
-      Navarra: "Navarra, Comunidad Foral de",
-      Álava: "País Vasco",
-      Gipuzkoa: "País Vasco",
-      Bizkaia: "País Vasco",
-    };
-
-    //Funciones para colores
-    function hexToRgb(hex) {
-      hex = hex.replace("#", "");
-      return {
-        r: parseInt(hex.substring(0, 2), 16),
-        g: parseInt(hex.substring(2, 4), 16),
-        b: parseInt(hex.substring(4, 6), 16),
-      };
-    }
-
-    function rgbToHex(r, g, b) {
-      return (
-        "#" +
-        r.toString(16).padStart(2, "0") +
-        g.toString(16).padStart(2, "0") +
-        b.toString(16).padStart(2, "0")
-      );
-    }
-
-    function generateProvinceColor(baseHex, index, total) {
-      const rgb = hexToRgb(baseHex);
-      const factor = 1 - (0.5 * index) / total;
-      return rgbToHex(
-        Math.round(rgb.r * factor),
-        Math.round(rgb.g * factor),
-        Math.round(rgb.b * factor),
-      );
-    }
-
-    //Logica
-    let currentLevel = "nation";
-
-    async function loadGeoData(level) {
-      let file = "";
-      switch (level) {
-        case "nation":
-          file = "/data/spain_nation.json";
-          break;
-        case "ccaa":
-          file = "/data/spain_ccaa.json";
-          break;
-        case "province":
-          file = "/data/spain_provinces.json";
-          break;
-        // case "municipality": file = "/data/spain_municipality.json"; break;
-        default:
-          return [];
+  const getFeatureStyle = useCallback(
+    (feature, geoData) => {
+      const name = feature.properties?.name ?? "";
+      if (name === "Africa Norte" || name === "Portugal" || name === "Francia Sur") {
+        return { fill: "#D1D1D1", pointerEvents: "none" };
       }
-
-      const res = await fetch(file);
-      const data = await res.json();
-      return data.features;
-    }
-
-    //Escalo los polígonos para que se vean bien o sino no sabría que tamaño tendría cada uno ni en que posicion ponerlos
-    function getBBox(features) {
-      let minX = Infinity,
-        minY = Infinity,
-        maxX = -Infinity,
-        maxY = -Infinity;
-      features.forEach((f) => {
-        let coords =
-          f.geometry.type === "Polygon"
-            ? f.geometry.coordinates
-            : f.geometry.coordinates.flat();
-        coords.forEach((ring) => {
-          ring.forEach(([lon, lat]) => {
-            if (lon < minX) minX = lon;
-            if (lat < minY) minY = lat;
-            if (lon > maxX) maxX = lon;
-            if (lat > maxY) maxY = lat;
-          });
-        });
-      });
-      return [minX, minY, maxX, maxY];
-    }
-
-    function project([lon, lat], bbox, svgWidth, svgHeight) {
-      const [minX, minY, maxX, maxY] = bbox;
-      const scaleX = svgWidth / (maxX - minX);
-      const scaleY = svgHeight / (maxY - minY);
-      const scale = Math.min(scaleX, scaleY) * 0.9;
-
-      const x = (lon - minX) * scale + (svgWidth - (maxX - minX) * scale) / 2;
-      const y =
-        svgHeight -
-        ((lat - minY) * scale + (svgHeight - (maxY - minY) * scale) / 2);
-
-      return [x, y];
-    }
-
-    function convertToSVGPath(geometry, bbox, svgWidth, svgHeight) {
-      if (geometry.type === "Polygon") {
-        return geometry.coordinates
-          .map(
-            (ring) =>
-              "M" +
-              ring
-                .map((c) => project(c, bbox, svgWidth, svgHeight).join(","))
-                .join(" L") +
-              " Z",
-          )
-          .join(" ");
-      } else {
-        return geometry.coordinates
-          .map((polygon) =>
-            polygon
-              .map(
-                (ring) =>
-                  "M" +
-                  ring
-                    .map((c) => project(c, bbox, svgWidth, svgHeight).join(","))
-                    .join(" L") +
-                  " Z",
-              )
-              .join(" "),
-          )
-          .join(" ");
+      if (mapLevel === "ccaa") {
+        return { fill: ccaaColors[name] || "#ccc" };
       }
-    }
-
-    function createLinearGradient(defs, id, stops, options = {}) {
-      const g = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "linearGradient",
-      );
-      g.setAttribute("id", id);
-
-      g.setAttribute("x1", options.x1 ?? "0");
-      g.setAttribute("y1", options.y1 ?? "0");
-      g.setAttribute("x2", options.x2 ?? "0");
-      g.setAttribute("y2", options.y2 ?? "1");
-
-      if (options.transform) {
-        g.setAttribute("gradientTransform", options.transform);
-      }
-
-      stops.forEach((s) => {
-        const stop = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "stop",
+      if (mapLevel === "province") {
+        const province = name;
+        const ccaa = provinceToCCAA[province];
+        const baseColor = ccaaColors[ccaa] || "#ccc";
+        const provinces = geoData.filter(
+          (f) => provinceToCCAA[f.properties.name] === ccaa,
         );
-        stop.setAttribute("offset", s.offset);
-        stop.setAttribute("stop-color", s.color);
-        stop.setAttribute("stop-opacity", s.opacity);
-        g.appendChild(stop);
-      });
-
-      defs.appendChild(g);
-    }
-
-    //Función tocha, es la que dibuja el mapa
-    function drawMap(geoData) {
-      const map = document.getElementById("map");
-      const svgWidth = map.clientWidth;
-      const svgHeight = map.clientHeight;
-      map.innerHTML = "";
-      if (geoData.length === 0) return;
-
-      let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-      map.appendChild(defs);
-
-      // Gradiente fill para Marruecos
-      createLinearGradient(defs, "africa-fill-gradient", [
-        { offset: "0%", color: "#D1D1D1", opacity: 1 },
-        { offset: "50%", color: "#D1D1D1", opacity: 0.5 },
-        { offset: "85%", color: "white", opacity: 0 },
-      ]);
-
-      // Gradiente stroke para Marruecos
-      createLinearGradient(defs, "africa-stroke-gradient", [
-        { offset: "0%", color: "black", opacity: 1 },
-        { offset: "50%", color: "black", opacity: 1 },
-        { offset: "80%", color: "white", opacity: 0 },
-      ]);
-
-      // Gradiente fill para Francia
-      createLinearGradient(
-        defs,
-        "france-fill-gradient",
-        [
-          { offset: "70%", color: "#D1D1D1", opacity: 1 },
-          { offset: "85%", color: "#D1D1D1", opacity: 0.5 },
-          { offset: "100%", color: "#D1D1D1", opacity: 0 },
-        ],
-        { x1: "0", y1: "1", x2: "0", y2: "0", transform: "rotate(40)" },
-      );
-
-      // Gradiente stroke para Francia
-      createLinearGradient(
-        defs,
-        "france-stroke-gradient",
-        [
-          { offset: "70%", color: "black", opacity: 1 },
-          { offset: "95%", color: "black", opacity: 0.5 },
-          { offset: "100%", color: "white", opacity: 0 },
-        ],
-        { x1: "0", y1: "1", x2: "0", y2: "0", transform: "rotate(40)" },
-      );
-
-      const bbox = getBBox(geoData);
-
-      // Grupo especial para Canarias para mover posiciones (SOLO ccaa, province y nation)
-      const canariasGroup = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "g",
-      );
-
-      let hasCanarias = false;
-
-      geoData.forEach((feature) => {
-        const pathData = convertToSVGPath(
-          feature.geometry,
-          bbox,
-          svgWidth,
-          svgHeight,
+        const index = provinces.indexOf(feature);
+        const provinceColor = generateProvinceColor(
+          baseColor,
+          index,
+          provinces.length,
         );
-        const path = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "path",
-        );
-        path.setAttribute("d", pathData);
-
-        //Esto lo utilizo para que cada provincia tenga su propio color que le corresponde y no el de la ccaa para todas
-        path.setAttribute("data-name", feature.properties.name);
-        path.setAttribute("vector-effect", "non-scaling-stroke"); //Se amplia porque reescala en base al tamaño del dispoitivo y por eso se ve más ancho
-
-        // Colores por nivel
-        if (feature.properties.name === "Africa Norte") {
-          path.style.pointerEvents = "none";
-          path.style.fill = `url(#africa-fill-gradient)`; //Aplico gradiente a fill
-          path.style.stroke = `url(#africa-stroke-gradient)`; //Aplico gradiente a stroke
-          path.style.strokeWidth = "1";
-        } else if (feature.properties.name === "Portugal") {
-          path.style.fill = "#D1D1D1";
-          path.style.pointerEvents = "none";
-          path.style.stroke = "black";
-          path.style.strokeWidth = "1";
-        } else if (feature.properties.name === "Francia Sur") {
-          path.style.pointerEvents = "none";
-          path.style.fill = `url(#france-fill-gradient)`; //Aplico gradiente a fill
-          path.style.stroke = `url(#france-stroke-gradient)`; //Aplico gradiente a stroke
-          path.style.strokeWidth = "1";
-        } else if (currentLevel === "ccaa") {
-          path.style.fill = ccaaColors[feature.properties.name] || "#ccc";
-        } else if (currentLevel === "province") {
-          const province = feature.properties.name;
-          const ccaa = provinceToCCAA[province];
-          const baseColor = ccaaColors[ccaa] || "#ccc";
-
-          const provinces = geoData.filter(
-            (f) => provinceToCCAA[f.properties.name] === ccaa,
-          );
-          const index = provinces.indexOf(feature);
-
-          const provinceColor = generateProvinceColor(
-            baseColor,
-            index,
-            provinces.length,
-          );
-          path.style.fill = provinceColor;
-
-          //Guardo el color base / provincia para el hover
-          path.dataset.provinceColor = provinceColor;
-          path.dataset.ccaaColor = baseColor;
-        } else {
-          path.style.fill = "#ff4141ff";
-        }
-
-        // Hover / seleccion
-        path.addEventListener("mouseenter", () => hoverFeature(map, path));
-        path.addEventListener("mouseleave", () => resetHover(map));
-        path.addEventListener("click", () => selectFeature(path));
-
-        // Identificar Canarias
-        const isCanariasFeature =
-          feature.properties?.name === "Islas Canarias" ||
-          feature.properties?.name === "Las Palmas" ||
-          feature.properties?.name === "Canarias" || //Solucion
-          feature.properties?.name === "Santa Cruz de Tenerife";
-
-        // Mover Canarias al grupo
-        if (isCanariasFeature) {
-          canariasGroup.appendChild(path);
-          hasCanarias = true;
-        } else {
-          map.appendChild(path);
-        }
-      });
-
-      // Añadir grupo de Canarias al SVG
-      if (hasCanarias) {
-        map.appendChild(canariasGroup);
+        return { fill: provinceColor };
       }
+      return { fill: "#ff4141ff" };
+    },
+    [mapLevel],
+  );
 
-      const scaleFactor = svgWidth / 1000; //Viene de porcentajes para hacerlo % en pantallas mas pequeñas
-
-      // Marco solo para ccaa y province y nation
-      if (
-        hasCanarias &&
-        (currentLevel === "nation" ||
-          currentLevel === "ccaa" ||
-          currentLevel === "province")
-      ) {
-        const BASE_PADDING = 20;
-        const MIN_PADDING = 10;
-        const MAX_PADDING = 50;
-
-        // Lo hago de esta forma porque si solo utilizo una medida en pantallas pequeñas se pone diminuto y de esta forma le puedo decir hasta que medidas quiero que empequeñezca o engrandezca
-        let PADDING = BASE_PADDING * scaleFactor;
-        PADDING = Math.max(MIN_PADDING, Math.min(MAX_PADDING, PADDING));
-
-        const bboxCanarias = canariasGroup.getBBox();
-
-        const rect = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "rect",
-        );
-        rect.setAttribute("x", bboxCanarias.x - PADDING);
-        rect.setAttribute("y", bboxCanarias.y - PADDING);
-        rect.setAttribute("width", bboxCanarias.width + PADDING * 2);
-        rect.setAttribute("height", bboxCanarias.height + PADDING * 2);
-        rect.setAttribute("fill", "none");
-        rect.setAttribute("stroke", "black");
-        rect.setAttribute("stroke-width", "2");
-        rect.setAttribute("vector-effect", "non-scaling-stroke"); //Se amplia porque reescala en base al tamaño del dispoitivo y por eso se ve más ancho
-        rect.setAttribute("rx", 16);
-        rect.setAttribute("ry", 16);
-
-        canariasGroup.insertBefore(rect, canariasGroup.firstChild);
-      }
-
-      const canariasOffset = {
-        x: 0 * scaleFactor,
-        y: -250 * scaleFactor,
-      };
-
-      canariasGroup.setAttribute(
-        "transform",
-        `translate(${canariasOffset.x}, ${canariasOffset.y})`,
-      ); //Le paso el translate a Canarias con la variable del principio
-
-      // Ajuste viewbox
-      const currentViewBox = map.getBBox();
-      const finalViewBox = `${currentViewBox.x - 20} ${currentViewBox.y - 20} ${currentViewBox.width + 40} ${currentViewBox.height + 40}`;
-
-      map.setAttribute("viewBox", finalViewBox);
-    }
-
-    function hoverFeature(map, path) {
-      if (currentLevel === "nation") {
+  const onPathMouseEnter = useCallback(
+    (map, path) => {
+      if (mapLevel === "nation") {
         map.querySelectorAll("path").forEach((p) => {
           const pName = p.getAttribute("data-name");
-
           if (pName === "Spain" || pName === "Canarias") {
             p.style.filter = "brightness(1.4)";
           } else {
@@ -538,175 +387,70 @@ export default function ElectionsMap() {
         });
         return;
       }
-
-      if (currentLevel === "province") {
-        const hoveredProvince = path;
-        const provinceName = hoveredProvince.getAttribute("data-name");
+      if (mapLevel === "province") {
+        const provinceName = path.getAttribute("data-name");
         const ccaa = provinceToCCAA[provinceName];
-
         map.querySelectorAll("path").forEach((p) => {
           const pName = p.getAttribute("data-name");
           const pCCAA = provinceToCCAA[pName];
-
-          if (p === hoveredProvince) {
-            //la del cursor
-            p.style.fill = p.dataset.ccaaColor;
+          if (p === path) {
             p.style.filter = "brightness(1.2)";
-            p.style.strokeWidth = "2"; //Esto mola, como que resalta aun mas la provincia en la que estoy
+            p.style.strokeWidth = "2";
           } else if (pCCAA === ccaa) {
-            //En ccaa
-            p.style.fill = p.dataset.ccaaColor;
             p.style.filter = "brightness(0.7)";
           } else {
-            //Demas
             p.style.filter = "brightness(0.45)";
           }
         });
       } else {
-        // Mantener comportamiento de otros niveles
         map.querySelectorAll("path").forEach((p) => {
           if (p === path) p.style.filter = "brightness(1.2)";
           else p.style.filter = "brightness(0.5)";
         });
       }
-    }
+    },
+    [mapLevel],
+  );
 
-    function resetHover(map) {
-      if (currentLevel === "province") {
+  const onPathMouseLeave = useCallback(
+    (map) => {
+      if (mapLevel === "province") {
         map.querySelectorAll("path").forEach((p) => {
-          p.style.fill = p.dataset.provinceColor;
           p.style.filter = "brightness(1)";
           p.style.strokeWidth = "1";
         });
       } else {
-        map
-          .querySelectorAll("path")
-          .forEach((p) => (p.style.filter = "brightness(1)"));
+        map.querySelectorAll("path").forEach((p) => {
+          p.style.filter = "brightness(1)";
+        });
       }
-    }
+    },
+    [mapLevel],
+  );
 
-    function selectFeature(path) {
-      const name = path.getAttribute("data-name");
-
+  const onFeatureClick = useCallback(
+    (name) => {
+      if (!resultsDetail?.byProvince || !name) return;
       setSelectedName(name);
       setShowDialog(true);
-
-      // TODO(srvariable): Get data from database, instead of using random values
-      const tempDataPerProvince = {
-        Almería: { votes: 10000, seats: 1 },
-        Cádiz: { votes: 20000, seats: 2 },
-        Córdoba: { votes: 30000, seats: 3 },
-        Granada: { votes: 40000, seats: 4 },
-        Huelva: { votes: 50000, seats: 5 },
-        Jaén: { votes: 60000, seats: 6 },
-        Málaga: { votes: 70000, seats: 7 },
-        Sevilla: { votes: 80000, seats: 8 },
-        Huesca: { votes: 90000, seats: 9 },
-        Teruel: { votes: 100000, seats: 10 },
-        Zaragoza: { votes: 10000, seats: 1 },
-        Asturias: { votes: 20000, seats: 2 },
-        Cantabria: { votes: 30000, seats: 3 },
-        Ávila: { votes: 40000, seats: 4 },
-        Burgos: { votes: 50000, seats: 5 },
-        León: { votes: 60000, seats: 6 },
-        Palencia: { votes: 70000, seats: 7 },
-        Salamanca: { votes: 80000, seats: 8 },
-        Segovia: { votes: 90000, seats: 9 },
-        Soria: { votes: 100000, seats: 10 },
-        Valladolid: { votes: 10000, seats: 1 },
-        Zamora: { votes: 20000, seats: 2 },
-        Albacete: { votes: 30000, seats: 3 },
-        "Ciudad Real": { votes: 40000, seats: 4 },
-        Cuenca: { votes: 50000, seats: 5 },
-        Guadalajara: { votes: 60000, seats: 6 },
-        Toledo: { votes: 70000, seats: 7 },
-        Barcelona: { votes: 80000, seats: 8 },
-        Gerona: { votes: 90000, seats: 9 },
-        Lérida: { votes: 100000, seats: 10 },
-        Tarragona: { votes: 10000, seats: 1 },
-        Ceuta: { votes: 20000, seats: 2 },
-        Valencia: { votes: 30000, seats: 3 },
-        Alicante: { votes: 40000, seats: 4 },
-        Castellón: { votes: 50000, seats: 5 },
-        Badajoz: { votes: 60000, seats: 6 },
-        Cáceres: { votes: 70000, seats: 7 },
-        "La Coruña": { votes: 80000, seats: 8 },
-        Lugo: { votes: 90000, seats: 9 },
-        Orense: { votes: 100000, seats: 10 },
-        Pontevedra: { votes: 10000, seats: 1 },
-        Baleares: { votes: 20000, seats: 2 },
-        "Las Palmas": { votes: 30000, seats: 3 },
-        "Santa Cruz de Tenerife": { votes: 40000, seats: 4 },
-        "La Rioja": { votes: 50000, seats: 5 },
-        Madrid: { votes: 60000, seats: 6 },
-        Melilla: { votes: 70000, seats: 7 },
-        Murcia: { votes: 80000, seats: 8 },
-        Navarra: { votes: 90000, seats: 9 },
-        Álava: { votes: 100000, seats: 10 },
-        Gipuzkoa: { votes: 10000, seats: 1 },
-        Bizkaia: { votes: 20000, seats: 2 },
-      };
-
-      if (currentLevel === "nation" && name === "Spain") {
-        setTotalVotes(
-          Object.values(tempDataPerProvince).reduce((accumulator, data) => {
-            return accumulator + data.votes;
-          }, 0),
-        );
-
-        setSeatsAssigned(
-          Object.values(tempDataPerProvince).reduce((accumulator, data) => {
-            return accumulator + data.seats;
-          }, 0),
-        );
-      } else if (currentLevel === "ccaa") {
-        setTotalVotes(() => {
-          let accumulator = 0;
-          Object.entries(tempDataPerProvince).forEach(([province, data]) => {
-            if (provinceToCCAA[province] === name) {
-              accumulator += data.votes;
-            }
-          });
-          return accumulator;
-        });
-        setSeatsAssigned(() => {
-          let accumulator = 0;
-          Object.entries(tempDataPerProvince).forEach(([province, data]) => {
-            if (provinceToCCAA[province] === name) {
-              accumulator += data.seats;
-            }
-          });
-          return accumulator;
-        });
-      } else if (currentLevel === "province") {
-        setTotalVotes(tempDataPerProvince[name]?.votes || 0);
-        setSeatsAssigned(tempDataPerProvince[name]?.seats || 0);
-      }
-
-      //// Scroll to the dialog
-      //const dialog = document.querySelector(".dialog");
-      //if (dialog) {
-      //  const offset = 20;
-      //  const scrollY =
-      //    dialog.getBoundingClientRect().bottom + offset - window.innerHeight;
-      //  window.scrollBy({ top: scrollY, behavior: "smooth" });
-      //}
-    }
-
-    async function changeLevel(level) {
-      currentLevel = level;
-      const geoData = await loadGeoData(level);
-      drawMap(geoData);
-    }
-
-    document
-      .querySelectorAll('input[name="level"]')
-      .forEach((radio) =>
-        radio.addEventListener("change", (e) => changeLevel(e.target.value)),
+      const { parties, totalVotes: tv, totalSeats: ts } = aggregateRegionResults(
+        resultsDetail,
+        name,
+        mapLevel,
       );
+      setTotalVotes(tv);
+      setSeatsAssigned(ts);
+      setBarData(buildChartData(parties));
+      setPieData(buildSeatsPieData(parties));
+    },
+    [resultsDetail, mapLevel],
+  );
 
-    changeLevel(currentLevel);
-  }, []);
+  const levels = [
+    { value: "nation", label: "Nación" },
+    { value: "ccaa", label: "Comunidad" },
+    { value: "province", label: "Provincia" },
+  ];
 
   return (
     <main className="electionsMap">
@@ -738,25 +482,56 @@ export default function ElectionsMap() {
             className="select"
             value={selectedVotationId}
             onChange={(e) => setSelectedVotationId(e.target.value)}
-            aria-label="Votación"
+            aria-label="Votación finalizada"
           >
-            {votationSummaries.length === 0 ? (
-              <option value="">Cargando votaciones…</option>
+            {finishedVotations.length === 0 ? (
+              <option value="">No hay votaciones finalizadas</option>
             ) : (
-              votationSummaries.map((v) => (
+              finishedVotations.map((v) => (
                 <option key={v.id} value={String(v.id)}>
-                  #{v.id} — {v.title} ({v.state})
+                  #{v.id} — {v.title}
                 </option>
               ))
             )}
           </select>
         </article>
         <article className="article2">
-          <p>Pincha en el mapa para ver estadísticas</p>
+          <p>
+            {resultsLoading && "Cargando resultados…"}
+            {resultsError && !resultsLoading && (
+              <span style={{ color: "crimson" }}>{resultsError}</span>
+            )}
+            {!resultsLoading &&
+              !resultsError &&
+              selectedVotationId &&
+              "Pincha en el mapa para ver estadísticas (datos oficiales de la votación)."}
+            {!selectedVotationId &&
+              !resultsLoading &&
+              "Cuando exista una votación finalizada, podrás ver el mapa de resultados."}
+          </p>
         </article>
       </section>
 
       <section className="section2">
+        <label htmlFor="verify-votation-select">Votación para verificar el código:</label>
+        <select
+          id="verify-votation-select"
+          className="select"
+          style={{ width: "100%", marginTop: "0.5rem" }}
+          value={verifyVotationId}
+          onChange={(e) => setVerifyVotationId(e.target.value)}
+          aria-label="Votación para verificación"
+        >
+          {votationSummaries.length === 0 ? (
+            <option value="">Cargando…</option>
+          ) : (
+            votationSummaries.map((v) => (
+              <option key={v.id} value={String(v.id)}>
+                #{v.id} — {v.title} ({v.state})
+              </option>
+            ))
+          )}
+        </select>
         <label htmlFor="verification-code">
           Buscar por código de verificación (64 caracteres, recibido al votar):
         </label>
@@ -786,7 +561,8 @@ export default function ElectionsMap() {
                 type="radio"
                 name="level"
                 value={value}
-                defaultChecked={value === "nation"}
+                checked={mapLevel === value}
+                onChange={() => setMapLevel(value)}
               />
             </div>
           ))}
@@ -795,14 +571,20 @@ export default function ElectionsMap() {
 
       <section className="section4">
         <article className="map">
-          <div id="map-container">
-            <svg id="map">
-              <path id="mapa" />
-            </svg>
+          <div
+            id="map-container"
+            style={{ width: "100%", minHeight: "520px", height: "70vh" }}
+          >
+            {selectedVotationId && resultsDetail && !resultsError && (
+              <SpainMap
+                level={mapLevel}
+                getFeatureStyle={getFeatureStyle}
+                onFeatureClick={onFeatureClick}
+                onPathMouseEnter={onPathMouseEnter}
+                onPathMouseLeave={onPathMouseLeave}
+              />
+            )}
           </div>
-          {/* <div className="ocean" style={{ top: "45%", left: "10%" }}>OCÉANO ATLÁNTICO</div>
-                <div className="ocean" style={{ top: "70%", left: "80%" }}>MAR MEDITERRÁNEO</div>
-                <div className="ocean" style={{ top: "8%", left: "55%" }}>MAR CANTÁBRICO</div> */}
         </article>
       </section>
 
@@ -822,58 +604,10 @@ export default function ElectionsMap() {
                 <span style={{ fontWeight: "bold" }}>Escaños asignados:</span>{" "}
                 {seatsAssigned}
               </p>
-              {/* TODO(srvariable): Add more info */}
             </div>
             <div className="chart-section">
-              <PieChart
-                data={{
-                  labels: ["foo", "bar"],
-                  datasets: [
-                    {
-                      label: "Escaños",
-                      data: [20000, 11000],
-                      backgroundColor: ["#aaffaa", "#ffffaa"],
-                      borderColor: ["#aaffaa", "#ffffaa"],
-                      borderWidth: 1,
-                    },
-                  ],
-                }}
-              />
-              <BarChart
-                data={{
-                  labels: ["foo", "bar"],
-                  datasets: [
-                    {
-                      label: "Escaños",
-                      data: [20000, 11000],
-                      backgroundColor: ["#aaffaa", "#ffffaa"],
-                      borderColor: ["#aaffaa", "#ffffaa"],
-                      borderWidth: 1,
-                    },
-                  ],
-                }}
-              />
-              <LineChart
-                labels={["01-01-2026", "02-01-2026", "03-01-2026"]}
-                partidos={[
-                  {
-                    nombre: "foo",
-                    value: "foo",
-                    colorFondo: "#aaffaa",
-                    colorTitulo: "#aaffaa",
-                  },
-                  {
-                    nombre: "bar",
-                    value: "bar",
-                    colorFondo: "#ffffaa",
-                    colorTitulo: "#ffffaa",
-                  },
-                ]}
-                series={{
-                  foo: [30, 150, 5280],
-                  bar: [120, 1800, 2800],
-                }}
-              />
+              {pieData && pieData.labels.length > 0 && <PieChart data={pieData} />}
+              {barData && barData.labels.length > 0 && <BarChart data={barData} />}
             </div>
           </div>
         </dialog>
