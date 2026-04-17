@@ -164,6 +164,14 @@ export default function Main() {
     setIsConnected(wsConnected);
   }, [wsConnected]);
 
+  const formatDate = useCallback((dateStr) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+  }, []);
+
   const votationSummaryRows = useMemo(() => {
     if (!bundle?.votation) return [];
     const v = bundle.votation;
@@ -186,18 +194,18 @@ export default function Main() {
       },
       {
         field: "Inicio",
-        value: v.startDate ?? "—",
+        value: formatDate(v.startDate),
       },
       {
         field: "Fin",
-        value: v.endDate ?? "—",
+        value: formatDate(v.endDate),
       },
       {
         field: "txHash",
         value: v.txHash ? `${v.txHash.slice(0, 14)}…` : "—",
       },
     ];
-  }, [bundle]);
+  }, [bundle, formatDate]);
 
   const participationRows = useMemo(() => {
     const m = bundle?.metrics;
@@ -235,9 +243,9 @@ export default function Main() {
       desc: a.description ? `${String(a.description).slice(0, 60)}…` : "—",
       tx: a.txHash ? `${a.txHash.slice(0, 12)}…` : "—",
       block: a.blockHash ? `${a.blockHash.slice(0, 12)}…` : "—",
-      fecha: a.createdAt,
+      fecha: formatDate(a.createdAt),
     }));
-  }, [bundle, selectedUser]);
+  }, [bundle, selectedUser, formatDate]);
 
   const blocksRows = useMemo(() => {
     const blocks = bundle?.blocks ?? [];

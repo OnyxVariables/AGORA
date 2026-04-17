@@ -194,11 +194,21 @@ export default function App() {
       }
     };
 
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "—";
+      const d = new Date(dateStr);
+      if (Number.isNaN(d.getTime())) return dateStr;
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+    };
+
     const votationsWithActions = votations.map((votation) => ({
       ...votation,
       txHash: votation.txHash ? `${votation.txHash.slice(0, 14)}…` : "—",
       startBlockHash: votation.startBlockHash ? `${votation.startBlockHash.slice(0, 14)}…` : "—",
       endBlockHash: votation.endBlockHash ? `${votation.endBlockHash.slice(0, 14)}…` : "—",
+      startDate: formatDate(votation.startDate),
+      endDate: formatDate(votation.endDate),
       state: <span className={getStateClass(votation.state)}>{votation.state}</span>,
       _isDisabled: votation.state === "finished" || votation.state === "cancelled",
       actions: (
