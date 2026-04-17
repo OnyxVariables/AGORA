@@ -8,6 +8,7 @@ RUN python3 ./populate_db.py
 
 FROM mariadb:11.8.5-noble AS loader
 COPY --from=generator /data/insert.sql ./insert.sql
+COPY ./db/14-province-seats.sql ./14-province-seats.sql
 
 COPY ./docker/python/load.sh ./load.sh
 RUN chmod +x ./load.sh

@@ -14,3 +14,4 @@ source 10-party.sql;
 source 11-vote.sql;
 source 12-seat.sql;
 source 13-vote-intent.sql;
+source 14-province-seats.sql;
