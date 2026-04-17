@@ -169,7 +169,37 @@ export default function Main() {
     const d = new Date(dateStr);
     if (Number.isNaN(d.getTime())) return dateStr;
     const pad = (n) => String(n).padStart(2, "0");
-    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }, []);
+
+  const CopyButton = useCallback(({ text }) => {
+    if (!text) return null;
+    const handleCopy = () => {
+      navigator.clipboard.writeText(text).catch(() => {});
+    };
+    return (
+      <button
+        onClick={handleCopy}
+        title="Copiar al portapapeles"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: "0 0 0 4px",
+          display: "inline-flex",
+          alignItems: "center",
+          verticalAlign: "middle",
+        }}
+      >
+        <img
+          src="/img/copy.svg"
+          alt="Copiar"
+          width="14"
+          height="14"
+          style={{ filter: "invert(0.4)" }}
+        />
+      </button>
+    );
   }, []);
 
   const votationSummaryRows = useMemo(() => {
@@ -202,10 +232,12 @@ export default function Main() {
       },
       {
         field: "txHash",
-        value: v.txHash ? `${v.txHash.slice(0, 14)}…` : "—",
+        value: v.txHash ? (
+          <>{v.txHash.slice(0, 14)}…<CopyButton text={v.txHash} /></>
+        ) : "—",
       },
     ];
-  }, [bundle, formatDate]);
+  }, [bundle, formatDate, CopyButton]);
 
   const participationRows = useMemo(() => {
     const m = bundle?.metrics;
@@ -241,22 +273,30 @@ export default function Main() {
       user: a.userId,
       action: a.action,
       desc: a.description ? `${String(a.description).slice(0, 60)}…` : "—",
-      tx: a.txHash ? `${a.txHash.slice(0, 12)}…` : "—",
-      block: a.blockHash ? `${a.blockHash.slice(0, 12)}…` : "—",
+      tx: a.txHash ? (
+        <>{a.txHash.slice(0, 12)}…<CopyButton text={a.txHash} /></>
+      ) : "—",
+      block: a.blockHash ? (
+        <>{a.blockHash.slice(0, 12)}…<CopyButton text={a.blockHash} /></>
+      ) : "—",
       fecha: formatDate(a.createdAt),
     }));
-  }, [bundle, selectedUser, formatDate]);
+  }, [bundle, selectedUser, formatDate, CopyButton]);
 
   const blocksRows = useMemo(() => {
     const blocks = bundle?.blocks ?? [];
     return blocks.map((b) => ({
       num: b.blockNumber,
-      hash: `${b.hash.slice(0, 12)}…`,
-      prev: b.previousHash ? `${b.previousHash.slice(0, 10)}…` : "—",
+      hash: (
+        <>{b.hash.slice(0, 12)}…<CopyButton text={b.hash} /></>
+      ),
+      prev: b.previousHash ? (
+        <>{b.previousHash.slice(0, 10)}…<CopyButton text={b.previousHash} /></>
+      ) : "—",
       txs: b.transactions,
       ok: b.isValid ? "Sí" : "No",
     }));
-  }, [bundle]);
+  }, [bundle, CopyButton]);
 
   useEffect(() => {
     const onExport = () => {

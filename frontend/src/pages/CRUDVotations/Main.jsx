@@ -199,14 +199,50 @@ export default function App() {
       const d = new Date(dateStr);
       if (Number.isNaN(d.getTime())) return dateStr;
       const pad = (n) => String(n).padStart(2, "0");
-      return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+      return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    const CopyButton = ({ text }) => {
+      if (!text) return null;
+      const handleCopy = () => {
+        navigator.clipboard.writeText(text).catch(() => {});
+      };
+      return (
+        <button
+          onClick={handleCopy}
+          title="Copiar al portapapeles"
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "0 0 0 4px",
+            display: "inline-flex",
+            alignItems: "center",
+            verticalAlign: "middle",
+          }}
+        >
+          <img
+            src="/img/copy.svg"
+            alt="Copiar"
+            width="14"
+            height="14"
+            style={{ filter: "invert(0.4)" }}
+          />
+        </button>
+      );
     };
 
     const votationsWithActions = votations.map((votation) => ({
       ...votation,
-      txHash: votation.txHash ? `${votation.txHash.slice(0, 14)}…` : "—",
-      startBlockHash: votation.startBlockHash ? `${votation.startBlockHash.slice(0, 14)}…` : "—",
-      endBlockHash: votation.endBlockHash ? `${votation.endBlockHash.slice(0, 14)}…` : "—",
+      txHash: votation.txHash ? (
+        <>{votation.txHash.slice(0, 14)}…<CopyButton text={votation.txHash} /></>
+      ) : "—",
+      startBlockHash: votation.startBlockHash ? (
+        <>{votation.startBlockHash.slice(0, 14)}…<CopyButton text={votation.startBlockHash} /></>
+      ) : "—",
+      endBlockHash: votation.endBlockHash ? (
+        <>{votation.endBlockHash.slice(0, 14)}…<CopyButton text={votation.endBlockHash} /></>
+      ) : "—",
       startDate: formatDate(votation.startDate),
       endDate: formatDate(votation.endDate),
       state: <span className={getStateClass(votation.state)}>{votation.state}</span>,
