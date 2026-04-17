@@ -83,11 +83,9 @@ Los votos no se almacenan como simples registros modificables:
 
 
 ## Visualización de resultados
-El sistema permite mostrar los resultados de forma clara y comprensible:
-* Gráficos de barras.
-* Gráficos pastel.
-* Gráficos temporales.
-* Preparado para incluir mapas de calor por nación.
+* Gráficos de barras y pastel (Chart.js).
+* Mapa de España (provincias/CCAA) en resultados con datos de escaños/votos cuando la votación está finalizada.
+* Mapa de calor por provincia en **métricas** (intensidad según votos agregados por provincia).
 
 
 ## Escalabilidad y disponibilidad
@@ -101,34 +99,36 @@ Agora está preparado para crecer:
 ## Tecnologías utilizadas
 | Área | Tecnología |
 |------|------------|
-| Frontend | React, HTML, CSS, JavaScript, Chart.js |
-| Backend | Java / Laravel |
-| Blockchain | Hyperledger Besu |
-| Base de datos | MySQL / MariaDB |
-| Infraestructura | Docker, K3s, Nginx, AWS |
-| Seguridad | TLS, Certificados electrónicos, SSL generado con let's encrypt |
+| Frontend | React (Vite), Chart.js, mapas SVG (resultados / heatmap métricas) |
+| API principal | Laravel (PHP) — negocio, auth, envío de transacciones al nodo EVM |
+| Servicio en tiempo real y D’Hondt | Spring Boot (Java) — escucha eventos de contrato, persistencia de votos, WebSocket, cálculo de escaños en BD |
+| Contrato inteligente | Solidity (Hardhat); despliegue compatible con Besu |
+| Blockchain | Hyperledger Besu (red QBFT en `QBFT-Network/`) o nodo local Hardhat en desarrollo |
+| Base de datos | MariaDB (esquema en `db/`) |
+| Infraestructura | Docker, Nginx, Kubernetes +AWS |
+| Seguridad | TLS, certificados electrónicos (Sanctum, sesiones) |
 
 
 ## Estructura del proyecto (simplificada)
 ```
 agora/
-├── backend/
-├── frontend/
-├── QBFT-NETWORK/
-├── besu-kubernetes/
+├── backend/          # Laravel API
+├── frontend/         # React + Vite
+├── votations/        # Spring Boot (listener, WebSocket, Ley D’Hondt)
+├── blockchain/       # Hardhat, contrato SimpleVoting.sol
+├── QBFT-Network/     # Red Besu QBFT (opcional / producción)
+├── besu-kubernetes/  # Red besu Kubernetes (producción)
 ├── docker/
-├── db/
-└── docs/
+├── db/               # Scripts SQL de esquema
+└── docs/             # Diagramas, entorno, [Arquitectura_Runtime.md](docs/Arquitectura_Runtime.md)
 ```
 
-
 ## Documentación
-El proyecto incluirá documentación detallada sobre:
-* Instalación y despliegue.
-* Configuración de certificados electrónicos.
-* Creación de la red blockchain privada.
-* Estructura de la base de datos.
-* Casos de uso y diagramas.
+* **[docs/README.md](docs/README.md)** — índice de toda la documentación.
+* **[docs/Environment_Setup.md](docs/Environment_Setup.md)** — Docker, variables `.env`, puertos.
+* **[docs/Arquitectura_Runtime.md](docs/Arquitectura_Runtime.md)** — arquitectura real (Laravel, Spring, scheduler, flujo de votación).
+* Diagramas (flujo, secuencia, ER, casos de uso) en `docs/`.
+* Red blockchain: `QBFT-Network/docs/`.
 
 
 ## Estado del proyecto

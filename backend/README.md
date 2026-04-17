@@ -1,3 +1,15 @@
+## AGORA — Backend
+API principal del proyecto: autenticación (Sanctum), votaciones, votos, métricas, envío de transacciones al nodo EVM (`app/Services/BlockchainService.php`), comando programado `votations:process-lifecycle` (scheduler en `bootstrap/app.php`).
+
+> [IMPORTANT]
+> El scheduler de Laravel **no corre solo** al arrancar `php-fpm` o `artisan serve`. Sin `php artisan schedule:work` (o el servicio Docker `scheduler` en `compose.dev.yml`), las votaciones no pasan a cadena ni a `state=active` a la hora prevista.
+
+Documentación del repositorio: 
+- [../docs/Arquitectura_Runtime.md](../docs/Arquitectura_Runtime.md)
+- [../docs/Environment_Setup.md](../docs/Environment_Setup.md)
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
