@@ -417,7 +417,7 @@ export default function Main() {
         <div className={`table-scroll-container ${votesDetailRows.length > 10 ? 'scrollable' : ''}`}>
           <Table
             id="votes-detail"
-            headings={["ID", "Partido", "Municipio", "Bloque", "Tx", "Creado"]}
+            headings={["ID", "Partido", "Municipio", "Bloque", "TxHash", "Creado"]}
             rows={votesDetailRows}
             rowKeys={["id", "party", "municipio", "bloque", "tx", "creado"]}
           />
@@ -439,7 +439,7 @@ export default function Main() {
         <div className={`table-scroll-container ${blocksRows.length > 10 ? 'scrollable' : ''}`}>
           <Table
             id="blocks-chain"
-            headings={["Nº", "Hash", "Anterior", "Txs", "Válido", "Creado"]}
+            headings={["Nº", "Hash", "Hash Anterior", "Número Transacciones", "Válido", "Creado"]}
             rows={blocksRows}
             rowKeys={["num", "hash", "prev", "txs", "ok", "creado"]}
           />

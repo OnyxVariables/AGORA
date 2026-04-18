@@ -529,11 +529,13 @@ export default function ElectionsMap() {
           {votationSummaries.length === 0 ? (
             <option value="">Cargando…</option>
           ) : (
-            votationSummaries.map((v) => (
-              <option key={v.id} value={String(v.id)}>
-                #{v.id} — {v.title} ({v.state})
-              </option>
-            ))
+            votationSummaries
+              .filter((v) => v.state === "active" || v.state === "finished")
+              .map((v) => (
+                <option key={v.id} value={String(v.id)}>
+                  #{v.id} — {v.title} ({v.state})
+                </option>
+              ))
           )}
         </select>
         <label htmlFor="verification-code">
