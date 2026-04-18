@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PartidoCard from "./Main";
 import "./Main.css";
 import Particles from "../../components/Particles/Particles";
-import { popupError, toastSuccess, popupConfirm, Popup } from "../../services/alerts";
+import { popupError, toastSuccess, popupConfirm, Popup, toastTiny } from "../../services/alerts";
 import { useParties } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
 import { keccak256, toUtf8Bytes } from "ethers";
@@ -138,11 +138,25 @@ function Partidos() {
         return;
       }
 
-      await popupConfirm(
-        `Código de verificación: ${codigo}
-        GUARDA ESTE CÓDIGO`,
-        "Es la única forma de consultar tu voto"
-      );
+      await Popup.fire({
+        icon: "success",
+        title: "Código de verificación",
+        html: `<div style="text-align:center;">
+          <div style="font-size:1.2em;font-weight:bold;margin-bottom:1em;word-break:break-all;">${codigo}</div>
+          <div style="font-size:0.9em;color:#666;margin-top:0.5em;">GUARDA ESTE CÓDIGO<br/>Es la única forma de consultar tu voto</div>
+        </div>`,
+        showConfirmButton: true,
+        showCancelButton: false,
+        confirmButtonText: "Copiar",
+        confirmButtonColor: "#3d0091",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigator.clipboard.writeText(codigo);
+          toastTiny("Copiado");
+        }
+      });
       toastSuccess(data.message);
     } catch (err) {
       console.error(err);
