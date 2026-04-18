@@ -25,7 +25,6 @@
 
 .swal2-title{
   font-size: 1.5em !important;
-  margin: 1em !important;
 }
 
 @media (max-width: 600px) {
@@ -33,4 +32,78 @@
     font-size: 0.8rem;
     padding: 1em;
   }
+}
+
+/* Toast estilo CoinMarketCap */
+.cmc-toast.swal2-popup {
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.cmc-toast .swal2-html-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.cmc-toast .swal2-title {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5em !important;
+}
+
+.cmc-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #00D084;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.cmc-toast-in {
+  animation: cmcIn 0.18s ease-out both;
+}
+
+.cmc-toast-out {
+  animation: cmcOut 0.18s ease-in both;
+}
+
+@keyframes cmcIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cmcOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Remove border from toast icons (ToastTiny/ToastNotice) */
+.cmc-toast div:where(.swal2-icon) {
+  border: none !important;
 }

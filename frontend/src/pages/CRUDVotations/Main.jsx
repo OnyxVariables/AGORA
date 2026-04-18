@@ -7,7 +7,8 @@ import {
   ButtonEdit,
   ButtonDelete,
 } from "../../components/Button/Button";
-import { popupError, toastSuccess } from "../../services/alerts";
+import { formatDate } from "../../utils/date";
+import { popupError, toastSuccess, toastTiny } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
 import { API_CONFIG } from "../../config/api";
 
@@ -37,10 +38,6 @@ export default function App() {
     endBlockHash: "BLOQUE FIN",
     actions: "ACCIONES",
   };
-
-  useEffect(() => {
-    fetchVotations();
-  }, []);
 
   const fetchVotations = () => {
     setLoading(true);
@@ -72,6 +69,11 @@ export default function App() {
         setLoading(false);
       });
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial al montar
+    void fetchVotations();
+  }, []);
 
   const openCreateForm = () => {
     setFormData(emptyVotation);
@@ -128,10 +130,10 @@ export default function App() {
         }
         return data;
       })
-      .then((data) => {
+      .then(() => {
         setIsFormVisible(false);
         fetchVotations();
-        toastSuccess(editId ? "Votación actualizada" : "Votación creada");
+        toastSuccess(editId ? "Votación actualizada" : "Votación programada");
       })
       .catch((err) => console.error(err));
   };
@@ -194,18 +196,12 @@ export default function App() {
       }
     };
 
-    const formatDate = (dateStr) => {
-      if (!dateStr) return "—";
-      const d = new Date(dateStr);
-      if (Number.isNaN(d.getTime())) return dateStr;
-      const pad = (n) => String(n).padStart(2, "0");
-      return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    };
-
     const CopyButton = ({ text }) => {
       if (!text) return null;
       const handleCopy = () => {
-        navigator.clipboard.writeText(text).catch(() => {});
+        navigator.clipboard.writeText(text).then(() => {
+          toastTiny("Copiado");
+        }).catch(() => {});
       };
       return (
         <button
