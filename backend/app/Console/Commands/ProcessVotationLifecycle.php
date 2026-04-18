@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Auditory;
+use App\Models\User;
 use App\Models\Votation;
 use App\Services\BlockchainService;
 use Illuminate\Console\Command;
@@ -99,6 +101,15 @@ class ProcessVotationLifecycle extends Command
                 'state' => 'active',
             ]);
 
+            $auditorId = (int) (User::query()->where('roleId', 1)->orderBy('id')->value('id') ?? 1);
+            Auditory::log(
+                $auditorId,
+                'ACTIVATE_VOTATION',
+                "Activación en cadena de votación '{$votation->title}' (ID: {$votation->id})",
+                $result['transactionHash'] ?? null,
+                $result['blockHash'] ?? null
+            );
+
             Log::info('Votación activada en cadena (scheduler); BD state=active', ['id' => $votation->id]);
         }
     }
@@ -145,6 +156,15 @@ class ProcessVotationLifecycle extends Command
                 'endBlockHash' => $result['blockHash'],
                 'state' => 'finished',
             ]);
+
+            $auditorId = (int) (User::query()->where('roleId', 1)->orderBy('id')->value('id') ?? 1);
+            Auditory::log(
+                $auditorId,
+                'FINISH_VOTATION',
+                "Finalización en cadena de votación '{$votation->title}' (ID: {$votation->id})",
+                $result['transactionHash'] ?? null,
+                $result['blockHash'] ?? null
+            );
 
             Log::info('Votación finalizada en cadena (scheduler); BD state=finished', ['id' => $votation->id]);
         }

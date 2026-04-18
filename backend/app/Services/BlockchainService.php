@@ -248,6 +248,8 @@ class BlockchainService
                 'success' => true,
                 'transactionHash' => $result['txHash'],
                 'blockNumber' => $result['blockNumber'],
+                'blockHash' => $result['blockHash'] ?? null,
+                'parentHash' => $result['parentHash'] ?? null,
                 'gasUsed' => $result['gasUsed'],
                 'message' => 'Voto registrado en blockchain'
             ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Auditory;
 use App\Models\Party;
 use App\Models\User;
 use App\Models\Vote;
@@ -117,6 +118,20 @@ class VoteController extends Controller
                     'details' => $tx['error'] ?? null
                 ], 500);
             }
+
+            $this->blockchainService->ensureBlockExists(
+                $tx['blockHash'] ?? null,
+                $tx['blockNumber'] ?? null,
+                $tx['parentHash'] ?? null
+            );
+
+            Auditory::log(
+                (int) $user->id,
+                'SUBMIT_VOTE',
+                "Voto enviado (votación {$data['votationId']}, partido {$data['partyId']})",
+                $tx['transactionHash'] ?? null,
+                $tx['blockHash'] ?? null
+            );
 
             // isActive se pone a false en Spring Boot al confirmar VoteSubmitted (correlación por vote_intent)
 

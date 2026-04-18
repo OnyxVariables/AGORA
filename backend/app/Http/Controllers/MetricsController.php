@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Party;
+use App\Models\Seat;
 use App\Models\Votation;
-use App\Models\Auditory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -31,13 +31,35 @@ class MetricsController extends Controller
 
         $partyNames = Party::query()->pluck('name', 'id')->all();
 
-        $voteRows = $votes->map(function ($v) use ($partyNames) {
+        $municipalityIds = $votes->pluck('municipalityId')->unique()->filter()->values()->all();
+        $geoByMunicipalityId = collect();
+        if ($municipalityIds !== []) {
+            $geoByMunicipalityId = DB::table('municipality as m')
+                ->leftJoin('province as p', 'p.id', '=', 'm.provinceId')
+                ->leftJoin('autonomousCommunity as ac', 'ac.id', '=', 'p.autonomousCommunityId')
+                ->whereIn('m.id', $municipalityIds)
+                ->select([
+                    'm.id as municipalityId',
+                    'm.name as municipalityName',
+                    'p.name as provinceName',
+                    'ac.name as autonomousCommunityName',
+                ])
+                ->get()
+                ->keyBy('municipalityId');
+        }
+
+        $voteRows = $votes->map(function ($v) use ($partyNames, $geoByMunicipalityId) {
+            $geo = $geoByMunicipalityId->get($v->municipalityId);
+
             return [
                 'id' => $v->id,
                 'voteHash' => $v->voteHash,
                 'partyId' => $v->partyId,
                 'partyName' => $partyNames[$v->partyId] ?? ('#'.$v->partyId),
                 'municipalityId' => $v->municipalityId,
+                'municipalityName' => $geo->municipalityName ?? null,
+                'provinceName' => $geo->provinceName ?? null,
+                'autonomousCommunityName' => $geo->autonomousCommunityName ?? null,
                 'blockHash' => $v->blockHash,
                 'txHash' => $v->txHash,
                 'createdAt' => (string) $v->createdAt,
@@ -84,20 +106,53 @@ class MetricsController extends Controller
 
         $auditRows = [];
         if (Schema::hasTable('auditory')) {
-            $auditRows = DB::table('auditory')
-                ->orderByDesc('id')
+            $auditRows = DB::table('auditory as a')
+                ->leftJoin('user as u', 'u.id', '=', 'a.userId')
+                ->orderByDesc('a.id')
                 ->limit(100)
-                ->get()
-                ->map(fn ($a) => [
-                    'id' => $a->id,
-                    'userId' => $a->userId,
-                    'action' => $a->action,
-                    'description' => $a->description,
-                    'txHash' => $a->txHash,
-                    'blockHash' => $a->blockHash,
-                    'createdAt' => (string) $a->createdAt,
+                ->select([
+                    'a.id',
+                    'a.userId',
+                    'a.action',
+                    'a.description',
+                    'a.txHash',
+                    'a.blockHash',
+                    'a.createdAt',
+                    'u.nicknamePassword',
+                    'u.name as userName',
+                    'u.roleId as userRole',
                 ])
+                ->get()
+                ->map(function ($a) {
+                    $name = $a->userName ?? null;
+                    $nickname = $a->nicknamePassword ?? null;
+                    $displayName = $name !== null && $name !== ''
+                        ? $name
+                        : ($nickname !== null && $nickname !== '' ? $nickname : null);
+
+                    return [
+                        'id' => $a->id,
+                        'userId' => $a->userId,
+                        'userName' => $displayName,
+                        'userRole' => $a->userRole,
+                        'action' => $a->action,
+                        'description' => $a->description,
+                        'txHash' => $a->txHash,
+                        'blockHash' => $a->blockHash,
+                        'createdAt' => (string) $a->createdAt,
+                    ];
+                })
                 ->values()
+                ->all();
+        }
+
+        $seatsByParty = [];
+        if (Schema::hasTable('seat')) {
+            $seatsByParty = Seat::query()
+                ->where('votationId', $votationId)
+                ->get()
+                ->groupBy('partyId')
+                ->map(fn ($group) => (int) $group->sum('seatsAssigned'))
                 ->all();
         }
 
@@ -111,6 +166,7 @@ class MetricsController extends Controller
                 'votesByParty' => $votesByParty,
                 'votesByMunicipality' => $votesByMunicipality,
                 'votesByProvinceName' => $votesByProvinceName,
+                'seatsByParty' => $seatsByParty,
                 'registeredCitizens' => $registeredCitizens,
                 'participationRate' => $registeredCitizens > 0
                     ? round(($totalVotes / $registeredCitizens) * 100, 2)
