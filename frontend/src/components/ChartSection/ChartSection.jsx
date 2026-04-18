@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -225,14 +225,50 @@ export function LineChart({ labels, partidos, series }) {
   );
 }
 
-// Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
-export function HeatChart({ data, votesByProvinceName = {} }) {
-  const byProvince =
-    votesByProvinceName && Object.keys(votesByProvinceName).length > 0
-      ? votesByProvinceName
-      : {};
+// Suma votos del backend (nombres INE/BD) al nombre de provincia del GeoJSON
+function votesForMapProvince(mapProvinceName, byProvince) {
+  if (!byProvince || typeof byProvince !== "object") return 0;
+  const aliasGroups = {
+    "La Coruña": ["La Coruña", "A Coruña", "Coruña"],
+    Gerona: ["Gerona", "Girona"],
+    Lérida: ["Lérida", "Lleida"],
+    Orense: ["Orense", "Ourense"],
+    Navarra: ["Navarra", "Navarra / Nafarroa"],
+  };
+  const keys = aliasGroups[mapProvinceName] ?? [mapProvinceName];
+  return keys.reduce((s, k) => s + (Number(byProvince[k]) || 0), 0);
+}
 
-  const maxVotes = Math.max(1, ...Object.values(byProvince).map((v) => Number(v) || 0));
+// Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
+export function HeatChart({ votesByProvinceName = {} }) {
+  const byProvince = useMemo(() => {
+    if (
+      votesByProvinceName &&
+      typeof votesByProvinceName === "object" &&
+      Object.keys(votesByProvinceName).length > 0
+    ) {
+      return votesByProvinceName;
+    }
+    return {};
+  }, [votesByProvinceName]);
+
+  const maxVotes = useMemo(() => {
+    let m = 1;
+    for (const v of Object.values(byProvince)) {
+      m = Math.max(m, Number(v) || 0);
+    }
+    const mergeSums = [
+      ["La Coruña", "A Coruña"],
+      ["Gerona", "Girona"],
+      ["Lérida", "Lleida"],
+      ["Orense", "Ourense"],
+    ];
+    for (const keys of mergeSums) {
+      const s = keys.reduce((acc, k) => acc + (Number(byProvince[k]) || 0), 0);
+      m = Math.max(m, s);
+    }
+    return m;
+  }, [byProvince]);
 
   const getFeatureStyle = useCallback(
     (feature) => {
@@ -244,7 +280,7 @@ export function HeatChart({ data, votesByProvinceName = {} }) {
       ) {
         return { fill: "#D1D1D1", pointerEvents: "none" };
       }
-      const n = Number(byProvince[name]) || 0;
+      const n = votesForMapProvince(name, byProvince);
       const t = n / maxVotes;
       const r = Math.round(240 - t * 200);
       const g = Math.round(240 - t * 220);
@@ -273,7 +309,7 @@ export function HeatChart({ data, votesByProvinceName = {} }) {
   );
 }
 
-export default function ChartSection({ voteMetrics, selectedVotation }) {
+export default function ChartSection({ voteMetrics }) {
   const { partidos, loading } = useParties();
 
   if (loading) {
@@ -344,10 +380,7 @@ export default function ChartSection({ voteMetrics, selectedVotation }) {
             series={timeSeriesData}
           />
 
-          <HeatChart
-            data={voteMetrics.votesByMunicipality}
-            votesByProvinceName={voteMetrics.votesByProvinceName}
-          />
+          <HeatChart votesByProvinceName={voteMetrics.votesByProvinceName} />
         </>
       ) : (
         <div className="no-votes">

@@ -79,6 +79,57 @@
   margin-top: 2.5em;
 }
 
+.metrics-two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .metrics-two-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+.muni-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  line-height: 1.25;
+}
+
+.muni-cell .muni-sub {
+  font-size: 0.85rem;
+  color: #6a00d4;
+  font-weight: 500;
+}
+
+.muni-missing {
+  color: #3d0091;
+}
+
+/* Contenedor de tabla de partidos con scroll para más de 7 filas */
+.party-table-container {
+  max-height: 315px;
+  overflow-y: auto;
+}
+
+.party-table-container table {
+  width: 100%;
+}
+
+/* Contenedor de tablas con scroll para más de 10 filas */
+.table-scroll-container.scrollable {
+  max-height: 500px;
+  overflow-y: auto;
+  margin-bottom: 1em;
+}
+
+.table-scroll-container table {
+  width: 100%;
+}
+
 @media (max-width: 900px) {
     .metrics-banner-error {
         margin-top: 7em;
