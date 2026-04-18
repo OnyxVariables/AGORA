@@ -111,7 +111,7 @@
 
 /* Contenedor de tabla de partidos con scroll para más de 7 filas */
 .party-table-container {
-  max-height: 315px;
+  max-height: 163px;
   overflow-y: auto;
 }
 
