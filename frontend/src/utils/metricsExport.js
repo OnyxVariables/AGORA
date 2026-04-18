@@ -35,9 +35,12 @@ export function metricsBundleToCsv(bundle) {
   lines.push(["", "registeredCitizens", m.registeredCitizens].map(esc).join(","));
   lines.push(["", "participationRate_pct", m.participationRate].map(esc).join(","));
   lines.push([]);
-  lines.push(["Votos por partido (partyId)", "votos"].map(esc).join(","));
+  const seatsByParty = m.seatsByParty ?? {};
+  lines.push(["Votos por partido (partyId)", "votos", "escaños"].map(esc).join(","));
   Object.entries(m.votesByParty ?? {}).forEach(([pid, c]) => {
-    lines.push([pid, c].map(esc).join(","));
+    const hasSeat = Object.prototype.hasOwnProperty.call(seatsByParty, pid);
+    const seats = hasSeat ? seatsByParty[pid] : "";
+    lines.push([pid, c, seats].map(esc).join(","));
   });
   lines.push([]);
   lines.push(["Votos por municipio (municipalityId)", "votos"].map(esc).join(","));
@@ -52,6 +55,9 @@ export function metricsBundleToCsv(bundle) {
       "partyId",
       "partyName",
       "municipalityId",
+      "municipalityName",
+      "provinceName",
+      "autonomousCommunityName",
       "blockHash",
       "txHash",
       "createdAt",
@@ -67,6 +73,9 @@ export function metricsBundleToCsv(bundle) {
         row.partyId,
         row.partyName,
         row.municipalityId,
+        row.municipalityName ?? "",
+        row.provinceName ?? "",
+        row.autonomousCommunityName ?? "",
         row.blockHash,
         row.txHash,
         row.createdAt,
@@ -76,19 +85,52 @@ export function metricsBundleToCsv(bundle) {
     );
   });
   lines.push([]);
-  lines.push(["Bloque hash", "número", "tx prev", "transacciones", "válido"].map(esc).join(","));
+  lines.push(
+    ["Bloque hash", "número", "tx prev", "transacciones", "válido", "creado"]
+      .map(esc)
+      .join(","),
+  );
   (bundle?.blocks ?? []).forEach((b) => {
     lines.push(
-      [b.hash, b.blockNumber, b.previousHash ?? "", b.transactions, b.isValid ? "1" : "0"]
+      [
+        b.hash,
+        b.blockNumber,
+        b.previousHash ?? "",
+        b.transactions,
+        b.isValid ? "1" : "0",
+        b.createdAt ?? "",
+      ]
         .map(esc)
         .join(","),
     );
   });
   lines.push([]);
-  lines.push(["Auditoría id", "userId", "action", "description", "txHash", "blockHash", "createdAt"].map(esc).join(","));
+  lines.push(
+    [
+      "Auditoría id",
+      "userId",
+      "userNickname",
+      "action",
+      "description",
+      "txHash",
+      "blockHash",
+      "createdAt",
+    ]
+      .map(esc)
+      .join(","),
+  );
   (bundle?.audit ?? []).forEach((a) => {
     lines.push(
-      [a.id, a.userId, a.action, a.description ?? "", a.txHash ?? "", a.blockHash ?? "", a.createdAt]
+      [
+        a.id,
+        a.userId,
+        a.userNickname ?? "",
+        a.action,
+        a.description ?? "",
+        a.txHash ?? "",
+        a.blockHash ?? "",
+        a.createdAt,
+      ]
         .map(esc)
         .join(","),
     );
@@ -107,23 +149,26 @@ export function metricsBundleToHtml(bundle) {
   const audit = bundle?.audit ?? [];
 
   const rowsVotes = votes
-    .map(
-      (r) =>
-        `<tr><td>${escapeHtml(r.id)}</td><td><code>${escapeHtml(r.voteHash)}</code></td><td>${escapeHtml(r.partyName)}</td><td>${escapeHtml(r.municipalityId)}</td><td><code>${escapeHtml(shortHash(r.blockHash))}</code></td></tr>`,
-    )
+    .map((r) => {
+      const geo = [r.municipalityName, r.provinceName, r.autonomousCommunityName]
+        .filter(Boolean)
+        .join(" · ");
+      const mun = geo || r.municipalityId;
+      return `<tr><td>${escapeHtml(r.id)}</td><td><code>${escapeHtml(r.voteHash)}</code></td><td>${escapeHtml(r.partyName)}</td><td>${escapeHtml(mun)}</td><td><code>${escapeHtml(shortHash(r.blockHash))}</code></td></tr>`;
+    })
     .join("");
 
   const rowsBlocks = blocks
     .map(
       (b) =>
-        `<tr><td>${escapeHtml(b.blockNumber)}</td><td><code>${escapeHtml(shortHash(b.hash))}</code></td><td>${b.isValid ? "Sí" : "No"}</td></tr>`,
+        `<tr><td>${escapeHtml(b.blockNumber)}</td><td><code>${escapeHtml(shortHash(b.hash))}</code></td><td>${b.isValid ? "Sí" : "No"}</td><td>${escapeHtml(b.createdAt ?? "—")}</td></tr>`,
     )
     .join("");
 
   const rowsAudit = audit
     .map(
       (a) =>
-        `<tr><td>${escapeHtml(a.id)}</td><td>${escapeHtml(a.userId)}</td><td>${escapeHtml(a.action)}</td><td>${escapeHtml(a.description ?? "")}</td><td>${escapeHtml(a.createdAt)}</td></tr>`,
+        `<tr><td>${escapeHtml(a.id)}</td><td>${escapeHtml(a.userNickname ?? a.userId)}</td><td>${escapeHtml(a.action)}</td><td>${escapeHtml(a.description ?? "")}</td><td>${escapeHtml(a.createdAt)}</td></tr>`,
     )
     .join("");
 
@@ -162,15 +207,15 @@ export function metricsBundleToHtml(bundle) {
   <div class="card">
     <h2>Votos</h2>
     <table>
-      <thead><tr><th>ID</th><th>Hash voto</th><th>Partido</th><th>Municipio</th><th>Bloque</th></tr></thead>
+      <thead><tr><th>ID</th><th>Hash voto</th><th>Partido</th><th>Municipio / territorio</th><th>Bloque</th></tr></thead>
       <tbody>${rowsVotes || "<tr><td colspan='5'>Sin votos</td></tr>"}</tbody>
     </table>
   </div>
   <div class="card">
     <h2>Bloques</h2>
     <table>
-      <thead><tr><th>Nº</th><th>Hash</th><th>Válido</th></tr></thead>
-      <tbody>${rowsBlocks || "<tr><td colspan='3'>Sin bloques</td></tr>"}</tbody>
+      <thead><tr><th>Nº</th><th>Hash</th><th>Válido</th><th>Creado</th></tr></thead>
+      <tbody>${rowsBlocks || "<tr><td colspan='4'>Sin bloques</td></tr>"}</tbody>
     </table>
   </div>
   <div class="card">
