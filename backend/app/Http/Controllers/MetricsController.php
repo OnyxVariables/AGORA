@@ -67,6 +67,15 @@ class MetricsController extends Controller
         })->values()->all();
 
         $blockHashes = $votes->pluck('blockHash')->unique()->filter()->values()->all();
+        // Agrego bloques de creación y finalización de la votación (auditory)
+        if ($votation->startBlockHash) {
+            $blockHashes[] = $votation->startBlockHash;
+        }
+        if ($votation->endBlockHash) {
+            $blockHashes[] = $votation->endBlockHash;
+        }
+        $blockHashes = array_unique($blockHashes);
+
         $blocks = [];
         if ($blockHashes !== []) {
             $blocks = DB::table('block')
