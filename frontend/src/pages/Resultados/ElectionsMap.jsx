@@ -212,6 +212,7 @@ export default function ElectionsMap() {
   const [resultsDetail, setResultsDetail] = useState(null);
   const [resultsLoading, setResultsLoading] = useState(false);
   const [resultsError, setResultsError] = useState(null);
+  const [partiesAggregated, setPartiesAggregated] = useState([]);
 
   const finishedVotations = useMemo(
     () => votationSummaries.filter((v) => v.state === "finished"),
@@ -279,7 +280,7 @@ export default function ElectionsMap() {
           return;
         }
         setResultsDetail(data);
-      } catch (e) {
+      } catch {
         if (!cancelled) {
           setResultsError("Servicio no disponible");
           setResultsDetail(null);
@@ -438,6 +439,9 @@ export default function ElectionsMap() {
         name,
         mapLevel,
       );
+      setPartiesAggregated(
+        [...parties].sort((a, b) => b.votes - a.votes),
+      );
       setTotalVotes(tv);
       setSeatsAssigned(ts);
       setBarData(buildChartData(parties));
@@ -595,15 +599,59 @@ export default function ElectionsMap() {
               &times;
             </span>
             <h2 className="dialog-title">Información de {selectedName}</h2>
-            <div className="results">
-              <p>
-                <span style={{ fontWeight: "bold" }}>Número de votos:</span>{" "}
-                {totalVotes}
-              </p>
-              <p>
-                <span style={{ fontWeight: "bold" }}>Escaños asignados:</span>{" "}
-                {seatsAssigned}
-              </p>
+            <div className="results-summary">
+              <div className="results-totals">
+                <div className="results-total-card">
+                  <span className="results-total-label">
+                    Escaños asignados por el Estado
+                  </span>
+                  <strong className="results-total-value">{seatsAssigned}</strong>
+                </div>
+                <div className="results-total-card">
+                  <span className="results-total-label">
+                    Número total de votos
+                  </span>
+                  <strong className="results-total-value">
+                    {totalVotes.toLocaleString("es-ES")}
+                  </strong>
+                </div>
+              </div>
+              <div className="results-table-wrap">
+                <table className="results-table">
+                  <thead>
+                    <tr>
+                      <th>Partido</th>
+                      <th>Votos</th>
+                      <th>Escaños</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {partiesAggregated.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="results-table-empty">
+                          Sin datos para esta selección
+                        </td>
+                      </tr>
+                    ) : (
+                      partiesAggregated.map((p) => (
+                        <tr key={p.partyId}>
+                          <td>
+                            <span
+                              className="party-chip"
+                              style={{
+                                backgroundColor: p.colorBackground || "#ccc",
+                              }}
+                            />{" "}
+                            {p.partyName}
+                          </td>
+                          <td>{p.votes.toLocaleString("es-ES")}</td>
+                          <td>{p.seatsAssigned}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div className="chart-section">
               {pieData && pieData.labels.length > 0 && <PieChart data={pieData} />}
