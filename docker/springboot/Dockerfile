@@ -15,10 +15,7 @@ COPY ./votations/src ./src
 # Copio el contrato Solidity desde blockchain/contracts
 COPY ./blockchain/contracts/SimpleVoting.sol ./src/main/resources/contracts/
 
-# Genero clases del contrato Web3j
-RUN mvn web3j:generate-sources -B
-
-# Compilo el proyecto (sin clean para no borrar las clases generadas)
+# Compilo el proyecto (el plugin web3j se ejecuta automáticamente en la fase generate-sources)
 RUN mvn package -DskipTests -B
 
 # Runtime stage

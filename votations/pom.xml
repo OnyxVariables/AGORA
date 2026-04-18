@@ -109,6 +109,7 @@
 				<artifactId>web3j-maven-plugin</artifactId>
 				<version>4.11.3</version>
 				<configuration>
+					<web3jVersion>4.11.3</web3jVersion>
 					<packageName>com.agora.votations.contract</packageName>
 					<sourceDestination>${project.basedir}/src/main/java</sourceDestination>
 					<nativeJavaType>true</nativeJavaType>
