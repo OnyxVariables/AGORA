@@ -1,8 +1,4 @@
 # Multi-stage build: Compila el JAR y luego lo ejecuta
-FROM eclipse-temurin:21-jdk-alpine AS builder
-
-WORKDIR /build
-
 FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /build
