@@ -331,9 +331,10 @@ export function HeatChart({ votesByProvinceName = {} }) {
     return {};
   }, [votesByProvinceName]);
 
-  useEffect(() => {
-    setMapKey(prev => prev + 1);
-  }, [byProvince]);
+  // Actualización en tiempo real sin recargar el mapa
+  // useEffect(() => {
+  //   setMapKey(prev => prev + 1);
+  // }, [byProvince]);
 
   const maxVotes = useMemo(() => {
     let m = 1;

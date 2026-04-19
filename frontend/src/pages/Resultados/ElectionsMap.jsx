@@ -25,11 +25,72 @@ const ccaaColors = {
   "Islas Canarias": "#673AB7",
   "La Rioja": "#6f16ffff",
   "Comunidad de Madrid": "#FFC107",
+  Madrid: "#FFC107",
   Melilla: "#00BCD4",
   Murcia: "#CDDC39",
   "Navarra, Comunidad Foral de": "#FFEB3B",
   "País Vasco": "#c800ffff",
 };
+
+// Alias groups to normalize CCAA names from different sources
+const ccaaAliasGroups = [
+  // Andalucía
+  ["Andalucía", "Andalusia"],
+  // Aragón/Aragon
+  ["Aragon", "Aragón"],
+  // Asturias
+  ["Asturias", "Principado de Asturias"],
+  // Baleares
+  ["Islas Baleares", "Baleares", "Illes Balears", "Balears, Illes"],
+  // Canarias
+  ["Islas Canarias", "Canarias"],
+  // Cantabria
+  ["Cantabria"],
+  // Castilla y León
+  ["Castilla y León", "Castilla y Leon", "Castile and León"],
+  // Castilla la Mancha
+  ["Castilla la Mancha", "Castilla-La Mancha", "Castilla La Mancha"],
+  // Cataluña
+  ["Cataluña", "Catalunya", "Catalonia"],
+  // Ceuta
+  ["Ceuta"],
+  // Comunidad Valenciana
+  ["Comunidad Valenciana", "Comunitat Valenciana", "Valencian Community"],
+  // Extremadura
+  ["Extremadura"],
+  // Galicia
+  ["Galicia"],
+  // La Rioja
+  ["La Rioja", "Rioja, La"],
+  // Madrid
+  ["Comunidad de Madrid", "Madrid"],
+  // Melilla
+  ["Melilla"],
+  // Murcia
+  ["Murcia", "Región de Murcia"],
+  // Navarra
+  ["Navarra, Comunidad Foral de", "Navarra", "Comunidad Foral de Navarra"],
+  // País Vasco
+  ["País Vasco", "Euskadi", "Basque Country"],
+];
+
+// Build lookup map from alias to canonical name
+const ccaaAliasToCanonical = {};
+ccaaAliasGroups.forEach((group) => {
+  const canonical = group[0];
+  group.forEach((alias) => {
+    ccaaAliasToCanonical[alias.toLowerCase()] = canonical;
+  });
+});
+
+function getCanonicalCCAA(name) {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  // Direct match
+  if (ccaaColors[name]) return name;
+  // Via alias
+  return ccaaAliasToCanonical[lower] || null;
+}
 
 const provinceToCCAA = {
   Almería: "Andalucía",
@@ -61,29 +122,44 @@ const provinceToCCAA = {
   Toledo: "Castilla la Mancha",
   Barcelona: "Cataluña",
   Gerona: "Cataluña",
-  Lérida: "Cataluña",
+  Girona: "Cataluña",
+  "Lérida": "Cataluña",
+  Lleida: "Cataluña",
   Tarragona: "Cataluña",
   Ceuta: "Ceuta",
   Valencia: "Comunidad Valenciana",
+  "Valencia/València": "Comunidad Valenciana",
   Alicante: "Comunidad Valenciana",
+  "Alicante/Alacant": "Comunidad Valenciana",
   Castellón: "Comunidad Valenciana",
+  "Castellón/Castelló": "Comunidad Valenciana",
   Badajoz: "Extremadura",
   Cáceres: "Extremadura",
   "La Coruña": "Galicia",
+  "Coruña, A": "Galicia",
   Lugo: "Galicia",
   Orense: "Galicia",
+  Ourense: "Galicia",
   Pontevedra: "Galicia",
   Baleares: "Islas Baleares",
+  "Illes Balears": "Islas Baleares",
+  "Balears, Illes": "Islas Baleares",
   "Las Palmas": "Islas Canarias",
+  "Palmas, Las": "Islas Canarias",
   "Santa Cruz de Tenerife": "Islas Canarias",
   "La Rioja": "La Rioja",
+  "Rioja, La": "La Rioja",
   Madrid: "Comunidad de Madrid",
   Melilla: "Melilla",
   Murcia: "Murcia",
   Navarra: "Navarra, Comunidad Foral de",
+  "Navarra, Comunidad Foral de": "Navarra, Comunidad Foral de",
+  "Comunidad Foral de Navarra": "Navarra, Comunidad Foral de",
   Álava: "País Vasco",
+  "Araba/Álava": "País Vasco",
   Gipuzkoa: "País Vasco",
   Bizkaia: "País Vasco",
+  Vizcaya: "País Vasco",
 };
 
 function hexToRgb(hex) {
@@ -114,20 +190,32 @@ function generateProvinceColor(baseHex, index, total) {
   );
 }
 
+function normalizeName(name) {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents
+    .replace(/[^a-z0-9]/g, ""); // Remove non-alphanumeric
+}
+
 function aggregateRegionResults(resultsDetail, regionName, level) {
   if (!resultsDetail?.byProvince) {
     return { parties: [], totalVotes: 0, totalSeats: 0 };
   }
   const provinces = resultsDetail.byProvince;
+  const normalizedRegionName = normalizeName(regionName);
   let relevant = [];
   if (level === "nation" && regionName === "Spain") {
     relevant = provinces;
   } else if (level === "ccaa") {
     relevant = provinces.filter(
-      (p) => p.autonomousCommunityName === regionName,
+      (p) => normalizeName(p.autonomousCommunityName) === normalizedRegionName,
     );
   } else if (level === "province") {
-    relevant = provinces.filter((p) => p.provinceName === regionName);
+    relevant = provinces.filter(
+      (p) => normalizeName(p.provinceName) === normalizedRegionName,
+    );
   }
   const partyMap = new Map();
   for (const prov of relevant) {
@@ -208,7 +296,7 @@ export default function ElectionsMap() {
   /** Cualquier estado devuelto por /summary: verificación de voto */
   const [verifyVotationId, setVerifyVotationId] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [mapLevel, setMapLevel] = useState("nation");
+  const [mapLevel, setMapLevel] = useState("ccaa");
   const [resultsDetail, setResultsDetail] = useState(null);
   const [resultsLoading, setResultsLoading] = useState(false);
   const [resultsError, setResultsError] = useState(null);
@@ -353,12 +441,21 @@ export default function ElectionsMap() {
         return { fill: "#D1D1D1", pointerEvents: "none" };
       }
       if (mapLevel === "ccaa") {
-        return { fill: ccaaColors[name] || "#ccc" };
+        const canonicalName = getCanonicalCCAA(name);
+        return { fill: ccaaColors[canonicalName] || "#ccc" };
       }
       if (mapLevel === "province") {
         const province = name;
-        const ccaa = provinceToCCAA[province];
-        const baseColor = ccaaColors[ccaa] || "#ccc";
+        let ccaa = provinceToCCAA[province];
+        // Si no está en provinceToCCAA, puede ser que sea una CCAA directamente (ej: "País Vasco")
+        if (!ccaa) {
+          const canonical = getCanonicalCCAA(province);
+          if (canonical && ccaaColors[canonical]) {
+            return { fill: ccaaColors[canonical] };
+          }
+        }
+        const canonicalCCAA = getCanonicalCCAA(ccaa);
+        const baseColor = ccaaColors[canonicalCCAA] || "#ccc";
         const provinces = geoData.filter(
           (f) => provinceToCCAA[f.properties.name] === ccaa,
         );
