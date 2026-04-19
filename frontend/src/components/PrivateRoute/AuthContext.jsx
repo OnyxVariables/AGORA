@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { getXsrfToken } from "../../services/xsrf";
 import { popupError, toastSuccess } from "../../services/alerts";
 import { useNavigate } from "react-router-dom";
@@ -7,9 +7,39 @@ import { API_CONFIG } from "../../config/api";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // El rol se queda aquí, si es null no hay sesión.
+  // El rol se queda aquí, si es null no hay sesión (tras comprobar cookie en el servidor)
   const [userRole, setUserRole] = useState(null);
+  // Evita redirigir a / antes de restaurar la sesión Sanctum tras un F5
+  const [authReady, setAuthReady] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    const restoreSession = async () => {
+      try {
+        const res = await fetch(
+          `${API_CONFIG.baseURL}${API_CONFIG.endpoints.ME}`,
+          { credentials: "include" },
+        );
+        if (cancelled) return;
+        if (res.ok) {
+          const data = await res.json();
+          const rid = data.roleId;
+          if (rid === 1 || rid === 2) {
+            setUserRole(Number(rid));
+          }
+        }
+      } catch (e) {
+        console.debug("No se pudo restaurar sesión:", e);
+      } finally {
+        if (!cancelled) setAuthReady(true);
+      }
+    };
+    restoreSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const login = (role) => setUserRole(role);
   
@@ -38,6 +68,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       setUserRole(null);
+      setAuthReady(true);
       toastSuccess("Sesión cerrada");
       navigate("/"); //Con esto la pagina no recarga, con la redirección sí
 
@@ -48,7 +79,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ userRole, login, logout }}>
+    <AuthContext.Provider value={{ userRole, authReady, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
