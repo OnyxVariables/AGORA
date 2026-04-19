@@ -93,7 +93,7 @@ class DemoCastVotes extends Command
         $partyCount = count($partyIds);
 
         foreach ($users->values() as $index => $user) {
-            $partyId = $partyIds[$index % $partyCount];
+            $partyId = $partyIds[array_rand($partyIds)];
             $codigo = bin2hex(random_bytes(32));
             $nickname = (string) $user->nicknamePassword;
             $payload = $nickname.$codigo.(string) $votationId;

@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\DB;
 class DemoSeedCitizens extends Command
 {
     protected $signature = 'demo:seed-citizens
-                            {count=50 : Número de ciudadanos de demostración}
-                            {--municipality= : ID de municipio (por defecto el primero de la BD)}';
+                            {count=50 : Número de ciudadanos de demostración}';
 
     protected $description = 'Crea ciudadanos (roleId=2) con DNI español válido y nickname agora_demo_* (solo APP_ENV=local)';
 
@@ -24,16 +23,11 @@ class DemoSeedCitizens extends Command
         }
 
         $count = max(1, (int) $this->argument('count'));
-        $municipalityId = $this->option('municipality');
 
-        if ($municipalityId === null) {
-            $municipalityId = Municipality::query()->orderBy('id')->value('id');
-        } else {
-            $municipalityId = (int) $municipalityId;
-        }
+        $municipalityIds = Municipality::query()->pluck('id')->toArray();
 
-        if ($municipalityId === null || !Municipality::query()->whereKey($municipalityId)->exists()) {
-            $this->error('No hay municipio válido. Crea datos base o pasa --municipality=');
+        if (empty($municipalityIds)) {
+            $this->error('No hay municipios en la BD. Crea datos base primero.');
 
             return self::FAILURE;
         }
@@ -41,20 +35,37 @@ class DemoSeedCitizens extends Command
         $roleCitizen = 2;
         $baseNumber = 40_000_000;
 
+        // Busco el último número usado entre los usuarios demo existentes
+        $lastUser = User::query()
+            ->where('nicknamePassword', 'like', 'agora_demo_%')
+            ->orderByRaw('CAST(SUBSTRING(nicknamePassword, 12) AS UNSIGNED) DESC')
+            ->first();
+
+        $startNumber = $baseNumber;
+        $startIndex = 1;
+        if ($lastUser) {
+            $lastNumber = (int) str_replace('agora_demo_', '', $lastUser->nicknamePassword);
+            $startNumber = $lastNumber;
+            $startIndex = $lastNumber - $baseNumber + 1;
+            $this->info("Continuando desde usuario {$startIndex} (número {$startNumber})");
+        }
+
         $created = 0;
-        DB::transaction(function () use ($count, $municipalityId, $roleCitizen, $baseNumber, &$created) {
-            for ($i = 1; $i <= $count; $i++) {
-                $number = $baseNumber + $i;
+        $skipped = 0;
+        DB::transaction(function () use ($count, $municipalityIds, $roleCitizen, $startNumber, $startIndex, &$created, &$skipped) {
+            for ($i = 0; $i < $count; $i++) {
+                $municipalityId = $municipalityIds[array_rand($municipalityIds)];
+                $number = $startNumber + $i;
+                $index = $startIndex + $i;
                 $dni = $this->spanishDniFromNumber($number);
                 if (User::query()->whereRaw('UPPER(dni) = ?', [strtoupper($dni)])->exists()) {
-                    $this->warn("Omitido DNI duplicado {$dni}");
-
+                    $skipped++;
                     continue;
                 }
 
                 User::query()->create([
                     'dni' => $dni,
-                    'name' => "Agora demo votante {$i}",
+                    'name' => "Agora demo votante {$index}",
                     'nicknamePassword' => 'agora_demo_'.$number,
                     'roleId' => $roleCitizen,
                     'municipalityId' => $municipalityId,
@@ -64,7 +75,12 @@ class DemoSeedCitizens extends Command
             }
         });
 
-        $this->info("Creados {$created} usuarios demo (municipio {$municipalityId}).");
+        if ($skipped > 0) {
+            $this->warn("Omitidos {$skipped} DNIs duplicados.");
+        }
+
+        $municipalityCount = count($municipalityIds);
+        $this->info("Creados {$created} usuarios demo (distribuidos en {$municipalityCount} municipios).");
 
         return self::SUCCESS;
     }

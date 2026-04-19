@@ -68,14 +68,16 @@ Crea usuarios **ciudadanos** (`roleId = 2`) pensados para demo, con DNI con form
 ### Comando
 ```bash
 cd backend
-php artisan demo:seed-citizens [count] [--municipality=ID]
+php artisan demo:seed-citizens [count]
 ```
 
-### Argumentos y opciones
+### Argumentos
 | Parámetro | Obligatorio | Valor por defecto | Descripción |
 |-----------|-------------|-------------------|-------------|
 | `count` | No | `50` | Número de ciudadanos a crear. Debe ser ≥ 1 (internamente se fuerza a mínimo 1). |
-| `--municipality=` | No | Primer `id` de la tabla `municipality` | Municipio asignado a **todos** los usuarios creados. Debe existir en BD. |
+
+### Asignación de municipios
+Cada usuario se asigna a un **municipio aleatorio** de entre todos los disponibles en la BD. Esto permite distribuir los votos geográficamente para probar el heatmap del mapa.
 
 ### Qué se inserta en BD
 - **dni:** generado a partir de una base numérica; letra de control algoritmo DNI español.
@@ -94,11 +96,14 @@ Si un DNI ya existe, esa fila se omite y verás un aviso `Omitido DNI duplicado 
 
 ### Ejemplos
 ```bash
-# 50 ciudadanos, municipio por defecto (el primero en BD)
+# 50 ciudadanos, distribuidos en municipios aleatorios
 php artisan demo:seed-citizens
 
-# 200 ciudadanos en el municipio 3
-php artisan demo:seed-citizens 200 --municipality=3
+# 5000 ciudadanos para prueba de carga y heatmap
+php artisan demo:seed-citizens 5000
+
+# 200 ciudadanos
+php artisan demo:seed-citizens 200
 ```
 
 
@@ -119,7 +124,7 @@ php artisan demo:cast-votes {votationId} [--party=ID] [--dry-run]
 | Parámetro | Obligatorio | Descripción |
 |-----------|-------------|-------------|
 | `votationId` | **Sí** | ID numérico de la fila `votation` en BD. |
-| `--party` | No | ID de partido. Puedes repetir la opción varias veces: `--party=1 --party=2 --party=3`. Si **no** indicas ningún `--party`, se usan **todos** los partidos con `active = true`, ordenados por `id`, y se reparten **en circular** entre usuarios (usuario 1 → partido 1, usuario 2 → partido 2, etc.). |
+| `--party` | No | ID de partido. Puedes repetir la opción varias veces: `--party=1 --party=2 --party=3`. Si **no** indicas ningún `--party`, se usan **todos** los partidos con `active = true`, y se asigna un partido **aleatorio** a cada usuario. |
 | `--dry-run` | No | No llama a la blockchain. Solo imprime por consola qué haría (DNI, partido, hash). Útil para validar DNIs y reparto sin `BESU_RPC_URL`. |
 
 ### Requisitos para que el comando no falle al inicio
@@ -135,10 +140,10 @@ php artisan demo:cast-votes {votationId} [--party=ID] [--dry-run]
 
 ### Ejemplos
 ```bash
-# Reparto circular entre todos los partidos activos
+# Reparto aleatorio entre todos los partidos activos
 php artisan demo:cast-votes 1
 
-# Solo partidos 1 y 2, alternando
+# Solo partidos 1 y 2, asignación aleatoria entre ellos
 php artisan demo:cast-votes 1 --party=1 --party=2
 
 # Probar sin blockchain
@@ -241,7 +246,7 @@ Si `demo:cast-votes` dice que la votación no está abierta, revisa en BD la fil
 ## Resumen rápido (orden recomendado)
 1. Levantar BD, backend y blockchain local.
 2. `.env`: `APP_ENV=local`, variables de cadena, y si quieres login HTTP demo: `AGORA_DEMO_AUTH=true`.
-3. `php artisan demo:seed-citizens N --municipality=M`
+3. `php artisan demo:seed-citizens N` (usuarios con municipios aleatorios)
 4. `php artisan demo:cast-votes V --dry-run` → luego sin `--dry-run`.
 5. Opcional: script Python con `dnis.txt` y `--base-url` correcto.
 
