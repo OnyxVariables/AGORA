@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -228,19 +228,98 @@ export function LineChart({ labels, partidos, series }) {
 // Suma votos del backend (nombres INE/BD) al nombre de provincia del GeoJSON
 function votesForMapProvince(mapProvinceName, byProvince) {
   if (!byProvince || typeof byProvince !== "object") return 0;
+  
   const aliasGroups = {
-    "La Coruña": ["La Coruña", "A Coruña", "Coruña"],
-    Gerona: ["Gerona", "Girona"],
-    Lérida: ["Lérida", "Lleida"],
-    Orense: ["Orense", "Ourense"],
-    Navarra: ["Navarra", "Navarra / Nafarroa"],
+    "La Coruña": ["La Coruña", "A Coruña", "Coruña", "A Coruña, A", "Coruña, A"],
+    "Lugo": ["Lugo"],
+    "Orense": ["Orense", "Ourense"],
+    "Pontevedra": ["Pontevedra"],
+    "Barcelona": ["Barcelona"],
+    "Gerona": ["Gerona", "Girona"],
+    "Lérida": ["Lérida", "Lleida"],
+    "Tarragona": ["Tarragona"],
+    "Álava": ["Álava", "Araba/Álava", "Araba"],
+    "Vizcaya": ["Vizcaya", "Bizkaia"],
+    "Gipuzkoa": ["Gipuzkoa", "Guipúzcoa"],
+    "Navarra": ["Navarra", "Navarra / Nafarroa", "Nafarroa", "Navarra, Comunidad Foral de"],
+    "La Rioja": ["La Rioja", "Rioja, La"],
+    "Ávila": ["Ávila", "Avila"],
+    "Burgos": ["Burgos"],
+    "León": ["León", "Leon"],
+    "Palencia": ["Palencia"],
+    "Salamanca": ["Salamanca"],
+    "Segovia": ["Segovia"],
+    "Soria": ["Soria"],
+    "Valladolid": ["Valladolid"],
+    "Zamora": ["Zamora"],
+    "Asturias": ["Asturias", "Asturias, Principado de"],
+    "Cantabria": ["Cantabria"],
+    "Madrid": ["Madrid", "Comunidad de Madrid"],
+    "Albacete": ["Albacete"],
+    "Ciudad Real": ["Ciudad Real"],
+    "Cuenca": ["Cuenca"],
+    "Guadalajara": ["Guadalajara"],
+    "Toledo": ["Toledo"],
+    "Badajoz": ["Badajoz"],
+    "Cáceres": ["Cáceres", "Caceres"],
+    "Huesca": ["Huesca"],
+    "Teruel": ["Teruel"],
+    "Zaragoza": ["Zaragoza"],
+    "Cataluña": ["Cataluña"],
+    "Valencia": ["Valencia", "València", "Valencia/València", "Valencia/Valencia"],
+    "Alicante": ["Alicante", "Alacant", "Alicante/Alacant"],
+    "Castellón": ["Castellón", "Castelló", "Castellon", "Castello", "Castellón/Castelló", "Castellon/Castello"],
+    "Valencia/València": ["Valencia/València"],
+    "Alicante/Alacant": ["Alicante/Alacant"],
+    "Castellón/Castelló": ["Castellón/Castelló"],
+    "Araba/Álava": ["Araba/Álava"],
+    "Bizkaia/Vizcaya": ["Bizkaia/Vizcaya"],
+    "Gipuzkoa/Guipúzcoa": ["Gipuzkoa/Guipúzcoa"],
+    "Gerona/Girona": ["Gerona/Girona"],
+    "Lérida/Lleida": ["Lérida/Lleida"],
+    "Orense/Ourense": ["Orense/Ourense"],
+    "La Coruña/A Coruña": ["La Coruña/A Coruña"],
+    "Baleares": ["Baleares", "Islas Baleares", "Illes Balears", "Balears, Illes"],
+    "Almería": ["Almería", "Almeria"],
+    "Cádiz": ["Cádiz", "Cadiz"],
+    "Córdoba": ["Córdoba", "Cordoba"],
+    "Granada": ["Granada"],
+    "Huelva": ["Huelva"],
+    "Jaén": ["Jaén", "Jaen"],
+    "Málaga": ["Málaga", "Malaga"],
+    "Sevilla": ["Sevilla"],
+    "Murcia": ["Murcia"],
+    "Las Palmas": ["Las Palmas", "Las Palmas de Gran Canaria", "Palmas, Las"],
+    "Santa Cruz de Tenerife": ["Santa Cruz de Tenerife"],
+    "Ceuta": ["Ceuta"],
+    "Melilla": ["Melilla"],
   };
-  const keys = aliasGroups[mapProvinceName] ?? [mapProvinceName];
-  return keys.reduce((s, k) => s + (Number(byProvince[k]) || 0), 0);
+  
+  // Busco primero en grupos de alias
+  const keys = aliasGroups[mapProvinceName];
+  if (keys) {
+    return keys.reduce((s, k) => s + (Number(byProvince[k]) || 0), 0);
+  }
+  
+  // Si no hay alias definido, busco coincidencia exacta
+  const directValue = Number(byProvince[mapProvinceName]) || 0;
+  if (directValue > 0) return directValue;
+  
+  // Búsqueda case-insensitive como último recurso
+  const lowerName = mapProvinceName.toLowerCase();
+  for (const [key, value] of Object.entries(byProvince)) {
+    if (key.toLowerCase() === lowerName) {
+      return Number(value) || 0;
+    }
+  }
+  
+  return 0;
 }
 
 // Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
 export function HeatChart({ votesByProvinceName = {} }) {
+  const [mapKey, setMapKey] = useState(0);
+  
   const byProvince = useMemo(() => {
     if (
       votesByProvinceName &&
@@ -251,6 +330,10 @@ export function HeatChart({ votesByProvinceName = {} }) {
     }
     return {};
   }, [votesByProvinceName]);
+
+  useEffect(() => {
+    setMapKey(prev => prev + 1);
+  }, [byProvince]);
 
   const maxVotes = useMemo(() => {
     let m = 1;
@@ -270,6 +353,23 @@ export function HeatChart({ votesByProvinceName = {} }) {
     return m;
   }, [byProvince]);
 
+  const totalVotes = useMemo(() => {
+    return Object.values(byProvince).reduce((sum, v) => sum + (Number(v) || 0), 0);
+  }, [byProvince]);
+
+  const hasData = totalVotes > 0;
+
+  // Debug: datos del heatmap
+  // useEffect(() => {
+  //   console.log("HeatChart - votesByProvinceName:", votesByProvinceName);
+  //   console.log("HeatChart - votesByProvinceName keys:", Object.keys(votesByProvinceName || {}));
+  //   console.log("HeatChart - votesByProvinceName type:", typeof votesByProvinceName);
+  //   console.log("HeatChart - votesByProvinceName isArray:", Array.isArray(votesByProvinceName));
+  //   console.log("HeatChart - byProvince keys:", Object.keys(byProvince));
+  //   console.log("HeatChart - byProvince data:", byProvince);
+  //   console.log("HeatChart - totalVotes:", totalVotes);
+  // }, [votesByProvinceName, byProvince, totalVotes]);
+
   const getFeatureStyle = useCallback(
     (feature) => {
       const name = feature.properties?.name ?? "";
@@ -281,29 +381,55 @@ export function HeatChart({ votesByProvinceName = {} }) {
         return { fill: "#D1D1D1", pointerEvents: "none" };
       }
       const n = votesForMapProvince(name, byProvince);
-      const t = n / maxVotes;
-      const r = Math.round(240 - t * 200);
-      const g = Math.round(240 - t * 220);
-      const b = Math.round(255 - t * 120);
-      return { fill: `rgb(${r},${g},${b})` };
+      // Escala fija: cambiar para pruebas
+      const FIXED_MAX_VOTES = 500000;
+      const t = Math.min(n / FIXED_MAX_VOTES, 1);
+      const r = Math.round(230 - t * 180);
+      const g = Math.round(240 - t * 200);
+      const b = Math.round(255 - t * 100);
+      const color = `rgb(${r},${g},${b})`;
+      // Debug: log cada provincia procesada
+      // console.log(`HeatChart - Provincia: "${name}" -> ${n} votos -> color ${color}`);
+      return { fill: color };
     },
-    [byProvince, maxVotes],
+    [byProvince],
   );
-
-  const hasData = Object.keys(byProvince).length > 0;
 
   return (
     <div className="chart-container heat-chart">
-      <p className="heat-chart-legend">
-        Intensidad = votos por provincia (más oscuro = más votos).
-      </p>
       {!hasData && (
         <p className="heat-chart-empty">
           Sin datos por provincia para esta votación (espera a que existan votos).
         </p>
       )}
-      <div className="heat-chart-map-wrap">
-        <SpainMap level="province" getFeatureStyle={getFeatureStyle} />
+      <div className="heat-chart-content">
+        <div className="heat-chart-legend-vertical">
+          <div className="legend-labels">
+            <span>0</span>
+            <span>1.000</span>
+            <span>10.000</span>
+            <span>50.000</span>
+            <span>100.000</span>
+            <span>500.000</span>
+          </div>
+          <div 
+            className="legend-bar" 
+            style={{
+              background: 'linear-gradient(to bottom, rgb(230,240,255) 0%, rgb(210,200,235) 20%, rgb(180,170,220) 40%, rgb(150,140,205) 60%, rgb(100,90,180) 80%, rgb(50,40,155) 100%)',
+              width: '24px',
+              height: '320px',
+              borderRadius: '4px',
+              border: '1px solid #999'
+            }}
+          />
+        </div>
+        <div className="heat-chart-map-wrap">
+          <SpainMap 
+            key={mapKey}
+            level="province" 
+            getFeatureStyle={getFeatureStyle}
+          />
+        </div>
       </div>
     </div>
   );
