@@ -26,6 +26,7 @@ class UserController extends Controller
         $apellidos = count($parts) > 1 ? implode(' ', array_slice($parts, 1)) : null;
 
         return response()->json([
+            'roleId' => (int) $user->roleId,
             'nombre' => $nombre,
             'apellidos' => $apellidos,
             'dni' => $user->dni,
