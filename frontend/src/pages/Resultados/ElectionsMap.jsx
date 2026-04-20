@@ -6,6 +6,11 @@ import { API_CONFIG } from "../../config/api";
 import { popupError, popupInfo } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
 import { BarChart, PieChart } from "../../components/ChartSection/ChartSection";
+import {
+  ccaaAliasToCanonical,
+  matchesCCAA,
+  matchesProvince,
+} from "../../utils/spainNames";
 
 import "./ElectionsMap.css";
 
@@ -32,64 +37,10 @@ const ccaaColors = {
   "País Vasco": "#c800ffff",
 };
 
-// Alias groups to normalize CCAA names from different sources
-const ccaaAliasGroups = [
-  // Andalucía
-  ["Andalucía", "Andalusia"],
-  // Aragón/Aragon
-  ["Aragon", "Aragón"],
-  // Asturias
-  ["Asturias", "Principado de Asturias"],
-  // Baleares
-  ["Islas Baleares", "Baleares", "Illes Balears", "Balears, Illes"],
-  // Canarias
-  ["Islas Canarias", "Canarias"],
-  // Cantabria
-  ["Cantabria"],
-  // Castilla y León
-  ["Castilla y León", "Castilla y Leon", "Castile and León"],
-  // Castilla la Mancha
-  ["Castilla la Mancha", "Castilla-La Mancha", "Castilla La Mancha"],
-  // Cataluña
-  ["Cataluña", "Catalunya", "Catalonia"],
-  // Ceuta
-  ["Ceuta"],
-  // Comunidad Valenciana
-  ["Comunidad Valenciana", "Comunitat Valenciana", "Valencian Community"],
-  // Extremadura
-  ["Extremadura"],
-  // Galicia
-  ["Galicia"],
-  // La Rioja
-  ["La Rioja", "Rioja, La"],
-  // Madrid
-  ["Comunidad de Madrid", "Madrid"],
-  // Melilla
-  ["Melilla"],
-  // Murcia
-  ["Murcia", "Región de Murcia"],
-  // Navarra
-  ["Navarra, Comunidad Foral de", "Navarra", "Comunidad Foral de Navarra"],
-  // País Vasco
-  ["País Vasco", "Euskadi", "Basque Country"],
-];
-
-// Build lookup map from alias to canonical name
-const ccaaAliasToCanonical = {};
-ccaaAliasGroups.forEach((group) => {
-  const canonical = group[0];
-  group.forEach((alias) => {
-    ccaaAliasToCanonical[alias.toLowerCase()] = canonical;
-  });
-});
-
 function getCanonicalCCAA(name) {
   if (!name) return null;
-  const lower = name.toLowerCase();
-  // Direct match
   if (ccaaColors[name]) return name;
-  // Via alias
-  return ccaaAliasToCanonical[lower] || null;
+  return ccaaAliasToCanonical[name.toLowerCase()] || null;
 }
 
 const provinceToCCAA = {
@@ -190,31 +141,21 @@ function generateProvinceColor(baseHex, index, total) {
   );
 }
 
-function normalizeName(name) {
-  if (!name) return "";
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove accents
-    .replace(/[^a-z0-9]/g, ""); // Remove non-alphanumeric
-}
-
 function aggregateRegionResults(resultsDetail, regionName, level) {
   if (!resultsDetail?.byProvince) {
     return { parties: [], totalVotes: 0, totalSeats: 0 };
   }
   const provinces = resultsDetail.byProvince;
-  const normalizedRegionName = normalizeName(regionName);
   let relevant = [];
   if (level === "nation" && regionName === "Spain") {
     relevant = provinces;
   } else if (level === "ccaa") {
-    relevant = provinces.filter(
-      (p) => normalizeName(p.autonomousCommunityName) === normalizedRegionName,
+    relevant = provinces.filter((p) =>
+      matchesCCAA(regionName, p.autonomousCommunityName),
     );
   } else if (level === "province") {
-    relevant = provinces.filter(
-      (p) => normalizeName(p.provinceName) === normalizedRegionName,
+    relevant = provinces.filter((p) =>
+      matchesProvince(regionName, p.provinceName),
     );
   }
   const partyMap = new Map();

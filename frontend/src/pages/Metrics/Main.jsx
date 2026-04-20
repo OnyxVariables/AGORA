@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import "./Main.css";
 import SectionContainer from "../../components/SectionContainer/SectionContainer";
@@ -116,27 +116,38 @@ export default function Main() {
     loadBundle();
   }, [selectedVotation]);
 
+  const pendingMetricsRef = useRef(null);
+  const rafMetricsRef = useRef(null);
+
   const handleVoteReceived = useCallback(
     (voteData) => {
       if (voteData.votationId !== selectedVotation) return;
-      setVoteMetrics({
-        votationId: voteData.votationId,
-        totalVotes: voteData.totalVotes,
-        votesByParty: voteData.votesByParty || {},
-        votesByMunicipality: voteData.votesByMunicipality || {},
-        votesByProvinceName: voteData.votesByProvinceName || {},
-        timestamp: voteData.timestamp,
-      });
-      setBundle((prev) => {
-        if (!prev || prev.votation?.id !== voteData.votationId) return prev;
-        return {
-          ...prev,
-          metrics: {
-            ...prev.metrics,
-            totalVotes: voteData.totalVotes,
-            votesByParty: voteData.votesByParty || prev.metrics?.votesByParty,
-          },
-        };
+      pendingMetricsRef.current = voteData;
+      if (rafMetricsRef.current != null) return;
+      rafMetricsRef.current = requestAnimationFrame(() => {
+        rafMetricsRef.current = null;
+        const data = pendingMetricsRef.current;
+        pendingMetricsRef.current = null;
+        if (!data) return;
+        setVoteMetrics({
+          votationId: data.votationId,
+          totalVotes: data.totalVotes,
+          votesByParty: data.votesByParty || {},
+          votesByMunicipality: data.votesByMunicipality || {},
+          votesByProvinceName: data.votesByProvinceName || {},
+          timestamp: data.timestamp,
+        });
+        setBundle((prev) => {
+          if (!prev || prev.votation?.id !== data.votationId) return prev;
+          return {
+            ...prev,
+            metrics: {
+              ...prev.metrics,
+              totalVotes: data.totalVotes,
+              votesByParty: data.votesByParty || prev.metrics?.votesByParty,
+            },
+          };
+        });
       });
     },
     [selectedVotation],

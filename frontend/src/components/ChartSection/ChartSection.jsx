@@ -1,4 +1,11 @@
-import { useCallback, useMemo, useEffect, useState } from "react";
+import {
+  useCallback,
+  useMemo,
+  useEffect,
+  useState,
+  memo,
+  useDeferredValue,
+} from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -15,6 +22,7 @@ import { Pie, Bar, Line } from "react-chartjs-2";
 import "./ChartSection.css";
 import { useParties } from "../../data/partidos";
 import SpainMap from "../SpainMap/SpainMap";
+import { votesForMapProvince } from "../../utils/spainNames";
 
 ChartJS.register(
   ArcElement,
@@ -27,7 +35,7 @@ ChartJS.register(
   Legend,
 );
 
-export function PieChart({ data }) {
+function PieChartComponent({ data }) {
   const customPieLabels = {
     id: "agoraPluginPieLabels",
     afterDatasetsDraw(chart) {
@@ -123,7 +131,9 @@ export function PieChart({ data }) {
   );
 }
 
-export function BarChart({ data }) {
+export const PieChart = memo(PieChartComponent);
+
+function BarChartComponent({ data }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -163,6 +173,8 @@ export function BarChart({ data }) {
     </div>
   );
 }
+
+export const BarChart = memo(BarChartComponent);
 
 export function LineChart({ labels, partidos, series }) {
   const data = {
@@ -225,99 +237,8 @@ export function LineChart({ labels, partidos, series }) {
   );
 }
 
-// Suma votos del backend (nombres INE/BD) al nombre de provincia del GeoJSON
-function votesForMapProvince(mapProvinceName, byProvince) {
-  if (!byProvince || typeof byProvince !== "object") return 0;
-  
-  const aliasGroups = {
-    "La Coruña": ["La Coruña", "A Coruña", "Coruña", "A Coruña, A", "Coruña, A"],
-    "Lugo": ["Lugo"],
-    "Orense": ["Orense", "Ourense"],
-    "Pontevedra": ["Pontevedra"],
-    "Barcelona": ["Barcelona"],
-    "Gerona": ["Gerona", "Girona"],
-    "Lérida": ["Lérida", "Lleida"],
-    "Tarragona": ["Tarragona"],
-    "Álava": ["Álava", "Araba/Álava", "Araba"],
-    "Vizcaya": ["Vizcaya", "Bizkaia"],
-    "Gipuzkoa": ["Gipuzkoa", "Guipúzcoa"],
-    "Navarra": ["Navarra", "Navarra / Nafarroa", "Nafarroa", "Navarra, Comunidad Foral de"],
-    "La Rioja": ["La Rioja", "Rioja, La"],
-    "Ávila": ["Ávila", "Avila"],
-    "Burgos": ["Burgos"],
-    "León": ["León", "Leon"],
-    "Palencia": ["Palencia"],
-    "Salamanca": ["Salamanca"],
-    "Segovia": ["Segovia"],
-    "Soria": ["Soria"],
-    "Valladolid": ["Valladolid"],
-    "Zamora": ["Zamora"],
-    "Asturias": ["Asturias", "Asturias, Principado de"],
-    "Cantabria": ["Cantabria"],
-    "Madrid": ["Madrid", "Comunidad de Madrid"],
-    "Albacete": ["Albacete"],
-    "Ciudad Real": ["Ciudad Real"],
-    "Cuenca": ["Cuenca"],
-    "Guadalajara": ["Guadalajara"],
-    "Toledo": ["Toledo"],
-    "Badajoz": ["Badajoz"],
-    "Cáceres": ["Cáceres", "Caceres"],
-    "Huesca": ["Huesca"],
-    "Teruel": ["Teruel"],
-    "Zaragoza": ["Zaragoza"],
-    "Cataluña": ["Cataluña"],
-    "Valencia": ["Valencia", "València", "Valencia/València", "Valencia/Valencia"],
-    "Alicante": ["Alicante", "Alacant", "Alicante/Alacant"],
-    "Castellón": ["Castellón", "Castelló", "Castellon", "Castello", "Castellón/Castelló", "Castellon/Castello"],
-    "Valencia/València": ["Valencia/València"],
-    "Alicante/Alacant": ["Alicante/Alacant"],
-    "Castellón/Castelló": ["Castellón/Castelló"],
-    "Araba/Álava": ["Araba/Álava"],
-    "Bizkaia/Vizcaya": ["Bizkaia/Vizcaya"],
-    "Gipuzkoa/Guipúzcoa": ["Gipuzkoa/Guipúzcoa"],
-    "Gerona/Girona": ["Gerona/Girona"],
-    "Lérida/Lleida": ["Lérida/Lleida"],
-    "Orense/Ourense": ["Orense/Ourense"],
-    "La Coruña/A Coruña": ["La Coruña/A Coruña"],
-    "Baleares": ["Baleares", "Islas Baleares", "Illes Balears", "Balears, Illes"],
-    "Almería": ["Almería", "Almeria"],
-    "Cádiz": ["Cádiz", "Cadiz"],
-    "Córdoba": ["Córdoba", "Cordoba"],
-    "Granada": ["Granada"],
-    "Huelva": ["Huelva"],
-    "Jaén": ["Jaén", "Jaen"],
-    "Málaga": ["Málaga", "Malaga"],
-    "Sevilla": ["Sevilla"],
-    "Murcia": ["Murcia"],
-    "Las Palmas": ["Las Palmas", "Las Palmas de Gran Canaria", "Palmas, Las"],
-    "Santa Cruz de Tenerife": ["Santa Cruz de Tenerife"],
-    "Ceuta": ["Ceuta"],
-    "Melilla": ["Melilla"],
-  };
-  
-  // Busco primero en grupos de alias
-  const keys = aliasGroups[mapProvinceName];
-  if (keys) {
-    return keys.reduce((s, k) => s + (Number(byProvince[k]) || 0), 0);
-  }
-  
-  // Si no hay alias definido, busco coincidencia exacta
-  const directValue = Number(byProvince[mapProvinceName]) || 0;
-  if (directValue > 0) return directValue;
-  
-  // Búsqueda case-insensitive como último recurso
-  const lowerName = mapProvinceName.toLowerCase();
-  for (const [key, value] of Object.entries(byProvince)) {
-    if (key.toLowerCase() === lowerName) {
-      return Number(value) || 0;
-    }
-  }
-  
-  return 0;
-}
-
 // Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
-export function HeatChart({ votesByProvinceName = {} }) {
+function HeatChartComponent({ votesByProvinceName = {} }) {
   const [mapKey, setMapKey] = useState(0);
   
   const byProvince = useMemo(() => {
@@ -436,8 +357,11 @@ export function HeatChart({ votesByProvinceName = {} }) {
   );
 }
 
+export const HeatChart = memo(HeatChartComponent);
+
 export default function ChartSection({ voteMetrics }) {
   const { partidos, loading } = useParties();
+  const deferredProvinceVotes = useDeferredValue(voteMetrics?.votesByProvinceName);
 
   if (loading) {
     return <div className="charts">Cargando datos...</div>;
@@ -507,7 +431,7 @@ export default function ChartSection({ voteMetrics }) {
             series={timeSeriesData}
           />
 
-          <HeatChart votesByProvinceName={voteMetrics.votesByProvinceName} />
+          <HeatChart votesByProvinceName={deferredProvinceVotes} />
         </>
       ) : (
         <div className="no-votes">
