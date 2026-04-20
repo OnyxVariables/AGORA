@@ -3,17 +3,7 @@
   margin: 0 auto;
   padding: 1rem 1rem 3rem;
   color: #1a1a1a;
-}
-
-.monitor-page h2 {
-  font-size: clamp(1.25rem, 2vw, 1.75rem);
-  margin-bottom: 0.5rem;
-}
-
-.monitor-sub {
-  opacity: 0.75;
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
+  margin-top:8em;
 }
 
 .monitor-grid {
@@ -143,4 +133,10 @@
 
 .monitor-layout > footer {
   margin-top: auto;
+}
+
+@media (max-width: 900px) {
+  .monitor-page {
+    margin-top: 7em;
+  }
 }

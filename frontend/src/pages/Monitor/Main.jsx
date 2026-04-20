@@ -153,13 +153,6 @@ export default function Main() {
 
   return (
     <main className="monitor-page">
-      <h2>Monitor de servicios</h2>
-      <p className="monitor-sub">
-        Estado de Laravel, base de datos, RPC blockchain, Spring Boot, WebSocket y
-        nodos Besu (Kubernetes). Las tarjetas se actualizan cada 10 s; el cluster en
-        vivo vía STOMP cada ~5 s.
-      </p>
-
       <div className="monitor-grid">
         <ServiceCard
           title="Laravel (/up)"
