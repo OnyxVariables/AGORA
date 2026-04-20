@@ -29,7 +29,7 @@ public class VoteProcessingService {
     private final AppUserRepository appUserRepository;
     private final VoteEntityRepository voteEntityRepository;
     private final BlockRepository blockRepository;
-    private final VoteWebSocketService voteWebSocketService;
+    private final VoteAggregator voteAggregator;
     private final Web3j web3j;
 
     @Transactional
@@ -69,8 +69,8 @@ public class VoteProcessingService {
             VoteEntity savedVote = voteEntityRepository.save(vote);
             log.info("Voto guardado en BD: voteHash={}", voteHashHex);
             
-            // Broadcast en tiempo real a todos los clientes conectados (admin)
-            voteWebSocketService.broadcastVote(savedVote);
+            // Broadcast coalescido (VoteAggregator) para no saturar el cliente
+            voteAggregator.enqueue(savedVote);
             
         } catch (DataIntegrityViolationException e) {
             log.error("No se pudo guardar el voto (duplicado u otra violación): {}", e.getMessage());
