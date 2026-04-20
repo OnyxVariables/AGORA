@@ -18,8 +18,14 @@ export const API_CONFIG = {
     VOTATION_RESULTS: (id) => `/api/votations/${id}/results`,
     VOTATION_RESULTS_SUMMARY: (id) => `/api/votations/${id}/results/summary`,
     PARTIES: '/api/parties',
+    ADMIN_HEALTH_DB: '/api/admin/health/db',
+    ADMIN_HEALTH_BLOCKCHAIN: '/api/admin/health/blockchain',
   }
 };
+
+// Base HTTP del servicio Spring Boot (métricas en tiempo real, actuator, cluster)
+export const SPRING_HTTP_BASE =
+  import.meta.env.VITE_SPRING_HTTP_URL || 'http://localhost:8081';
 
 // Helper function to make API calls
 export const apiCall = async (endpoint, options = {}) => {

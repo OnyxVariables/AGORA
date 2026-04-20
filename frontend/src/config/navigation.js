@@ -7,6 +7,7 @@ import {
   MetricsIcon,
   CRUDVotationIcon,
   ExportIcon,
+  MonitorIcon,
 } from "../icons";
 
 //Logica que controla la navegacion / botones / svg
@@ -41,11 +42,19 @@ export const NAV_ITEMS = {
 
   crudvotations: [
     { to: "/metrics", label: "MÉTRICAS", icon: MetricsIcon },
+    { to: "/admin/monitor", label: "MONITOR", icon: MonitorIcon },
     { to: "#", label: "SALIR", icon: LogoutIcon },
   ],
 
   metrics: [
     { to: "/metrics", label: "EXPORTAR", icon: ExportIcon },
+    { to: "/crudvotations", label: "CRUDVOTACIONES", icon: CRUDVotationIcon },
+    { to: "/admin/monitor", label: "MONITOR", icon: MonitorIcon },
+    { to: "#", label: "SALIR", icon: LogoutIcon },
+  ],
+
+  monitor: [
+    { to: "/metrics", label: "MÉTRICAS", icon: MetricsIcon },
     { to: "/crudvotations", label: "CRUDVOTACIONES", icon: CRUDVotationIcon },
     { to: "#", label: "SALIR", icon: LogoutIcon },
   ],
