@@ -11,6 +11,7 @@ import Resultados from "./pages/Resultados/Resultados";
 import Error404 from "./pages/error404/error404";
 import CRUDVotations from "./pages/CRUDVotations/CRUDVotations";
 import Metrics from "./pages/Metrics/Metrics";
+import Monitor from "./pages/Monitor/Monitor";
 
 function ActiveVotationNotifier() {
   const { userRole } = useAuth();
@@ -40,6 +41,7 @@ function App() {
             <Route element={<PrivateRoute roleRequired={1} />}>
               <Route path="/CRUDVotations" element={<CRUDVotations />} />
               <Route path="/metrics" element={<Metrics />} />
+              <Route path="/admin/monitor" element={<Monitor />} />
             </Route>
 
             <Route path="/*" element={<Error404 />} />
