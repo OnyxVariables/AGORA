@@ -28,7 +28,7 @@ body {
 /* Para el ThemeToggle */
 .app-background {
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #fafafa;
   z-index: 1;
   position: relative;
 }

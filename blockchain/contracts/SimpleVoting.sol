@@ -71,6 +71,8 @@ contract SimpleVoting {
             "Votacion no iniciada"
         );
 
+        // NOTE: En local (Hardhat), cada transaccion adelanta el block.timestamp ~1s.
+        // En produccion (Besu), el tiempo avanza normalmente y esto funciona correctamente.
         require(
             block.timestamp <= votation.endDate,
             "Votacion finalizada"

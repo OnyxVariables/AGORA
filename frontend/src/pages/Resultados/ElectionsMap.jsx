@@ -6,6 +6,11 @@ import { API_CONFIG } from "../../config/api";
 import { popupError, popupInfo } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
 import { BarChart, PieChart } from "../../components/ChartSection/ChartSection";
+import {
+  ccaaAliasToCanonical,
+  matchesCCAA,
+  matchesProvince,
+} from "../../utils/spainNames";
 
 import "./ElectionsMap.css";
 
@@ -25,11 +30,18 @@ const ccaaColors = {
   "Islas Canarias": "#673AB7",
   "La Rioja": "#6f16ffff",
   "Comunidad de Madrid": "#FFC107",
+  Madrid: "#FFC107",
   Melilla: "#00BCD4",
   Murcia: "#CDDC39",
   "Navarra, Comunidad Foral de": "#FFEB3B",
   "País Vasco": "#c800ffff",
 };
+
+function getCanonicalCCAA(name) {
+  if (!name) return null;
+  if (ccaaColors[name]) return name;
+  return ccaaAliasToCanonical[name.toLowerCase()] || null;
+}
 
 const provinceToCCAA = {
   Almería: "Andalucía",
@@ -61,29 +73,44 @@ const provinceToCCAA = {
   Toledo: "Castilla la Mancha",
   Barcelona: "Cataluña",
   Gerona: "Cataluña",
-  Lérida: "Cataluña",
+  Girona: "Cataluña",
+  "Lérida": "Cataluña",
+  Lleida: "Cataluña",
   Tarragona: "Cataluña",
   Ceuta: "Ceuta",
   Valencia: "Comunidad Valenciana",
+  "Valencia/València": "Comunidad Valenciana",
   Alicante: "Comunidad Valenciana",
+  "Alicante/Alacant": "Comunidad Valenciana",
   Castellón: "Comunidad Valenciana",
+  "Castellón/Castelló": "Comunidad Valenciana",
   Badajoz: "Extremadura",
   Cáceres: "Extremadura",
   "La Coruña": "Galicia",
+  "Coruña, A": "Galicia",
   Lugo: "Galicia",
   Orense: "Galicia",
+  Ourense: "Galicia",
   Pontevedra: "Galicia",
   Baleares: "Islas Baleares",
+  "Illes Balears": "Islas Baleares",
+  "Balears, Illes": "Islas Baleares",
   "Las Palmas": "Islas Canarias",
+  "Palmas, Las": "Islas Canarias",
   "Santa Cruz de Tenerife": "Islas Canarias",
   "La Rioja": "La Rioja",
+  "Rioja, La": "La Rioja",
   Madrid: "Comunidad de Madrid",
   Melilla: "Melilla",
   Murcia: "Murcia",
   Navarra: "Navarra, Comunidad Foral de",
+  "Navarra, Comunidad Foral de": "Navarra, Comunidad Foral de",
+  "Comunidad Foral de Navarra": "Navarra, Comunidad Foral de",
   Álava: "País Vasco",
+  "Araba/Álava": "País Vasco",
   Gipuzkoa: "País Vasco",
   Bizkaia: "País Vasco",
+  Vizcaya: "País Vasco",
 };
 
 function hexToRgb(hex) {
@@ -123,11 +150,13 @@ function aggregateRegionResults(resultsDetail, regionName, level) {
   if (level === "nation" && regionName === "Spain") {
     relevant = provinces;
   } else if (level === "ccaa") {
-    relevant = provinces.filter(
-      (p) => p.autonomousCommunityName === regionName,
+    relevant = provinces.filter((p) =>
+      matchesCCAA(regionName, p.autonomousCommunityName),
     );
   } else if (level === "province") {
-    relevant = provinces.filter((p) => p.provinceName === regionName);
+    relevant = provinces.filter((p) =>
+      matchesProvince(regionName, p.provinceName),
+    );
   }
   const partyMap = new Map();
   for (const prov of relevant) {
@@ -208,10 +237,11 @@ export default function ElectionsMap() {
   /** Cualquier estado devuelto por /summary: verificación de voto */
   const [verifyVotationId, setVerifyVotationId] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [mapLevel, setMapLevel] = useState("nation");
+  const [mapLevel, setMapLevel] = useState("ccaa");
   const [resultsDetail, setResultsDetail] = useState(null);
   const [resultsLoading, setResultsLoading] = useState(false);
   const [resultsError, setResultsError] = useState(null);
+  const [partiesAggregated, setPartiesAggregated] = useState([]);
 
   const finishedVotations = useMemo(
     () => votationSummaries.filter((v) => v.state === "finished"),
@@ -279,7 +309,7 @@ export default function ElectionsMap() {
           return;
         }
         setResultsDetail(data);
-      } catch (e) {
+      } catch {
         if (!cancelled) {
           setResultsError("Servicio no disponible");
           setResultsDetail(null);
@@ -352,12 +382,21 @@ export default function ElectionsMap() {
         return { fill: "#D1D1D1", pointerEvents: "none" };
       }
       if (mapLevel === "ccaa") {
-        return { fill: ccaaColors[name] || "#ccc" };
+        const canonicalName = getCanonicalCCAA(name);
+        return { fill: ccaaColors[canonicalName] || "#ccc" };
       }
       if (mapLevel === "province") {
         const province = name;
-        const ccaa = provinceToCCAA[province];
-        const baseColor = ccaaColors[ccaa] || "#ccc";
+        let ccaa = provinceToCCAA[province];
+        // Si no está en provinceToCCAA, puede ser que sea una CCAA directamente (ej: "País Vasco")
+        if (!ccaa) {
+          const canonical = getCanonicalCCAA(province);
+          if (canonical && ccaaColors[canonical]) {
+            return { fill: ccaaColors[canonical] };
+          }
+        }
+        const canonicalCCAA = getCanonicalCCAA(ccaa);
+        const baseColor = ccaaColors[canonicalCCAA] || "#ccc";
         const provinces = geoData.filter(
           (f) => provinceToCCAA[f.properties.name] === ccaa,
         );
@@ -437,6 +476,9 @@ export default function ElectionsMap() {
         resultsDetail,
         name,
         mapLevel,
+      );
+      setPartiesAggregated(
+        [...parties].sort((a, b) => b.votes - a.votes),
       );
       setTotalVotes(tv);
       setSeatsAssigned(ts);
@@ -525,11 +567,13 @@ export default function ElectionsMap() {
           {votationSummaries.length === 0 ? (
             <option value="">Cargando…</option>
           ) : (
-            votationSummaries.map((v) => (
-              <option key={v.id} value={String(v.id)}>
-                #{v.id} — {v.title} ({v.state})
-              </option>
-            ))
+            votationSummaries
+              .filter((v) => v.state === "active" || v.state === "finished")
+              .map((v) => (
+                <option key={v.id} value={String(v.id)}>
+                  #{v.id} — {v.title} ({v.state})
+                </option>
+              ))
           )}
         </select>
         <label htmlFor="verification-code">
@@ -595,15 +639,59 @@ export default function ElectionsMap() {
               &times;
             </span>
             <h2 className="dialog-title">Información de {selectedName}</h2>
-            <div className="results">
-              <p>
-                <span style={{ fontWeight: "bold" }}>Número de votos:</span>{" "}
-                {totalVotes}
-              </p>
-              <p>
-                <span style={{ fontWeight: "bold" }}>Escaños asignados:</span>{" "}
-                {seatsAssigned}
-              </p>
+            <div className="results-summary">
+              <div className="results-totals">
+                <div className="results-total-card">
+                  <span className="results-total-label">
+                    Escaños asignados por el Estado
+                  </span>
+                  <strong className="results-total-value">{seatsAssigned}</strong>
+                </div>
+                <div className="results-total-card">
+                  <span className="results-total-label">
+                    Número total de votos
+                  </span>
+                  <strong className="results-total-value">
+                    {totalVotes.toLocaleString("es-ES")}
+                  </strong>
+                </div>
+              </div>
+              <div className="results-table-wrap">
+                <table className="results-table">
+                  <thead>
+                    <tr>
+                      <th>Partido</th>
+                      <th>Votos</th>
+                      <th>Escaños</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {partiesAggregated.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="results-table-empty">
+                          Sin datos para esta selección
+                        </td>
+                      </tr>
+                    ) : (
+                      partiesAggregated.map((p) => (
+                        <tr key={p.partyId}>
+                          <td>
+                            <span
+                              className="party-chip"
+                              style={{
+                                backgroundColor: p.colorBackground || "#ccc",
+                              }}
+                            />{" "}
+                            {p.partyName}
+                          </td>
+                          <td>{p.votes.toLocaleString("es-ES")}</td>
+                          <td>{p.seatsAssigned}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div className="chart-section">
               {pieData && pieData.labels.length > 0 && <PieChart data={pieData} />}

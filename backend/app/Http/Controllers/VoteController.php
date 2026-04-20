@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Auditory;
 use App\Models\Party;
 use App\Models\User;
 use App\Models\Vote;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 class VoteController extends Controller
 {
     private $blockchainService;
-    
+
     public function __construct(BlockchainService $blockchainService)
     {
         $this->blockchainService = $blockchainService;
@@ -118,6 +119,22 @@ class VoteController extends Controller
                 ], 500);
             }
 
+            $this->blockchainService->ensureBlockExists(
+                $tx['blockHash'] ?? null,
+                $tx['blockNumber'] ?? null,
+                $tx['parentHash'] ?? null
+            );
+
+            // Esto Laravel lo escucha, en principio sabe el usuario y el voto asociado durante
+            // unos instantes, pero luego se elimina.
+            //Auditory::log(
+            //    (int) $user->id,
+            //    'SUBMIT_VOTE',
+            //    "Voto enviado (votación {$data['votationId']}, partido {$data['partyId']})",
+            //    $tx['transactionHash'] ?? null,
+            //    $tx['blockHash'] ?? null
+            //);
+
             // isActive se pone a false en Spring Boot al confirmar VoteSubmitted (correlación por vote_intent)
 
             return response()->json([
@@ -136,7 +153,7 @@ class VoteController extends Controller
     /**
      * Obtiene metricas de votos para una votacion.
      * Incluye contadores por partido y municipio.
-     * 
+     *
      * Nota: Los datos reales vienen de Spring Boot via WebSocket.
      * Este endpoint es para carga inicial y fallback.
      */
@@ -149,12 +166,12 @@ class VoteController extends Controller
                 ->get();
 
             $totalVotes = $votes->count();
-            
+
             $votesByParty = $votes
                 ->groupBy('partyId')
                 ->map(fn($group) => $group->count())
                 ->all();
-            
+
             $votesByMunicipality = $votes
                 ->groupBy('municipalityId')
                 ->map(fn($group) => $group->count())

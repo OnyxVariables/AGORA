@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./services/alerts.css";
 import PrivateRoute from "./components/PrivateRoute/PrivateRoute";
-import { AuthProvider } from "./components/PrivateRoute/AuthContext";
+import { AuthProvider, useAuth } from "./components/PrivateRoute/AuthContext";
+import { useActiveVotationNotice } from "./hooks/useActiveVotationNotice";
 import Index from "./pages/index/index";
 import Home from "./pages/Home/Home";
 import Perfil from "./pages/Perfil/Perfil";
@@ -10,11 +11,19 @@ import Resultados from "./pages/Resultados/Resultados";
 import Error404 from "./pages/error404/error404";
 import CRUDVotations from "./pages/CRUDVotations/CRUDVotations";
 import Metrics from "./pages/Metrics/Metrics";
+import Monitor from "./pages/Monitor/Monitor";
+
+function ActiveVotationNotifier() {
+  const { userRole } = useAuth();
+  useActiveVotationNotice(userRole);
+  return null;
+}
 
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <ActiveVotationNotifier />
         <div className="app-background">
           {/* Envuelvo todas las rutas en un contenedor para que les afecte el background */}
           <Routes>
@@ -32,6 +41,7 @@ function App() {
             <Route element={<PrivateRoute roleRequired={1} />}>
               <Route path="/CRUDVotations" element={<CRUDVotations />} />
               <Route path="/metrics" element={<Metrics />} />
+              <Route path="/admin/monitor" element={<Monitor />} />
             </Route>
 
             <Route path="/*" element={<Error404 />} />

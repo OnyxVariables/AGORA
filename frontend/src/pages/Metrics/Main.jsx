@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import "./Main.css";
 import SectionContainer from "../../components/SectionContainer/SectionContainer";
@@ -7,7 +7,8 @@ import Table from "../../components/Table/Table";
 import ChartSection from "../../components/ChartSection/ChartSection";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { API_CONFIG } from "../../config/api";
-import { popupError } from "../../services/alerts";
+import { popupError, toastTiny } from "../../services/alerts";
+import { formatDate } from "../../utils/date";
 import { useParties } from "../../data/partidos";
 import {
   downloadTextFile,
@@ -20,7 +21,6 @@ export default function Main() {
   const [bundle, setBundle] = useState(null);
   const [selectedVotation, setSelectedVotation] = useState(null);
   const [selectedBlock, setSelectedBlock] = useState("");
-  const [selectedParty, setSelectedParty] = useState("");
   const [selectedUser, setSelectedUser] = useState("");
   const [voteMetrics, setVoteMetrics] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -54,22 +54,10 @@ export default function Main() {
     }));
   }, [bundle]);
 
-  const partyOptions = useMemo(() => {
-    const partyVotes = bundle?.metrics?.votesByParty ?? {};
-    return Object.entries(partyVotes).map(([pid, count]) => ({
-      value: pid,
-      label: `${partyNameById[pid] || `Partido ${pid}`} (${count} votos)`,
-    }));
-  }, [bundle, partyNameById]);
-
-  const userOptions = useMemo(() => {
-    const audit = bundle?.audit ?? [];
-    const uniqueUsers = [...new Set(audit.map((a) => a.userId))];
-    return uniqueUsers.map((uid) => ({
-      value: String(uid),
-      label: `Usuario ${uid}`,
-    }));
-  }, [bundle]);
+  const userRoleOptions = [
+    { value: "2", label: "Ciudadano" },
+    { value: "1", label: "Admin" },
+  ];
 
   useEffect(() => {
     const load = async () => {
@@ -128,27 +116,38 @@ export default function Main() {
     loadBundle();
   }, [selectedVotation]);
 
+  const pendingMetricsRef = useRef(null);
+  const rafMetricsRef = useRef(null);
+
   const handleVoteReceived = useCallback(
     (voteData) => {
       if (voteData.votationId !== selectedVotation) return;
-      setVoteMetrics({
-        votationId: voteData.votationId,
-        totalVotes: voteData.totalVotes,
-        votesByParty: voteData.votesByParty || {},
-        votesByMunicipality: voteData.votesByMunicipality || {},
-        votesByProvinceName: voteData.votesByProvinceName || {},
-        timestamp: voteData.timestamp,
-      });
-      setBundle((prev) => {
-        if (!prev || prev.votation?.id !== voteData.votationId) return prev;
-        return {
-          ...prev,
-          metrics: {
-            ...prev.metrics,
-            totalVotes: voteData.totalVotes,
-            votesByParty: voteData.votesByParty || prev.metrics?.votesByParty,
-          },
-        };
+      pendingMetricsRef.current = voteData;
+      if (rafMetricsRef.current != null) return;
+      rafMetricsRef.current = requestAnimationFrame(() => {
+        rafMetricsRef.current = null;
+        const data = pendingMetricsRef.current;
+        pendingMetricsRef.current = null;
+        if (!data) return;
+        setVoteMetrics({
+          votationId: data.votationId,
+          totalVotes: data.totalVotes,
+          votesByParty: data.votesByParty || {},
+          votesByMunicipality: data.votesByMunicipality || {},
+          votesByProvinceName: data.votesByProvinceName || {},
+          timestamp: data.timestamp,
+        });
+        setBundle((prev) => {
+          if (!prev || prev.votation?.id !== data.votationId) return prev;
+          return {
+            ...prev,
+            metrics: {
+              ...prev.metrics,
+              totalVotes: data.totalVotes,
+              votesByParty: data.votesByParty || prev.metrics?.votesByParty,
+            },
+          };
+        });
       });
     },
     [selectedVotation],
@@ -163,6 +162,38 @@ export default function Main() {
   useEffect(() => {
     setIsConnected(wsConnected);
   }, [wsConnected]);
+
+  const CopyButton = useCallback(({ text }) => {
+    if (!text) return null;
+    const handleCopy = () => {
+      navigator.clipboard.writeText(text).then(() => {
+        toastTiny("Copiado");
+      }).catch(() => {});
+    };
+    return (
+      <button
+        onClick={handleCopy}
+        title="Copiar al portapapeles"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: "0 0 0 4px",
+          display: "inline-flex",
+          alignItems: "center",
+          verticalAlign: "middle",
+        }}
+      >
+        <img
+          src="/img/copy.svg"
+          alt="Copiar"
+          width="14"
+          height="14"
+          style={{ filter: "invert(0.4)" }}
+        />
+      </button>
+    );
+  }, []);
 
   const votationSummaryRows = useMemo(() => {
     if (!bundle?.votation) return [];
@@ -186,15 +217,17 @@ export default function Main() {
       },
       {
         field: "Inicio",
-        value: v.startDate ?? "—",
+        value: formatDate(v.startDate),
       },
       {
         field: "Fin",
-        value: v.endDate ?? "—",
+        value: formatDate(v.endDate),
       },
       {
         field: "txHash",
-        value: v.txHash ? `${v.txHash.slice(0, 14)}…` : "—",
+        value: v.txHash ? (
+          <>{v.txHash.slice(0, 14)}…<CopyButton text={v.txHash} /></>
+        ) : "—",
       },
     ];
   }, [bundle]);
@@ -214,28 +247,63 @@ export default function Main() {
     const filtered = selectedBlock
       ? votes.filter((r) => r.blockHash === selectedBlock)
       : votes;
-    return filtered.map((r) => ({
-      id: r.id,
-      party: r.partyName,
-      municipio: r.municipalityId,
-      bloque: r.blockHash ? `${r.blockHash.slice(0, 10)}…` : "—",
-      tx: r.txHash ? `${r.txHash.slice(0, 10)}…` : "—",
-    }));
+    return filtered.map((r) => {
+      const mName = r.municipalityName;
+      const pName = r.provinceName;
+      const ccaa = r.autonomousCommunityName;
+      const hasGeo =
+        (mName && String(mName).trim() !== "") ||
+        (pName && String(pName).trim() !== "") ||
+        (ccaa && String(ccaa).trim() !== "");
+      const municipioCell = hasGeo ? (
+        <div className="muni-cell">
+          {mName && String(mName).trim() !== "" ? (
+            <strong>{mName}</strong>
+          ) : (
+            <strong className="muni-missing">Municipio #{r.municipalityId}</strong>
+          )}
+          <span className="muni-sub">
+            {[pName, ccaa].filter(Boolean).join(" · ") || "—"}
+          </span>
+        </div>
+      ) : (
+        <span className="muni-missing">#{r.municipalityId}</span>
+      );
+      return {
+        id: r.id,
+        party: r.partyName,
+        municipio: municipioCell,
+        bloque: r.blockHash ? (
+          <>{r.blockHash.slice(0, 10)}…<CopyButton text={r.blockHash} /></>
+        ) : "—",
+        tx: r.txHash ? (
+          <>{r.txHash.slice(0, 10)}…<CopyButton text={r.txHash} /></>
+        ) : "—",
+        creado: formatDate(r.createdAt),
+      };
+    });
   }, [bundle, selectedBlock]);
 
   const auditRows = useMemo(() => {
     let rows = bundle?.audit ?? [];
     if (selectedUser) {
-      rows = rows.filter((a) => String(a.userId) === selectedUser);
+      rows = rows.filter((a) => String(a.userRole) === selectedUser);
     }
     return rows.map((a) => ({
       id: a.id,
-      user: a.userId,
+      user:
+        a.userName && String(a.userName).trim() !== ""
+          ? String(a.userName).trim()
+          : `Usuario #${a.userId}`,
       action: a.action,
-      desc: a.description ? `${String(a.description).slice(0, 60)}…` : "—",
-      tx: a.txHash ? `${a.txHash.slice(0, 12)}…` : "—",
-      block: a.blockHash ? `${a.blockHash.slice(0, 12)}…` : "—",
-      fecha: a.createdAt,
+      desc: a.description || "—",
+      tx: a.txHash ? (
+        <>{a.txHash.slice(0, 12)}…<CopyButton text={a.txHash} /></>
+      ) : "—",
+      block: a.blockHash ? (
+        <>{a.blockHash.slice(0, 12)}…<CopyButton text={a.blockHash} /></>
+      ) : "—",
+      fecha: formatDate(a.createdAt),
     }));
   }, [bundle, selectedUser]);
 
@@ -243,10 +311,15 @@ export default function Main() {
     const blocks = bundle?.blocks ?? [];
     return blocks.map((b) => ({
       num: b.blockNumber,
-      hash: `${b.hash.slice(0, 12)}…`,
-      prev: b.previousHash ? `${b.previousHash.slice(0, 10)}…` : "—",
+      hash: (
+        <>{b.hash.slice(0, 12)}…<CopyButton text={b.hash} /></>
+      ),
+      prev: b.previousHash ? (
+        <>{b.previousHash.slice(0, 10)}…<CopyButton text={b.previousHash} /></>
+      ) : "—",
       txs: b.transactions,
       ok: b.isValid ? "Sí" : "No",
+      creado: formatDate(b.createdAt),
     }));
   }, [bundle]);
 
@@ -291,15 +364,6 @@ export default function Main() {
             placeholderValue=""
             disabled={votationOptions.length === 0}
           />
-          <div
-            className={`ws-status ${isConnected ? "connected" : "disconnected"}`}
-          >
-            {isConnected
-              ? "Tiempo real (WebSocket)"
-              : wsError
-                ? "Error conexión WebSocket"
-                : "Conectando WebSocket…"}
-          </div>
         </div>
         <Table
           id="votation-summary"
@@ -309,44 +373,57 @@ export default function Main() {
         />
       </SectionContainer>
 
+      <SectionContainer>
+        <h2 className="metrics-section-title">Participación y desglose</h2>
+        <div className="metrics-two-cols">
+          <Table
+            id="participation"
+            headings={["Métrica", "Valor"]}
+            rows={participationRows}
+            rowKeys={["metric", "value"]}
+          />
+          <div className="party-table-container">
+            <Table
+              id="votes-by-party"
+              headings={["Partido", "Votos", "Escaños"]}
+              rows={Object.entries(bundle?.metrics?.votesByParty ?? {}).map(
+                ([pid, count]) => {
+                  const seatsByParty = bundle?.metrics?.seatsByParty ?? {};
+                  const hasSeatKey = Object.prototype.hasOwnProperty.call(
+                    seatsByParty,
+                    pid,
+                  );
+                  const seatVal = hasSeatKey ? seatsByParty[pid] : null;
+                  return {
+                    party: partyNameById[pid] || `Partido ${pid}`,
+                    count,
+                    seats:
+                      seatVal !== null && seatVal !== undefined ? seatVal : "—",
+                  };
+                },
+              )}
+              rowKeys={["party", "count", "seats"]}
+            />
+          </div>
+        </div>
+      </SectionContainer>
+
       {voteMetrics && (
         <>
-          <ChartSection
-            voteMetrics={voteMetrics}
-            selectedVotation={selectedVotation}
-          />
+          <ChartSection voteMetrics={voteMetrics} />
         </>
       )}
 
       <SectionContainer>
-        <h2 className="metrics-section-title">Participación y desglose</h2>
-        <Table
-          id="participation"
-          headings={["Métrica", "Valor"]}
-          rows={participationRows}
-          rowKeys={["metric", "value"]}
-        />
-        <Table
-          id="votes-by-party"
-          headings={["Partido", "Votos"]} //Meter escaños también
-          rows={Object.entries(bundle?.metrics?.votesByParty ?? {}).map(
-            ([pid, count]) => ({
-              party: partyNameById[pid] || `Partido ${pid}`,
-              count,
-            }),
-          )}
-          rowKeys={["party", "count"]}
-        />
-      </SectionContainer>
-
-      <SectionContainer>
         <h2 className="metrics-section-title">Detalle de votos</h2>
-        <Table
-          id="votes-detail"
-          headings={["ID", "Partido", "Municipio", "Bloque", "Tx"]}
-          rows={votesDetailRows}
-          rowKeys={["id", "party", "municipio", "bloque", "tx"]}
-        />
+        <div className={`table-scroll-container ${votesDetailRows.length > 10 ? 'scrollable' : ''}`}>
+          <Table
+            id="votes-detail"
+            headings={["ID", "Partido", "Municipio", "Bloque", "TxHash", "Creado"]}
+            rows={votesDetailRows}
+            rowKeys={["id", "party", "municipio", "bloque", "tx", "creado"]}
+          />
+        </div>
         <Select
           id="blockFilter"
           label="Filtrar votos por bloque (opcional):"
@@ -361,12 +438,14 @@ export default function Main() {
 
       <SectionContainer>
         <h2 className="metrics-section-title">Bloques (cadena en blockchain)</h2>
-        <Table
-          id="blocks-chain"
-          headings={["Nº", "Hash", "Anterior", "Txs", "Válido"]}
-          rows={blocksRows}
-          rowKeys={["num", "hash", "prev", "txs", "ok"]}
-        />
+        <div className={`table-scroll-container ${blocksRows.length > 10 ? 'scrollable' : ''}`}>
+          <Table
+            id="blocks-chain"
+            headings={["Nº", "Hash", "Hash Anterior", "Número Transacciones", "Válido", "Creado"]}
+            rows={blocksRows}
+            rowKeys={["num", "hash", "prev", "txs", "ok", "creado"]}
+          />
+        </div>
       </SectionContainer>
 
       <SectionContainer>
@@ -379,13 +458,13 @@ export default function Main() {
         />
         <Select
           id="auditFilter"
-          label="Filtrar auditoría por usuario (opcional):"
+          label="Filtrar auditoría por rol:"
           value={selectedUser}
           onChange={(e) => setSelectedUser(e.target.value)}
-          options={userOptions}
+          options={userRoleOptions}
           placeholderLabel="Todos los usuarios"
           placeholderValue=""
-          disabled={userOptions.length === 0}
+          disabled={false}
         />
       </SectionContainer>
     </main>

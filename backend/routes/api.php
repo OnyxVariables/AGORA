@@ -7,6 +7,7 @@ use App\Http\Controllers\VotationController;
 use App\Http\Controllers\VoteController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\MetricsController;
+use App\Http\Controllers\AdminHealthController;
 
 Route::get('/login-cert', [CertAuthController::class, 'login']);
 Route::get('/parties', [PartyController::class, 'index']);
@@ -34,4 +35,6 @@ Route::middleware('auth:sanctum', 'role:1')->group(function () {
     Route::delete('/votations/{id}', [VotationController::class, 'destroy']);
     Route::get('/votes/metrics/{votationId}', [VoteController::class, 'metrics']);
     Route::get('/metrics/votation/{votationId}', [MetricsController::class, 'votationBundle']);
+    Route::get('/admin/health/db', [AdminHealthController::class, 'database']);
+    Route::get('/admin/health/blockchain', [AdminHealthController::class, 'blockchain']);
 });

@@ -13,7 +13,7 @@ export function metricsBundleToCsv(bundle) {
 
   const v = bundle?.votation ?? {};
   lines.push(["AGORA — Exportación de métricas"].join(","));
-  lines.push(["Generado", new Date().toISOString()].map(esc).join(","));
+  lines.push(["Generado", formatDate(new Date())].map(esc).join(","));
   lines.push([]);
   lines.push(["Votación", "ID", "Título", "Estado", "Inicio", "Fin"].map(esc).join(","));
   lines.push(
@@ -22,8 +22,8 @@ export function metricsBundleToCsv(bundle) {
       v.id,
       v.title,
       v.state,
-      v.startDate,
-      v.endDate ?? "",
+      formatDate(v.startDate),
+      v.endDate ? formatDate(v.endDate) : "",
     ]
       .map(esc)
       .join(","),
@@ -35,9 +35,12 @@ export function metricsBundleToCsv(bundle) {
   lines.push(["", "registeredCitizens", m.registeredCitizens].map(esc).join(","));
   lines.push(["", "participationRate_pct", m.participationRate].map(esc).join(","));
   lines.push([]);
-  lines.push(["Votos por partido (partyId)", "votos"].map(esc).join(","));
+  const seatsByParty = m.seatsByParty ?? {};
+  lines.push(["Votos por partido (partyId)", "votos", "escaños"].map(esc).join(","));
   Object.entries(m.votesByParty ?? {}).forEach(([pid, c]) => {
-    lines.push([pid, c].map(esc).join(","));
+    const hasSeat = Object.prototype.hasOwnProperty.call(seatsByParty, pid);
+    const seats = hasSeat ? seatsByParty[pid] : "";
+    lines.push([pid, c, seats].map(esc).join(","));
   });
   lines.push([]);
   lines.push(["Votos por municipio (municipalityId)", "votos"].map(esc).join(","));
@@ -52,6 +55,9 @@ export function metricsBundleToCsv(bundle) {
       "partyId",
       "partyName",
       "municipalityId",
+      "municipalityName",
+      "provinceName",
+      "autonomousCommunityName",
       "blockHash",
       "txHash",
       "createdAt",
@@ -67,28 +73,64 @@ export function metricsBundleToCsv(bundle) {
         row.partyId,
         row.partyName,
         row.municipalityId,
+        row.municipalityName ?? "",
+        row.provinceName ?? "",
+        row.autonomousCommunityName ?? "",
         row.blockHash,
         row.txHash,
-        row.createdAt,
+        formatDate(row.createdAt),
       ]
         .map(esc)
         .join(","),
     );
   });
   lines.push([]);
-  lines.push(["Bloque hash", "número", "tx prev", "transacciones", "válido"].map(esc).join(","));
+  lines.push(
+    ["Bloque hash", "número", "HASH ANTERIOR", "TXS", "válido", "creado"]
+      .map(esc)
+      .join(","),
+  );
   (bundle?.blocks ?? []).forEach((b) => {
     lines.push(
-      [b.hash, b.blockNumber, b.previousHash ?? "", b.transactions, b.isValid ? "1" : "0"]
+      [
+        b.hash,
+        b.blockNumber,
+        b.previousHash ?? "",
+        b.transactions,
+        b.isValid ? "1" : "0",
+        formatDate(b.createdAt),
+      ]
         .map(esc)
         .join(","),
     );
   });
   lines.push([]);
-  lines.push(["Auditoría id", "userId", "action", "description", "txHash", "blockHash", "createdAt"].map(esc).join(","));
+  lines.push(
+    [
+      "Auditoría id",
+      "userId",
+      "userName",
+      "action",
+      "description",
+      "txHash",
+      "blockHash",
+      "createdAt",
+    ]
+      .map(esc)
+      .join(","),
+  );
   (bundle?.audit ?? []).forEach((a) => {
     lines.push(
-      [a.id, a.userId, a.action, a.description ?? "", a.txHash ?? "", a.blockHash ?? "", a.createdAt]
+      [
+        a.id,
+        a.userId,
+        a.userName ?? a.userNickname ?? "",
+        a.action,
+        a.description ?? "",
+        a.txHash ?? "",
+        a.blockHash ?? "",
+        formatDate(a.createdAt),
+      ]
         .map(esc)
         .join(","),
     );
@@ -107,23 +149,26 @@ export function metricsBundleToHtml(bundle) {
   const audit = bundle?.audit ?? [];
 
   const rowsVotes = votes
-    .map(
-      (r) =>
-        `<tr><td>${escapeHtml(r.id)}</td><td><code>${escapeHtml(r.voteHash)}</code></td><td>${escapeHtml(r.partyName)}</td><td>${escapeHtml(r.municipalityId)}</td><td><code>${escapeHtml(shortHash(r.blockHash))}</code></td></tr>`,
-    )
+    .map((r) => {
+      const geo = [r.municipalityName, r.provinceName, r.autonomousCommunityName]
+        .filter(Boolean)
+        .join(" · ");
+      const mun = geo || r.municipalityId;
+      return `<tr><td>${escapeHtml(r.id)}</td><td><code>${escapeHtml(r.voteHash)}</code></td><td>${escapeHtml(r.partyName)}</td><td>${escapeHtml(mun)}</td><td><code>${escapeHtml(shortHash(r.blockHash))}</code></td><td>${escapeHtml(formatDate(r.createdAt))}</td></tr>`;
+    })
     .join("");
 
   const rowsBlocks = blocks
     .map(
       (b) =>
-        `<tr><td>${escapeHtml(b.blockNumber)}</td><td><code>${escapeHtml(shortHash(b.hash))}</code></td><td>${b.isValid ? "Sí" : "No"}</td></tr>`,
+        `<tr><td>${escapeHtml(b.blockNumber)}</td><td><code>${escapeHtml(shortHash(b.hash))}</code></td><td><code>${escapeHtml(shortHash(b.previousHash))}</code></td><td>${escapeHtml(b.transactions ?? "—")}</td><td>${b.isValid ? "Sí" : "No"}</td><td>${escapeHtml(formatDate(b.createdAt))}</td></tr>`,
     )
     .join("");
 
   const rowsAudit = audit
     .map(
       (a) =>
-        `<tr><td>${escapeHtml(a.id)}</td><td>${escapeHtml(a.userId)}</td><td>${escapeHtml(a.action)}</td><td>${escapeHtml(a.description ?? "")}</td><td>${escapeHtml(a.createdAt)}</td></tr>`,
+        `<tr><td>${escapeHtml(a.id)}</td><td>${escapeHtml(a.userName ?? "—")}</td><td>${escapeHtml(a.action)}</td><td>${escapeHtml(a.description ?? "")}</td><td><code>${escapeHtml(shortHash(a.txHash))}</code></td><td><code>${escapeHtml(shortHash(a.blockHash))}</code></td><td>${escapeHtml(formatDate(a.createdAt))}</td></tr>`,
     )
     .join("");
 
@@ -146,12 +191,12 @@ export function metricsBundleToHtml(bundle) {
 </head>
 <body>
   <h1>AGORA — Informe de métricas</h1>
-  <p class="meta">Generado: ${escapeHtml(new Date().toLocaleString("es-ES"))}</p>
+  <p class="meta">Generado: ${escapeHtml(formatDate(new Date()))}</p>
   <div class="card">
     <h2>Votación</h2>
     <p><strong>ID:</strong> ${escapeHtml(v.id)} &nbsp; <strong>Estado:</strong> ${escapeHtml(v.state)}</p>
     <p><strong>Título:</strong> ${escapeHtml(v.title)}</p>
-    <p><strong>Inicio / fin:</strong> ${escapeHtml(v.startDate)} — ${escapeHtml(v.endDate ?? "—")}</p>
+    <p><strong>Inicio / fin:</strong> ${escapeHtml(formatDate(v.startDate))} — ${escapeHtml(formatDate(v.endDate))}</p>
   </div>
   <div class="card">
     <h2>Participación</h2>
@@ -162,22 +207,22 @@ export function metricsBundleToHtml(bundle) {
   <div class="card">
     <h2>Votos</h2>
     <table>
-      <thead><tr><th>ID</th><th>Hash voto</th><th>Partido</th><th>Municipio</th><th>Bloque</th></tr></thead>
-      <tbody>${rowsVotes || "<tr><td colspan='5'>Sin votos</td></tr>"}</tbody>
+      <thead><tr><th>ID</th><th>Hash voto</th><th>Partido</th><th>Municipio / territorio</th><th>Bloque</th><th>CREADO</th></tr></thead>
+      <tbody>${rowsVotes || "<tr><td colspan='6'>Sin votos</td></tr>"}</tbody>
     </table>
   </div>
   <div class="card">
     <h2>Bloques</h2>
     <table>
-      <thead><tr><th>Nº</th><th>Hash</th><th>Válido</th></tr></thead>
-      <tbody>${rowsBlocks || "<tr><td colspan='3'>Sin bloques</td></tr>"}</tbody>
+      <thead><tr><th>Nº</th><th>Hash</th><th>HASH ANTERIOR</th><th>NÚMERO TRANSACCIONES</th><th>Válido</th><th>CREADO</th></tr></thead>
+      <tbody>${rowsBlocks || "<tr><td colspan='6'>Sin bloques</td></tr>"}</tbody>
     </table>
   </div>
   <div class="card">
-    <h2>Auditoría (últimas entradas)</h2>
+    <h2>Auditoría</h2>
     <table>
-      <thead><tr><th>ID</th><th>Usuario</th><th>Acción</th><th>Descripción</th><th>Fecha</th></tr></thead>
-      <tbody>${rowsAudit || "<tr><td colspan='5'>Sin registros o tabla no disponible</td></tr>"}</tbody>
+      <thead><tr><th>ID</th><th>Usuario</th><th>Acción</th><th>Descripción</th><th>TX HASH</th><th>BLOCK HASH</th><th>Fecha</th></tr></thead>
+      <tbody>${rowsAudit || "<tr><td colspan='7'>Sin registros o tabla no disponible</td></tr>"}</tbody>
     </table>
   </div>
 </body>
@@ -187,6 +232,20 @@ export function metricsBundleToHtml(bundle) {
 function shortHash(h) {
   if (!h || h.length < 12) return h ?? "";
   return `${h.slice(0, 10)}…${h.slice(-6)}`;
+}
+
+function formatDate(dateValue) {
+  if (!dateValue || dateValue === "—") return "—";
+  const date = new Date(dateValue);
+  if (isNaN(date.getTime())) return String(dateValue);
+  return date.toLocaleString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 function escapeHtml(s) {

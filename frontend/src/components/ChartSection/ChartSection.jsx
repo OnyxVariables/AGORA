@@ -1,4 +1,11 @@
-import { useCallback } from "react";
+import {
+  useCallback,
+  useMemo,
+  useEffect,
+  useState,
+  memo,
+  useDeferredValue,
+} from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -15,6 +22,7 @@ import { Pie, Bar, Line } from "react-chartjs-2";
 import "./ChartSection.css";
 import { useParties } from "../../data/partidos";
 import SpainMap from "../SpainMap/SpainMap";
+import { votesForMapProvince } from "../../utils/spainNames";
 
 ChartJS.register(
   ArcElement,
@@ -27,7 +35,7 @@ ChartJS.register(
   Legend,
 );
 
-export function PieChart({ data }) {
+function PieChartComponent({ data }) {
   const customPieLabels = {
     id: "agoraPluginPieLabels",
     afterDatasetsDraw(chart) {
@@ -123,7 +131,9 @@ export function PieChart({ data }) {
   );
 }
 
-export function BarChart({ data }) {
+export const PieChart = memo(PieChartComponent);
+
+function BarChartComponent({ data }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -163,6 +173,8 @@ export function BarChart({ data }) {
     </div>
   );
 }
+
+export const BarChart = memo(BarChartComponent);
 
 export function LineChart({ labels, partidos, series }) {
   const data = {
@@ -226,13 +238,59 @@ export function LineChart({ labels, partidos, series }) {
 }
 
 // Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
-export function HeatChart({ data, votesByProvinceName = {} }) {
-  const byProvince =
-    votesByProvinceName && Object.keys(votesByProvinceName).length > 0
-      ? votesByProvinceName
-      : {};
+function HeatChartComponent({ votesByProvinceName = {} }) {
+  const [mapKey, setMapKey] = useState(0);
+  
+  const byProvince = useMemo(() => {
+    if (
+      votesByProvinceName &&
+      typeof votesByProvinceName === "object" &&
+      Object.keys(votesByProvinceName).length > 0
+    ) {
+      return votesByProvinceName;
+    }
+    return {};
+  }, [votesByProvinceName]);
 
-  const maxVotes = Math.max(1, ...Object.values(byProvince).map((v) => Number(v) || 0));
+  // Actualización en tiempo real sin recargar el mapa
+  // useEffect(() => {
+  //   setMapKey(prev => prev + 1);
+  // }, [byProvince]);
+
+  const maxVotes = useMemo(() => {
+    let m = 1;
+    for (const v of Object.values(byProvince)) {
+      m = Math.max(m, Number(v) || 0);
+    }
+    const mergeSums = [
+      ["La Coruña", "A Coruña"],
+      ["Gerona", "Girona"],
+      ["Lérida", "Lleida"],
+      ["Orense", "Ourense"],
+    ];
+    for (const keys of mergeSums) {
+      const s = keys.reduce((acc, k) => acc + (Number(byProvince[k]) || 0), 0);
+      m = Math.max(m, s);
+    }
+    return m;
+  }, [byProvince]);
+
+  const totalVotes = useMemo(() => {
+    return Object.values(byProvince).reduce((sum, v) => sum + (Number(v) || 0), 0);
+  }, [byProvince]);
+
+  const hasData = totalVotes > 0;
+
+  // Debug: datos del heatmap
+  // useEffect(() => {
+  //   console.log("HeatChart - votesByProvinceName:", votesByProvinceName);
+  //   console.log("HeatChart - votesByProvinceName keys:", Object.keys(votesByProvinceName || {}));
+  //   console.log("HeatChart - votesByProvinceName type:", typeof votesByProvinceName);
+  //   console.log("HeatChart - votesByProvinceName isArray:", Array.isArray(votesByProvinceName));
+  //   console.log("HeatChart - byProvince keys:", Object.keys(byProvince));
+  //   console.log("HeatChart - byProvince data:", byProvince);
+  //   console.log("HeatChart - totalVotes:", totalVotes);
+  // }, [votesByProvinceName, byProvince, totalVotes]);
 
   const getFeatureStyle = useCallback(
     (feature) => {
@@ -244,37 +302,66 @@ export function HeatChart({ data, votesByProvinceName = {} }) {
       ) {
         return { fill: "#D1D1D1", pointerEvents: "none" };
       }
-      const n = Number(byProvince[name]) || 0;
-      const t = n / maxVotes;
-      const r = Math.round(240 - t * 200);
-      const g = Math.round(240 - t * 220);
-      const b = Math.round(255 - t * 120);
-      return { fill: `rgb(${r},${g},${b})` };
+      const n = votesForMapProvince(name, byProvince);
+      // Escala fija: cambiar para pruebas
+      const FIXED_MAX_VOTES = 500000;
+      const t = Math.min(n / FIXED_MAX_VOTES, 1);
+      const r = Math.round(230 - t * 180);
+      const g = Math.round(240 - t * 200);
+      const b = Math.round(255 - t * 100);
+      const color = `rgb(${r},${g},${b})`;
+      // Debug: log cada provincia procesada
+      // console.log(`HeatChart - Provincia: "${name}" -> ${n} votos -> color ${color}`);
+      return { fill: color };
     },
-    [byProvince, maxVotes],
+    [byProvince],
   );
-
-  const hasData = Object.keys(byProvince).length > 0;
 
   return (
     <div className="chart-container heat-chart">
-      <p className="heat-chart-legend">
-        Intensidad = votos por provincia (más oscuro = más votos).
-      </p>
       {!hasData && (
         <p className="heat-chart-empty">
           Sin datos por provincia para esta votación (espera a que existan votos).
         </p>
       )}
-      <div className="heat-chart-map-wrap">
-        <SpainMap level="province" getFeatureStyle={getFeatureStyle} />
+      <div className="heat-chart-content">
+        <div className="heat-chart-legend-vertical">
+          <div className="legend-labels">
+            <span>0</span>
+            <span>1.000</span>
+            <span>10.000</span>
+            <span>50.000</span>
+            <span>100.000</span>
+            <span>500.000</span>
+          </div>
+          <div 
+            className="legend-bar" 
+            style={{
+              background: 'linear-gradient(to bottom, rgb(230,240,255) 0%, rgb(210,200,235) 20%, rgb(180,170,220) 40%, rgb(150,140,205) 60%, rgb(100,90,180) 80%, rgb(50,40,155) 100%)',
+              width: '24px',
+              height: '320px',
+              borderRadius: '4px',
+              border: '1px solid #999'
+            }}
+          />
+        </div>
+        <div className="heat-chart-map-wrap">
+          <SpainMap 
+            key={mapKey}
+            level="province" 
+            getFeatureStyle={getFeatureStyle}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-export default function ChartSection({ voteMetrics, selectedVotation }) {
+export const HeatChart = memo(HeatChartComponent);
+
+export default function ChartSection({ voteMetrics }) {
   const { partidos, loading } = useParties();
+  const deferredProvinceVotes = useDeferredValue(voteMetrics?.votesByProvinceName);
 
   if (loading) {
     return <div className="charts">Cargando datos...</div>;
@@ -344,10 +431,7 @@ export default function ChartSection({ voteMetrics, selectedVotation }) {
             series={timeSeriesData}
           />
 
-          <HeatChart
-            data={voteMetrics.votesByMunicipality}
-            votesByProvinceName={voteMetrics.votesByProvinceName}
-          />
+          <HeatChart votesByProvinceName={deferredProvinceVotes} />
         </>
       ) : (
         <div className="no-votes">

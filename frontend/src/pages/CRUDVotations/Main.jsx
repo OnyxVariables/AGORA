@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Main.css";
 import Table from "../../components/Table/Table";
 import Form from "../../components/Form/Form";
@@ -7,7 +7,8 @@ import {
   ButtonEdit,
   ButtonDelete,
 } from "../../components/Button/Button";
-import { popupError } from "../../services/alerts";
+import { formatDate } from "../../utils/date";
+import { popupError, toastSuccess, toastTiny } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
 import { API_CONFIG } from "../../config/api";
 
@@ -17,6 +18,7 @@ export default function App() {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState({});
   const [editId, setEditId] = useState(null);
+  const prevStatesRef = useRef({});
 
   const emptyVotation = {
     title: "",
@@ -37,32 +39,41 @@ export default function App() {
     actions: "ACCIONES",
   };
 
-  useEffect(() => {
-    fetchVotations();
-  }, []);
-
   const fetchVotations = () => {
-  setLoading(true);
-  fetch(API_CONFIG.endpoints.VOTATIONS, {
-    credentials: "include",
-    headers: { Accept: "application/json" },
-  })
-    .then((res) => {
-      if (res.status === 403) {
-        window.location.href = "/";  
-      }
-      if (!res.ok) throw new Error("Error en la petición");
-      return res.json();
+    setLoading(true);
+    fetch(API_CONFIG.endpoints.VOTATIONS, {
+      credentials: "include",
+      headers: { Accept: "application/json" },
     })
-    .then((data) => {
-      setVotations(data);
-      setLoading(false);
-    })
-    .catch((err) => {
-      console.error(err);
-      setLoading(false);
-    });
-};
+      .then((res) => {
+        if (res.status === 403) {
+          window.location.href = "/";
+        }
+        if (!res.ok) throw new Error("Error en la petición");
+        return res.json();
+      })
+      .then((data) => {
+        // Detectar votaciones que acaban de pasar a finished por el scheduler
+        const prevStates = prevStatesRef.current;
+        data.forEach((v) => {
+          if (v.state === "finished" && prevStates[v.id] && prevStates[v.id] !== "finished") {
+            toastSuccess(`Votación "${v.title}" finalizada automáticamente`);
+          }
+          prevStates[v.id] = v.state;
+        });
+        setVotations(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial al montar
+    void fetchVotations();
+  }, []);
 
   const openCreateForm = () => {
     setFormData(emptyVotation);
@@ -111,10 +122,18 @@ export default function App() {
       },
       body: JSON.stringify(formData),
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          popupError(data.error || "Error al guardar la votación");
+          throw new Error(data.error || "Error al guardar la votación");
+        }
+        return data;
+      })
       .then(() => {
         setIsFormVisible(false);
         fetchVotations();
+        toastSuccess(editId ? "Votación actualizada" : "Votación programada");
       })
       .catch((err) => console.error(err));
   };
@@ -137,7 +156,18 @@ export default function App() {
         "X-XSRF-TOKEN": decodeURIComponent(xsrfToken),
       },
     })
-      .then(() => fetchVotations())
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          popupError(data.error || "Error al eliminar la votación");
+          throw new Error(data.error || "Error al eliminar la votación");
+        }
+        return data;
+      })
+      .then(() => {
+        fetchVotations();
+        toastSuccess("Votación eliminada");
+      })
       .catch((err) => console.error(err));
   };
 
@@ -156,19 +186,71 @@ export default function App() {
     
     // Add action column
     headers.push("actions");
+    const getStateClass = (state) => {
+      switch (state) {
+        case 'active': return 'state-badge state-active';
+        case 'cancelled': return 'state-badge state-cancelled';
+        case 'finished': return 'state-badge state-finished';
+        case 'pending': return 'state-badge state-pending';
+        default: return 'state-badge';
+      }
+    };
+
+    const CopyButton = ({ text }) => {
+      if (!text) return null;
+      const handleCopy = () => {
+        navigator.clipboard.writeText(text).then(() => {
+          toastTiny("Copiado");
+        }).catch(() => {});
+      };
+      return (
+        <button
+          onClick={handleCopy}
+          title="Copiar al portapapeles"
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "0 0 0 4px",
+            display: "inline-flex",
+            alignItems: "center",
+            verticalAlign: "middle",
+          }}
+        >
+          <img
+            src="/img/copy.svg"
+            alt="Copiar"
+            width="14"
+            height="14"
+            style={{ filter: "invert(0.4)" }}
+          />
+        </button>
+      );
+    };
+
     const votationsWithActions = votations.map((votation) => ({
       ...votation,
-      txHash: votation.txHash ? `${votation.txHash.slice(0, 14)}…` : "—",
-      startBlockHash: votation.startBlockHash ? `${votation.startBlockHash.slice(0, 14)}…` : "—",
-      endBlockHash: votation.endBlockHash ? `${votation.endBlockHash.slice(0, 14)}…` : "—",
+      txHash: votation.txHash ? (
+        <>{votation.txHash.slice(0, 14)}…<CopyButton text={votation.txHash} /></>
+      ) : "—",
+      startBlockHash: votation.startBlockHash ? (
+        <>{votation.startBlockHash.slice(0, 14)}…<CopyButton text={votation.startBlockHash} /></>
+      ) : "—",
+      endBlockHash: votation.endBlockHash ? (
+        <>{votation.endBlockHash.slice(0, 14)}…<CopyButton text={votation.endBlockHash} /></>
+      ) : "—",
+      startDate: formatDate(votation.startDate),
+      endDate: formatDate(votation.endDate),
+      state: <span className={getStateClass(votation.state)}>{votation.state}</span>,
+      _isDisabled: votation.state === "finished" || votation.state === "cancelled",
       actions: (
         <div className="action-container">
- <ButtonEdit
-            disabled={votation.state === "active"}
+          <ButtonEdit
+            disabled={votation.state === "active" || votation.state === "finished" || votation.state === "cancelled"}
             onClick={() => openEditForm(votation)}
           />
           <ButtonDelete
-            disabled={votation.state === "active"}
+            disabled={votation.state === "active" || votation.state === "finished" || votation.state === "cancelled"}
             onClick={() => handleDelete(votation.id)}
           />
         </div>
@@ -195,6 +277,7 @@ export default function App() {
             id="crudvotations"
             headings={headers.map((header) => columnNames[header])}
             rows={votationsWithActions}
+            getRowClass={(row) => row._isDisabled ? 'row-disabled' : ''}
             />
           )}
       </section>

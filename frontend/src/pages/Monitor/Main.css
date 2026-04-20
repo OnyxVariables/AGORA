@@ -1,0 +1,142 @@
+.monitor-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  color: #1a1a1a;
+  margin-top:8em;
+}
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .monitor-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .monitor-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.monitor-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  border: 1px solid rgba(106, 0, 212, 0.15);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 24px rgba(80, 40, 120, 0.08);
+}
+
+.monitor-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.monitor-card-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.monitor-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.monitor-badge--ok {
+  background: rgba(16, 185, 129, 0.2);
+  color: #047857;
+}
+
+.monitor-badge--degraded {
+  background: rgba(245, 158, 11, 0.25);
+  color: #b45309;
+}
+
+.monitor-badge--down {
+  background: rgba(239, 68, 68, 0.2);
+  color: #b91c1c;
+}
+
+.monitor-meta {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 0.35rem;
+}
+
+.monitor-cluster {
+  margin-top: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  border: 1px solid rgba(106, 0, 212, 0.15);
+  padding: 1.25rem;
+}
+
+.monitor-cluster h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.monitor-node-lists {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .monitor-node-lists {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.monitor-node-list h4 {
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.monitor-node-list ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.monitor-node-list li {
+  margin-bottom: 0.35rem;
+}
+
+.monitor-refresh {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Footer abajo del todo */
+.monitor-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.monitor-layout > footer {
+  margin-top: auto;
+}
+
+@media (max-width: 900px) {
+  .monitor-page {
+    margin-top: 7em;
+  }
+}

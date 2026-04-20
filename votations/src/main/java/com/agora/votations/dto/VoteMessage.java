@@ -27,4 +27,6 @@ public class VoteMessage {
     private Long totalVotes;
     private Map<Integer, Long> votesByParty;
     private Map<Integer, Long> votesByMunicipality;
+    // Conteo por nombre de provincia (mismo criterio que Laravel metrics)
+    private Map<String, Long> votesByProvinceName;
 }
