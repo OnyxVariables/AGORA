@@ -364,15 +364,6 @@ export default function Main() {
             placeholderValue=""
             disabled={votationOptions.length === 0}
           />
-          <div
-            className={`ws-status ${isConnected ? "connected" : "disconnected"}`}
-          >
-            {isConnected
-              ? "Tiempo real (WebSocket)"
-              : wsError
-                ? "Error conexión WebSocket"
-                : "Conectando WebSocket…"}
-          </div>
         </div>
         <Table
           id="votation-summary"
