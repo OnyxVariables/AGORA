@@ -2,9 +2,9 @@ import {
   useCallback,
   useMemo,
   useEffect,
-  useState,
   memo,
   useDeferredValue,
+  useRef,
 } from "react";
 import {
   Chart as ChartJS,
@@ -239,8 +239,8 @@ export function LineChart({ labels, partidos, series }) {
 
 // Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
 function HeatChartComponent({ votesByProvinceName = {} }) {
-  const [mapKey, setMapKey] = useState(0);
-  
+  const mapRef = useRef(null);
+
   const byProvince = useMemo(() => {
     if (
       votesByProvinceName &&
@@ -252,10 +252,12 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
     return {};
   }, [votesByProvinceName]);
 
-  // Actualización en tiempo real sin recargar el mapa
-  // useEffect(() => {
-  //   setMapKey(prev => prev + 1);
-  // }, [byProvince]);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      mapRef.current?.redraw?.();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [byProvince]);
 
   const maxVotes = useMemo(() => {
     let m = 1;
@@ -281,16 +283,13 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
 
   const hasData = totalVotes > 0;
 
-  // Debug: datos del heatmap
-  // useEffect(() => {
-  //   console.log("HeatChart - votesByProvinceName:", votesByProvinceName);
-  //   console.log("HeatChart - votesByProvinceName keys:", Object.keys(votesByProvinceName || {}));
-  //   console.log("HeatChart - votesByProvinceName type:", typeof votesByProvinceName);
-  //   console.log("HeatChart - votesByProvinceName isArray:", Array.isArray(votesByProvinceName));
-  //   console.log("HeatChart - byProvince keys:", Object.keys(byProvince));
-  //   console.log("HeatChart - byProvince data:", byProvince);
-  //   console.log("HeatChart - totalVotes:", totalVotes);
-  // }, [votesByProvinceName, byProvince, totalVotes]);
+  const legendLabels = useMemo(() => {
+    if (maxVotes <= 0) {
+      return ["0"];
+    }
+    const steps = [0, 0.2, 0.4, 0.6, 0.8, 1].map((f) => Math.round(f * maxVotes));
+    return [...new Set(steps)].sort((a, b) => a - b).map((n) => n.toLocaleString("es-ES"));
+  }, [maxVotes]);
 
   const getFeatureStyle = useCallback(
     (feature) => {
@@ -303,18 +302,15 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
         return { fill: "#D1D1D1", pointerEvents: "none" };
       }
       const n = votesForMapProvince(name, byProvince);
-      // Escala fija: cambiar para pruebas
-      const FIXED_MAX_VOTES = 500000;
-      const t = Math.min(n / FIXED_MAX_VOTES, 1);
+      const logMax = Math.log1p(maxVotes);
+      const t = logMax > 0 ? Math.min(1, Math.log1p(n) / logMax) : 0;
       const r = Math.round(230 - t * 180);
       const g = Math.round(240 - t * 200);
       const b = Math.round(255 - t * 100);
       const color = `rgb(${r},${g},${b})`;
-      // Debug: log cada provincia procesada
-      // console.log(`HeatChart - Provincia: "${name}" -> ${n} votos -> color ${color}`);
       return { fill: color };
     },
-    [byProvince],
+    [byProvince, maxVotes],
   );
 
   return (
@@ -327,12 +323,9 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
       <div className="heat-chart-content">
         <div className="heat-chart-legend-vertical">
           <div className="legend-labels">
-            <span>0</span>
-            <span>1.000</span>
-            <span>10.000</span>
-            <span>50.000</span>
-            <span>100.000</span>
-            <span>500.000</span>
+            {legendLabels.map((label) => (
+              <span key={label}>{label}</span>
+            ))}
           </div>
           <div 
             className="legend-bar" 
@@ -346,9 +339,9 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
           />
         </div>
         <div className="heat-chart-map-wrap">
-          <SpainMap 
-            key={mapKey}
-            level="province" 
+          <SpainMap
+            ref={mapRef}
+            level="province"
             getFeatureStyle={getFeatureStyle}
           />
         </div>

@@ -256,6 +256,70 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
+const EXPORT_PAGE_SIZE = 500;
+
+/**
+ * Ensambla el bundle completo paginando la API (exportación CSV/HTML).
+ *
+ * @param {number} votationId
+ * @param {string} baseURL - ej. API_CONFIG.baseURL
+ * @returns {Promise<object>}
+ */
+export async function fetchFullMetricsBundleForExport(votationId, baseURL) {
+  const credentials = "include";
+  const headers = { Accept: "application/json" };
+  const root = `${String(baseURL).replace(/\/$/, "")}/api/metrics/votation/${votationId}`;
+
+  const summaryRes = await fetch(root, { credentials, headers });
+  if (!summaryRes.ok) {
+    throw new Error(`Resumen métricas: HTTP ${summaryRes.status}`);
+  }
+  const summary = await summaryRes.json();
+
+  async function fetchPaged(suffix, extraParams = "") {
+    const all = [];
+    let page = 1;
+    const maxPages = 10000;
+    for (let guard = 0; guard < maxPages; guard += 1) {
+      const q = new URLSearchParams({
+        page: String(page),
+        pageSize: String(EXPORT_PAGE_SIZE),
+      });
+      if (extraParams) {
+        const extra = new URLSearchParams(extraParams);
+        extra.forEach((v, k) => q.set(k, v));
+      }
+      const url = `${root}${suffix}?${q.toString()}`;
+      const r = await fetch(url, { credentials, headers });
+      if (!r.ok) {
+        throw new Error(`HTTP ${r.status}: ${suffix}`);
+      }
+      const j = await r.json();
+      const chunk = j.data ?? [];
+      all.push(...chunk);
+      const total = j.total ?? 0;
+      if (all.length >= total || chunk.length === 0) {
+        break;
+      }
+      page += 1;
+    }
+    return all;
+  }
+
+  const votes = await fetchPaged("/votes");
+  const blocks = await fetchPaged("/blocks");
+  const audit = await fetchPaged("/audit");
+
+  return {
+    votation: summary.votation,
+    metrics: summary.metrics,
+    blockFilterOptions: summary.blockFilterOptions,
+    votes,
+    blocks,
+    audit,
+  };
+}
+
 /**
  * @param {string} content
  * @param {string} filename

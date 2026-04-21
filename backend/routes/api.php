@@ -35,6 +35,9 @@ Route::middleware('auth:sanctum', 'role:1')->group(function () {
     Route::delete('/votations/{id}', [VotationController::class, 'destroy']);
     Route::get('/votes/metrics/{votationId}', [VoteController::class, 'metrics']);
     Route::get('/metrics/votation/{votationId}', [MetricsController::class, 'votationBundle']);
+    Route::get('/metrics/votation/{votationId}/votes', [MetricsController::class, 'votationVotes']);
+    Route::get('/metrics/votation/{votationId}/blocks', [MetricsController::class, 'votationBlocks']);
+    Route::get('/metrics/votation/{votationId}/audit', [MetricsController::class, 'votationAudit']);
     Route::get('/admin/health/db', [AdminHealthController::class, 'database']);
     Route::get('/admin/health/blockchain', [AdminHealthController::class, 'blockchain']);
 });

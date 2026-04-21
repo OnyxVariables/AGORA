@@ -147,7 +147,7 @@ function aggregateRegionResults(resultsDetail, regionName, level) {
   }
   const provinces = resultsDetail.byProvince;
   let relevant = [];
-  if (level === "nation" && regionName === "Spain") {
+  if (level === "nation") {
     relevant = provinces;
   } else if (level === "ccaa") {
     relevant = provinces.filter((p) =>
@@ -470,7 +470,8 @@ export default function ElectionsMap() {
   const onFeatureClick = useCallback(
     (name) => {
       if (!resultsDetail?.byProvince || !name) return;
-      setSelectedName(name);
+      const displayName = mapLevel === "nation" ? "España" : name;
+      setSelectedName(displayName);
       setShowDialog(true);
       const { parties, totalVotes: tv, totalSeats: ts } = aggregateRegionResults(
         resultsDetail,

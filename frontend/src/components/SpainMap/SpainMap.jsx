@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 export async function loadGeoFeatures(level) {
   let file = "";
@@ -118,14 +125,17 @@ function createLinearGradient(defs, id, stops, options = {}) {
  * @param {(mapSvg: SVGSVGElement) => void} [props.onPathMouseLeave]
  * @param {string} [props.className]
  */
-export default function SpainMap({
-  level,
-  getFeatureStyle,
-  onFeatureClick,
-  onPathMouseEnter,
-  onPathMouseLeave,
-  className = "",
-}) {
+const SpainMap = forwardRef(function SpainMap(
+  {
+    level,
+    getFeatureStyle,
+    onFeatureClick,
+    onPathMouseEnter,
+    onPathMouseLeave,
+    className = "",
+  },
+  ref,
+) {
   const wrapRef = useRef(null);
   const svgRef = useRef(null);
   const [geoData, setGeoData] = useState([]);
@@ -299,6 +309,18 @@ export default function SpainMap({
     );
   }, [geoData, level, onFeatureClick, onPathMouseEnter, onPathMouseLeave]);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      redraw: () => {
+        requestAnimationFrame(() => {
+          redraw();
+        });
+      },
+    }),
+    [redraw],
+  );
+
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap || typeof ResizeObserver === "undefined") {
@@ -320,4 +342,6 @@ export default function SpainMap({
       </svg>
     </div>
   );
-}
+});
+
+export default SpainMap;
