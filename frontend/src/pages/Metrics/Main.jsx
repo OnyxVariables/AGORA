@@ -12,9 +12,12 @@ import { formatDate } from "../../utils/date";
 import { useParties } from "../../data/partidos";
 import {
   downloadTextFile,
+  fetchFullMetricsBundleForExport,
   metricsBundleToCsv,
   metricsBundleToHtml,
 } from "../../utils/metricsExport";
+
+const PAGE_SIZE = 100;
 
 export default function Main() {
   const [votationList, setVotationList] = useState([]);
@@ -23,12 +26,29 @@ export default function Main() {
   const [selectedBlock, setSelectedBlock] = useState("");
   const [selectedUser, setSelectedUser] = useState("");
   const [voteMetrics, setVoteMetrics] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
   const [loadError, setLoadError] = useState(null);
+
+  const [votesPage, setVotesPage] = useState(1);
+  const [votesRefreshTick, setVotesRefreshTick] = useState(0);
+  const [votesRows, setVotesRows] = useState([]);
+  const [votesTotal, setVotesTotal] = useState(0);
+  const [votesLoading, setVotesLoading] = useState(false);
+  const [votesError, setVotesError] = useState(null);
+
+  const [blocksPage, setBlocksPage] = useState(1);
+  const [blocksRowsRaw, setBlocksRowsRaw] = useState([]);
+  const [blocksTotal, setBlocksTotal] = useState(0);
+  const [blocksLoading, setBlocksLoading] = useState(false);
+  const [blocksError, setBlocksError] = useState(null);
+
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditRowsRaw, setAuditRowsRaw] = useState([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState(null);
 
   const { partidos } = useParties();
 
-  // Mapa de ID de partido a nombre
   const partyNameById = useMemo(() => {
     const map = {};
     partidos.forEach((p) => {
@@ -47,8 +67,8 @@ export default function Main() {
   );
 
   const blockOptions = useMemo(() => {
-    const blocks = bundle?.blocks ?? [];
-    return blocks.map((b) => ({
+    const opts = bundle?.blockFilterOptions ?? [];
+    return opts.map((b) => ({
       value: b.hash,
       label: `Bloque ${b.blockNumber} — ${b.hash.slice(0, 10)}…`,
     }));
@@ -59,12 +79,48 @@ export default function Main() {
     { value: "1", label: "Admin" },
   ];
 
+  const CopyButton = useCallback(({ text }) => {
+    if (!text) return null;
+    const handleCopy = () => {
+      navigator.clipboard.writeText(text).then(() => {
+        toastTiny("Copiado");
+      }).catch(() => {});
+    };
+    return (
+      <button
+        type="button"
+        onClick={handleCopy}
+        title="Copiar al portapapeles"
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: "0 0 0 4px",
+          display: "inline-flex",
+          alignItems: "center",
+          verticalAlign: "middle",
+        }}
+      >
+        <img
+          src="/img/copy.svg"
+          alt="Copiar"
+          width="14"
+          height="14"
+          style={{ filter: "invert(0.4)" }}
+        />
+      </button>
+    );
+  }, []);
+
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch(API_CONFIG.endpoints.VOTATIONS, {
-          credentials: "include",
-        });
+        const response = await fetch(
+          `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATIONS}`,
+          {
+            credentials: "include",
+          },
+        );
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -89,7 +145,7 @@ export default function Main() {
     const loadBundle = async () => {
       try {
         const response = await fetch(
-          API_CONFIG.endpoints.METRICS_VOTATION(selectedVotation),
+          `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION(selectedVotation)}`,
           { credentials: "include" },
         );
         if (!response.ok) {
@@ -98,6 +154,9 @@ export default function Main() {
         const data = await response.json();
         setBundle(data);
         setSelectedBlock("");
+        setVotesPage(1);
+        setBlocksPage(1);
+        setAuditPage(1);
         if (data.metrics) {
           setVoteMetrics({
             votationId: data.metrics.votationId,
@@ -115,6 +174,138 @@ export default function Main() {
     };
     loadBundle();
   }, [selectedVotation]);
+
+  useEffect(() => {
+    if (!selectedVotation) {
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      setVotesLoading(true);
+      setVotesError(null);
+      try {
+        const q = new URLSearchParams({
+          page: String(votesPage),
+          pageSize: String(PAGE_SIZE),
+        });
+        if (selectedBlock) {
+          q.set("blockHash", selectedBlock);
+        }
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_VOTES(selectedVotation)}?${q}`;
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) {
+          return;
+        }
+        if (!res.ok) {
+          throw new Error(data.error || `HTTP ${res.status}`);
+        }
+        setVotesRows(Array.isArray(data.data) ? data.data : []);
+        setVotesTotal(Number(data.total) || 0);
+      } catch (e) {
+        if (!cancelled) {
+          setVotesError(e?.message || "Error al cargar votos");
+          setVotesRows([]);
+          setVotesTotal(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setVotesLoading(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVotation, votesPage, selectedBlock, votesRefreshTick]);
+
+  useEffect(() => {
+    if (!selectedVotation) {
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      setBlocksLoading(true);
+      setBlocksError(null);
+      try {
+        const q = new URLSearchParams({
+          page: String(blocksPage),
+          pageSize: String(PAGE_SIZE),
+        });
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_BLOCKS(selectedVotation)}?${q}`;
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) {
+          return;
+        }
+        if (!res.ok) {
+          throw new Error(data.error || `HTTP ${res.status}`);
+        }
+        setBlocksRowsRaw(Array.isArray(data.data) ? data.data : []);
+        setBlocksTotal(Number(data.total) || 0);
+      } catch (e) {
+        if (!cancelled) {
+          setBlocksError(e?.message || "Error al cargar bloques");
+          setBlocksRowsRaw([]);
+          setBlocksTotal(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setBlocksLoading(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVotation, blocksPage]);
+
+  useEffect(() => {
+    if (!selectedVotation) {
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      setAuditLoading(true);
+      setAuditError(null);
+      try {
+        const q = new URLSearchParams({
+          page: String(auditPage),
+          pageSize: String(PAGE_SIZE),
+        });
+        if (selectedUser) {
+          q.set("role", selectedUser);
+        }
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_AUDIT(selectedVotation)}?${q}`;
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) {
+          return;
+        }
+        if (!res.ok) {
+          throw new Error(data.error || `HTTP ${res.status}`);
+        }
+        setAuditRowsRaw(Array.isArray(data.data) ? data.data : []);
+        setAuditTotal(Number(data.total) || 0);
+      } catch (e) {
+        if (!cancelled) {
+          setAuditError(e?.message || "Error al cargar auditoría");
+          setAuditRowsRaw([]);
+          setAuditTotal(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setAuditLoading(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVotation, auditPage, selectedUser]);
 
   const pendingMetricsRef = useRef(null);
   const rafMetricsRef = useRef(null);
@@ -139,12 +330,22 @@ export default function Main() {
         });
         setBundle((prev) => {
           if (!prev || prev.votation?.id !== data.votationId) return prev;
+          const reg = prev.metrics?.registeredCitizens ?? 0;
+          const total = data.totalVotes ?? prev.metrics?.totalVotes ?? 0;
+          const partRate =
+            reg > 0 ? Math.round((total / reg) * 100 * 100) / 100 : 0;
           return {
             ...prev,
             metrics: {
               ...prev.metrics,
-              totalVotes: data.totalVotes,
+              totalVotes: total,
               votesByParty: data.votesByParty || prev.metrics?.votesByParty,
+              votesByMunicipality:
+                data.votesByMunicipality || prev.metrics?.votesByMunicipality,
+              votesByProvinceName:
+                data.votesByProvinceName || prev.metrics?.votesByProvinceName,
+              participationRate: partRate,
+              timestamp: data.timestamp ?? prev.metrics?.timestamp,
             },
           };
         });
@@ -154,75 +355,18 @@ export default function Main() {
   );
 
   const wsUrl = import.meta.env.VITE_SPRING_WS_URL || "ws://localhost:8081/ws";
-  const { isConnected: wsConnected, error: wsError } = useWebSocket(
-    wsUrl,
-    handleVoteReceived,
-  );
-
-  useEffect(() => {
-    setIsConnected(wsConnected);
-  }, [wsConnected]);
-
-  const CopyButton = useCallback(({ text }) => {
-    if (!text) return null;
-    const handleCopy = () => {
-      navigator.clipboard.writeText(text).then(() => {
-        toastTiny("Copiado");
-      }).catch(() => {});
-    };
-    return (
-      <button
-        onClick={handleCopy}
-        title="Copiar al portapapeles"
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: "0 0 0 4px",
-          display: "inline-flex",
-          alignItems: "center",
-          verticalAlign: "middle",
-        }}
-      >
-        <img
-          src="/img/copy.svg"
-          alt="Copiar"
-          width="14"
-          height="14"
-          style={{ filter: "invert(0.4)" }}
-        />
-      </button>
-    );
-  }, []);
+  useWebSocket(wsUrl, handleVoteReceived);
 
   const votationSummaryRows = useMemo(() => {
     if (!bundle?.votation) return [];
     const v = bundle.votation;
     return [
-      {
-        field: "ID",
-        value: v.id,
-      },
-      {
-        field: "Título",
-        value: v.title,
-      },
-      {
-        field: "Descripción",
-        value: v.description,
-      },
-      {
-        field: "Estado",
-        value: v.state,
-      },
-      {
-        field: "Inicio",
-        value: formatDate(v.startDate),
-      },
-      {
-        field: "Fin",
-        value: formatDate(v.endDate),
-      },
+      { field: "ID", value: v.id },
+      { field: "Título", value: v.title },
+      { field: "Descripción", value: v.description },
+      { field: "Estado", value: v.state },
+      { field: "Inicio", value: formatDate(v.startDate) },
+      { field: "Fin", value: formatDate(v.endDate) },
       {
         field: "txHash",
         value: v.txHash ? (
@@ -230,24 +374,24 @@ export default function Main() {
         ) : "—",
       },
     ];
-  }, [bundle]);
+  }, [bundle, CopyButton]);
 
   const participationRows = useMemo(() => {
     const m = bundle?.metrics;
     if (!m) return [];
+    const reg = m.registeredCitizens ?? 0;
+    const total = m.totalVotes ?? 0;
+    const rate =
+      reg > 0 ? Math.round((total / reg) * 100 * 100) / 100 : 0;
     return [
-      { metric: "Votos totales", value: m.totalVotes },
-      { metric: "Ciudadanos registrados", value: m.registeredCitizens },
-      { metric: "Participación (%)", value: m.participationRate },
+      { metric: "Votos totales", value: total },
+      { metric: "Ciudadanos registrados", value: reg },
+      { metric: "Participación (%)", value: rate },
     ];
-  }, [bundle]);
+  }, [bundle?.metrics]);
 
   const votesDetailRows = useMemo(() => {
-    const votes = bundle?.votes ?? [];
-    const filtered = selectedBlock
-      ? votes.filter((r) => r.blockHash === selectedBlock)
-      : votes;
-    return filtered.map((r) => {
+    return votesRows.map((r) => {
       const mName = r.municipalityName;
       const pName = r.provinceName;
       const ccaa = r.autonomousCommunityName;
@@ -282,14 +426,10 @@ export default function Main() {
         creado: formatDate(r.createdAt),
       };
     });
-  }, [bundle, selectedBlock]);
+  }, [votesRows, CopyButton]);
 
   const auditRows = useMemo(() => {
-    let rows = bundle?.audit ?? [];
-    if (selectedUser) {
-      rows = rows.filter((a) => String(a.userRole) === selectedUser);
-    }
-    return rows.map((a) => ({
+    return auditRowsRaw.map((a) => ({
       id: a.id,
       user:
         a.userName && String(a.userName).trim() !== ""
@@ -305,11 +445,10 @@ export default function Main() {
       ) : "—",
       fecha: formatDate(a.createdAt),
     }));
-  }, [bundle, selectedUser]);
+  }, [auditRowsRaw, CopyButton]);
 
   const blocksRows = useMemo(() => {
-    const blocks = bundle?.blocks ?? [];
-    return blocks.map((b) => ({
+    return blocksRowsRaw.map((b) => ({
       num: b.blockNumber,
       hash: (
         <>{b.hash.slice(0, 12)}…<CopyButton text={b.hash} /></>
@@ -321,30 +460,42 @@ export default function Main() {
       ok: b.isValid ? "Sí" : "No",
       creado: formatDate(b.createdAt),
     }));
-  }, [bundle]);
+  }, [blocksRowsRaw, CopyButton]);
 
   useEffect(() => {
-    const onExport = () => {
+    const onExport = async () => {
       if (!bundle?.votation) {
         popupError("Selecciona una votación con datos cargados");
         return;
       }
       const id = bundle.votation.id;
       const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-      downloadTextFile(
-        metricsBundleToCsv(bundle),
-        `agora-metricas-${id}-${stamp}.csv`,
-        "text/csv;charset=utf-8",
-      );
-      downloadTextFile(
-        metricsBundleToHtml(bundle),
-        `agora-metricas-${id}-${stamp}.html`,
-        "text/html;charset=utf-8",
-      );
+      try {
+        toastTiny("Generando exportación…");
+        const full = await fetchFullMetricsBundleForExport(id, API_CONFIG.baseURL);
+        downloadTextFile(
+          metricsBundleToCsv(full),
+          `agora-metricas-${id}-${stamp}.csv`,
+          "text/csv;charset=utf-8",
+        );
+        downloadTextFile(
+          metricsBundleToHtml(full),
+          `agora-metricas-${id}-${stamp}.html`,
+          "text/html;charset=utf-8",
+        );
+        toastTiny("Exportación lista");
+      } catch (e) {
+        console.error(e);
+        popupError("No se pudo exportar. Reintenta.");
+      }
     };
     window.addEventListener("agora-export-metrics", onExport);
     return () => window.removeEventListener("agora-export-metrics", onExport);
   }, [bundle]);
+
+  const votesPagesTotal = Math.max(1, Math.ceil(votesTotal / PAGE_SIZE));
+  const blocksPagesTotal = Math.max(1, Math.ceil(blocksTotal / PAGE_SIZE));
+  const auditPagesTotal = Math.max(1, Math.ceil(auditTotal / PAGE_SIZE));
 
   return (
     <main className="main">
@@ -416,7 +567,11 @@ export default function Main() {
 
       <SectionContainer>
         <h2 className="metrics-section-title">Detalle de votos</h2>
-        <div className={`table-scroll-container ${votesDetailRows.length > 10 ? 'scrollable' : ''}`}>
+        {votesError ? <p className="metrics-banner-error">{votesError}</p> : null}
+        {votesLoading ? <p>Cargando…</p> : null}
+        <div
+          className={`table-scroll-container ${votesDetailRows.length > 10 ? "scrollable" : ""}`}
+        >
           <Table
             id="votes-detail"
             headings={["ID", "Partido", "Municipio", "Bloque", "TxHash", "Creado"]}
@@ -424,11 +579,43 @@ export default function Main() {
             rowKeys={["id", "party", "municipio", "bloque", "tx", "creado"]}
           />
         </div>
+        {votesTotal > PAGE_SIZE ? (
+          <p style={{ margin: "0.75rem 0", fontSize: "0.9rem" }}>
+            Página {votesPage} de {votesPagesTotal} — {votesTotal.toLocaleString("es-ES")} votos en total
+            {" "}
+            <button
+              type="button"
+              disabled={votesLoading || votesPage <= 1}
+              onClick={() => setVotesPage((p) => Math.max(1, p - 1))}
+            >
+              Anterior
+            </button>
+            {" "}
+            <button
+              type="button"
+              disabled={votesLoading || votesPage >= votesPagesTotal}
+              onClick={() => setVotesPage((p) => p + 1)}
+            >
+              Siguiente
+            </button>
+            {" "}
+            <button
+              type="button"
+              disabled={votesLoading}
+              onClick={() => setVotesRefreshTick((t) => t + 1)}
+            >
+              Actualizar
+            </button>
+          </p>
+        ) : null}
         <Select
           id="blockFilter"
           label="Filtrar votos por bloque (opcional):"
           value={selectedBlock}
-          onChange={(e) => setSelectedBlock(e.target.value)}
+          onChange={(e) => {
+            setSelectedBlock(e.target.value);
+            setVotesPage(1);
+          }}
           options={blockOptions}
           placeholderLabel="Todos los bloques"
           placeholderValue=""
@@ -438,7 +625,11 @@ export default function Main() {
 
       <SectionContainer>
         <h2 className="metrics-section-title">Bloques (cadena en blockchain)</h2>
-        <div className={`table-scroll-container ${blocksRows.length > 10 ? 'scrollable' : ''}`}>
+        {blocksError ? <p className="metrics-banner-error">{blocksError}</p> : null}
+        {blocksLoading ? <p>Cargando…</p> : null}
+        <div
+          className={`table-scroll-container ${blocksRows.length > 10 ? "scrollable" : ""}`}
+        >
           <Table
             id="blocks-chain"
             headings={["Nº", "Hash", "Hash Anterior", "Número Transacciones", "Válido", "Creado"]}
@@ -446,21 +637,68 @@ export default function Main() {
             rowKeys={["num", "hash", "prev", "txs", "ok", "creado"]}
           />
         </div>
+        {blocksTotal > PAGE_SIZE ? (
+          <p style={{ margin: "0.75rem 0", fontSize: "0.9rem" }}>
+            Página {blocksPage} de {blocksPagesTotal} — {blocksTotal.toLocaleString("es-ES")} bloques
+            {" "}
+            <button
+              type="button"
+              disabled={blocksLoading || blocksPage <= 1}
+              onClick={() => setBlocksPage((p) => Math.max(1, p - 1))}
+            >
+              Anterior
+            </button>
+            {" "}
+            <button
+              type="button"
+              disabled={blocksLoading || blocksPage >= blocksPagesTotal}
+              onClick={() => setBlocksPage((p) => p + 1)}
+            >
+              Siguiente
+            </button>
+          </p>
+        ) : null}
       </SectionContainer>
 
       <SectionContainer>
         <h2 className="metrics-section-title">Auditoría</h2>
+        {auditError ? <p className="metrics-banner-error">{auditError}</p> : null}
+        {auditLoading ? <p>Cargando…</p> : null}
         <Table
           id="audit"
           headings={["ID", "Usuario", "Acción", "Descripción", "Tx Hash", "Block Hash", "Fecha"]}
           rows={auditRows}
           rowKeys={["id", "user", "action", "desc", "tx", "block", "fecha"]}
         />
+        {auditTotal > PAGE_SIZE ? (
+          <p style={{ margin: "0.75rem 0", fontSize: "0.9rem" }}>
+            Página {auditPage} de {auditPagesTotal} — {auditTotal.toLocaleString("es-ES")} registros
+            {" "}
+            <button
+              type="button"
+              disabled={auditLoading || auditPage <= 1}
+              onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
+            >
+              Anterior
+            </button>
+            {" "}
+            <button
+              type="button"
+              disabled={auditLoading || auditPage >= auditPagesTotal}
+              onClick={() => setAuditPage((p) => p + 1)}
+            >
+              Siguiente
+            </button>
+          </p>
+        ) : null}
         <Select
           id="auditFilter"
           label="Filtrar auditoría por rol:"
           value={selectedUser}
-          onChange={(e) => setSelectedUser(e.target.value)}
+          onChange={(e) => {
+            setSelectedUser(e.target.value);
+            setAuditPage(1);
+          }}
           options={userRoleOptions}
           placeholderLabel="Todos los usuarios"
           placeholderValue=""

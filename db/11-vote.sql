@@ -13,3 +13,6 @@ CREATE TABLE IF NOT EXISTS vote(
     CONSTRAINT FK_VOTE_municipalityId FOREIGN KEY(municipalityId) REFERENCES municipality(id),
     CONSTRAINT FK_VOTE_blockHash FOREIGN KEY(blockHash) REFERENCES block(hash)
 );
+
+-- Paginación / métricas: filtrar y ordenar por votationId + id
+CREATE INDEX vote_votation_id_id_index ON vote(votationId, id);

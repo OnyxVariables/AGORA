@@ -111,7 +111,7 @@ export const PROVINCE_ALIASES = {
 export const CCAA_ALIAS_GROUPS = [
   ["Andalucía", "Andalusia"],
   ["Aragon", "Aragón"],
-  ["Asturias", "Principado de Asturias"],
+  ["Asturias", "Principado de Asturias", "Asturias, Principado de"],
   ["Islas Baleares", "Baleares", "Illes Balears", "Balears, Illes"],
   ["Islas Canarias", "Canarias"],
   ["Cantabria"],
@@ -123,7 +123,7 @@ export const CCAA_ALIAS_GROUPS = [
   ["Extremadura"],
   ["Galicia"],
   ["La Rioja", "Rioja, La"],
-  ["Comunidad de Madrid", "Madrid"],
+  ["Comunidad de Madrid", "Madrid", "Madrid, Comunidad de"],
   ["Melilla"],
   ["Murcia", "Región de Murcia", "Murcia, Región de"],
   [
