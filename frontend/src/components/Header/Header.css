@@ -3,16 +3,18 @@
   src: url('/fonts/FontsTitle.ttf') format('truetype');
 }
 
+.header,
 header {
-    background: linear-gradient(90deg,rgba(175, 135, 255, 1) 0%, rgba(61, 0, 145, 1) 50%, rgba(3, 0, 0, 1) 100%);
+    background: linear-gradient(90deg, var(--color-brand-light) 0%, var(--color-brand-mid) 50%, var(--color-brand-dark) 100%);
     padding: 1em 0;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid var(--color-border-dark);
     position:fixed;
     top:0;
     width: 100%;
     z-index: 10000;  /* Por esto no se ve la x de la hamburguesa  */
 }
 
+.header__inner,
 .primerDiv {
     width: 95%;
     margin: auto;
@@ -21,23 +23,27 @@ header {
     align-items: center;
 }
 
+.header__brand,
 .logo {
     display: flex;
     align-items: center;
     gap: 0.5em;
 }
 
+.header__brand-image,
 .logo img {
     width: 5em;
 }
 
+.header__brand-title,
 .logo h1 {
     font-size: 3rem;
-    color: white;
+    color: var(--color-text-light);
     font-weight: bold;
     font-family: 'FontsTitle', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
+.header .boton svg,
 a.boton svg,
 button svg{
     width: 1em;
@@ -50,6 +56,7 @@ button svg{
 
 
 /* nav */
+.header__nav,
 nav {
     display: flex;
     gap: 1em;
@@ -57,13 +64,13 @@ nav {
 
 .boton {
     background: transparent;
-    border: 2px solid white;
+    border: 2px solid var(--color-text-light);
     padding: 8px 20px;
-    border-radius: 1em;
-    color: white;
+    border-radius: var(--radius-md);
+    color: var(--color-text-light);
     text-decoration: none;
     font-weight: bold;
-    transition: 0.3s;
+    transition: var(--transition-fast);
 }
 
 .boton:hover {
@@ -78,6 +85,7 @@ input[type="checkbox"] {
 }
 
 /* Botón hamburguesa */
+.header__toggle,
 .bar {
   display: none; /* solo se ve en móvil */
   position: relative;
@@ -88,6 +96,7 @@ input[type="checkbox"] {
   transform-origin: right center;
 }
 
+.header__toggle span,
 .bar span {
   position: absolute;
   width: 45px;
@@ -99,8 +108,11 @@ input[type="checkbox"] {
   left: 0;
 }
 
+.header__toggle .top,
 .bar .top { top: 0; }
+.header__toggle .middle,
 .bar .middle { top: 17px; }
+.header__toggle .bottom,
 .bar .bottom { bottom: 0; }
 
 /* Animación a X */
@@ -126,6 +138,7 @@ input[type="checkbox"]:checked ~ .middle {
 
 
 /* Sidebar tipo moodle */
+.header__sidebar,
 .sidebar {
     position: fixed;
     right: -500px; /* oculto al inicio */
@@ -133,7 +146,7 @@ input[type="checkbox"]:checked ~ .middle {
     display:flex;
     justify-content: end;
     height: 100vh;
-    background: #0d1117;
+    background: var(--color-sidebar-bg);
     z-index: 9998;
     transition: right 0.35s ease;
     overflow-y: auto;
@@ -141,15 +154,17 @@ input[type="checkbox"]:checked ~ .middle {
     max-width: 300px;
 }
 
+.header__sidebar.open,
 .sidebar.open {
     right: 0;
 }
 
+.header__sidebar-list,
 .input {
   display: flex;
   flex-direction: column;
   width: 200px;
-  background-color: #0d1117;
+  background-color: var(--color-sidebar-bg);
   justify-content: flex-start; /* Ahora los botones van arriba */
   align-items: end;
   border-radius: 10px;
@@ -158,24 +173,26 @@ input[type="checkbox"]:checked ~ .middle {
   overflow: hidden;
 }
 
+.header__sidebar-item svg,
 .value svg {
   width: 1.2em;
   height: 1.2em;
   fill: currentColor;
 }
 
+.header__sidebar-item,
 .value {
     font-size: 1.2rem;
     background-color: transparent;
     border: none;
     padding: 10px;
-    color: white;
+    color: var(--color-text-light);
     display: flex;
     align-items: center;
     gap: 10px;
     cursor: pointer;
     border-radius: 10px;
-    transition: 0.3s;
+    transition: var(--transition-fast);
     position: relative;
     flex-direction: row-reverse;
     text-decoration: none;
@@ -188,13 +205,16 @@ span:first-letter {
 
 
 
+.header__sidebar-item:not(:active):hover,
+.header__sidebar-item:focus,
 .value:not(:active):hover,
 .value:focus {
-    background-color: #1a1f24;
-    border: 2px solid rgba(175, 135, 255, 1);
-    color: #637185;
+    background-color: var(--color-sidebar-hover);
+    border: 2px solid var(--color-brand-light);
+    color: var(--color-sidebar-text-muted);
 }
 
+.header__sidebar-item::before,
 .value::before {
     content: "";
     position: absolute;
@@ -202,23 +222,27 @@ span:first-letter {
     left: -15px;
     width: 5px;
     height: 80%;
-    background-color: rgba(175, 135, 255, 1);
+    background-color: var(--color-brand-light);
     border-radius: 5px;
     opacity: 0;
-    transition: 0.3s;
+    transition: var(--transition-fast);
 }
 
+.header__sidebar-item:focus::before,
+.header__sidebar-item:active::before,
 .value:focus::before,
 .value:active::before {
     opacity: 1;
 }
 
+.header__sidebar-list:hover > :not(.header__sidebar-item:hover),
 .input:hover > :not(.value:hover) {
-    transition: 0.3s;
+    transition: var(--transition-fast);
     filter: blur(1.5px);
     transform: scale(0.95);
 }
 
+.header__nav .boton,
 nav .boton {
     transition: all 0.35s ease;
 }
@@ -228,10 +252,12 @@ nav .boton {
 /* Tablets y pantallas medianas */
 @media (max-width: 900px) {
 
+    .header__brand-image,
     .logo img {
         width: 3.5em;
     }
 
+    .header .boton,
     .boton {
         padding: 0.4em 0.8em;
     }
@@ -239,16 +265,19 @@ nav .boton {
 
 /* Móviles */
 @media (max-width: 800px) {
+    .header__nav,
     nav {
         display: none;
     }
 
+    .header__toggle,
     .bar {
         display: block;
         position: absolute;
         right: 1em;
     }
 
+    .header .boton,
     .boton {
         width: 100%;
         text-align: center;
@@ -258,6 +287,7 @@ nav .boton {
 /* Móviles pequeños */
 @media (max-width: 380px) {
 
+    .header__brand-title,
     .logo h1 {
         font-size: 2.5rem;
     }

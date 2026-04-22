@@ -4,6 +4,7 @@
 }
 
 /* Fondo a pantalla completa */
+.landing,
 .index {
     position: relative;
     min-height: 100vh;
@@ -13,17 +14,19 @@
     justify-content: center;
 }
 
+.landing::before,
 .index::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-color:black;
+    background-color: var(--color-border-dark);
     z-index: -1;
 }
 
 /* Sección 1 (logo + título) */
+.landing .landing__hero figure,
 .index .section1 figure {
-    color: white;
+    color: var(--color-text-light);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -37,6 +40,7 @@
     object-fit: contain;
 }
 
+.landing .landing__hero h1,
 .index .section1 h1 {
     font-size: 15rem;
     text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
@@ -45,38 +49,43 @@
 }
 
 /* Sección 2 */
+.landing .landing__access,
 .index .section2 {
     text-align: center;
-    color: white;
+    color: var(--color-text-light);
 }
 
+.landing .landing__access h2,
 .index .section2 h2 {
     font-size: 3rem;
     margin-bottom: 10px;
     text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
 }
 
+.landing .landing__access p,
 .index .section2 p {
     font-size: 1.8rem;
     margin-bottom: 25px;
 }
 
 /* Botón */
+.landing .landing__access button,
 .index .section2 button {
     padding: 12px 40px;
     font-size: 1.8rem;
     font-weight: bold;
-    border: 2px solid black;
-    border-radius: 1em;
+    border: 2px solid var(--color-border-dark);
+    border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.9);
     color: #000000;
     cursor: pointer;
-    transition: 0.3s;
+    transition: var(--transition-fast);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 10;
     position: relative;
 }
 
+.landing .landing__access button:hover,
 .index .section2 button:hover {
     background: white;
     transform: scale(1.05);

@@ -4,7 +4,7 @@ import "./Main.css";
 
 export default function Main() {
   return (
-    <main className="mainError">
+    <main className="mainError error-page">
       {/* FONDO DE PARTICULAS */}
       <div
         style={{
@@ -28,8 +28,8 @@ export default function Main() {
       </div>
 
       {/* section 1 */}
-      <section className="error">
-        <article className="errorMessage">
+      <section className="error error-page__content">
+        <article className="errorMessage error-page__message">
           <h1>404 – Aquí no hay nada que votar</h1>
           <h2>Este bloque está más vacío que una urna sin elecciones</h2>
           <h3>
@@ -38,7 +38,7 @@ export default function Main() {
           </h3>
           <Link to="/">Ir a la página de inicio</Link>
         </article>
-        <article className="errorImg">
+        <article className="errorImg error-page__image">
           <picture>
             <img src="/img/error404.png" alt="Blockchain" />
           </picture>

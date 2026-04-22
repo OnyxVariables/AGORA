@@ -496,7 +496,7 @@ export default function ElectionsMap() {
   ];
 
   return (
-    <main className="electionsMap">
+    <main className="electionsMap results-map">
       <div
         style={{
           width: "100%",

@@ -19,6 +19,16 @@
     max-width: 1200px;
 }
 
+.admin-votations {
+    margin-top: 10em;
+}
+
+.admin-votations__container {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1200px;
+}
+
 /* TABLA */
 .action-container {
     display: flex;

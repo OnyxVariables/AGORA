@@ -6,7 +6,7 @@ import { useParties } from "../../data/partidos";
 function Main() {
   const { partidos, loading } = useParties();
   return (
-    <main className="main-partidos">
+    <main className="main-partidos parties-list">
       {/* FONDO PARTICLES */}
       <div
         style={{

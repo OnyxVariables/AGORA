@@ -165,11 +165,11 @@ function Partidos() {
   };
 
   if (loading) {
-    return <main className="background">Cargando partidos...</main>;
+    return <main className="background voting-page">Cargando partidos...</main>;
   }
 
   return (
-    <main className="background">
+    <main className="background voting-page">
       {/* FONDO DE PARTICULAS */}
       <div
         style={{
@@ -191,7 +191,7 @@ function Partidos() {
           disableRotation={true}
         />
       </div>
-      <div className="grid-partidos">
+      <div className="grid-partidos voting-page__grid">
         {partidos.map((partido) => (
           <PartidoCard
             key={partido.value}
@@ -203,8 +203,8 @@ function Partidos() {
           />
         ))}
       </div>
-      <div className="submit">
-        <button className="enviar" onClick={handleSubmit}>
+      <div className="submit voting-page__submit">
+        <button className="enviar voting-page__submit-button" onClick={handleSubmit}>
           Enviar
         </button>
       </div>

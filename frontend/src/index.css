@@ -1,3 +1,22 @@
+:root {
+    --color-bg-app: #fafafa;
+    --color-bg-dark: #0f0f0f;
+    --color-text-light: #ffffff;
+    --color-brand-light: rgba(175, 135, 255, 1);
+    --color-brand-mid: rgba(61, 0, 145, 1);
+    --color-brand-dark: rgba(3, 0, 0, 1);
+    --color-border-dark: #000000;
+    --color-sidebar-bg: #0d1117;
+    --color-sidebar-hover: #1a1f24;
+    --color-sidebar-text-muted: #637185;
+    --radius-md: 1em;
+    --radius-sm: 0.5em;
+    --shadow-card: 10px 10px 2px #8c00dd20;
+    --shadow-card-hover: 12px 12px 12px #00000030;
+    --transition-fast: 0.3s;
+    --transition-normal: 0.35s ease;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,18 +26,18 @@
 }
 
 body {
-    background: #fafafa;
+    background: var(--color-bg-app);
 }
 
 .boton {
     background: transparent;
-    border: 2px solid white;
+    border: 2px solid var(--color-text-light);
     padding: 8px 20px;
-    border-radius: 1em;
-    color: white;
+    border-radius: var(--radius-md);
+    color: var(--color-text-light);
     text-decoration: none;
     font-weight: bold;
-    transition: 0.3s;
+    transition: var(--transition-fast);
 }
 
 .boton:hover {
@@ -28,13 +47,13 @@ body {
 /* Para el ThemeToggle */
 .app-background {
   min-height: 100vh;
-  background-color: #fafafa;
+  background-color: var(--color-bg-app);
   z-index: 1;
   position: relative;
 }
 
 .dark .app-background {
-  background-color: #0f0f0f;
+  background-color: var(--color-bg-dark);
   z-index: 1;
   position: relative;
 }

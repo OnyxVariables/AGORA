@@ -1,3 +1,4 @@
+.metrics-page,
 .main {
   margin-top: 10em;
 }
@@ -50,10 +51,11 @@
   width: 90%;
 }
 
+.metrics-page__section-title,
 .metrics-section-title {
   margin: 0 0 0.75rem 0;
   font-size: 1.15rem;
-  color: #3d0091;
+  color: var(--color-brand-mid);
   margin-top: 2.5em;
 }
 
@@ -84,7 +86,7 @@
 }
 
 .muni-missing {
-  color: #3d0091;
+  color: var(--color-brand-mid);
 }
 
 /* Contenedor de tabla de partidos con scroll para más de 7 filas */

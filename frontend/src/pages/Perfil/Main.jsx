@@ -72,7 +72,7 @@ function Main() {
   if (!user) return null;
 
   return (
-    <div className="layout-usuario">
+    <div className="layout-usuario profile">
       <div
         style={{
           width: "100%",
@@ -94,10 +94,10 @@ function Main() {
         />
       </div>
 
-      <main className="contenedorUsuario">
-        <section className="tarjeta">
+      <main className="contenedorUsuario profile__container">
+        <section className="tarjeta profile__card">
           <h2>Datos del Usuario</h2>
-          <div className="info">
+          <div className="info profile__info">
             <p>
               <span>Nombre:</span> {user.nombre}
             </p>
@@ -115,9 +115,9 @@ function Main() {
           </div>
         </section>
 
-        <section className="tarjeta">
+        <section className="tarjeta profile__card">
           <h2>Datos de Empadronamiento</h2>
-          <div className="info">
+          <div className="info profile__info">
             <p>
               <span>Municipio:</span> {user.municipio}
             </p>
@@ -134,9 +134,9 @@ function Main() {
           </div>
         </section>
 
-        <section className="tarjeta">
+        <section className="tarjeta profile__card">
           <h2>Ponte un nickname</h2>
-          <form className="formulario" onSubmit={handleSubmit}>
+          <form className="formulario profile__form" onSubmit={handleSubmit}>
             <input
               type="text"
               placeholder=" xxxxxxxx"

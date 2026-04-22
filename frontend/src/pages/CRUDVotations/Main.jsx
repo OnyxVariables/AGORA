@@ -174,8 +174,8 @@ export default function App() {
   if (loading) return <p>Cargando votaciones...</p>;
   if (votations.length === 0 && !isFormVisible)
     return (
-      <main className="crudvotations">
-        <section className="container">
+      <main className="crudvotations admin-votations">
+        <section className="container admin-votations__container">
           <ButtonCreate onClick={openCreateForm}></ButtonCreate>
           <p>No hay votaciones creadas</p>
         </section>
@@ -258,8 +258,8 @@ export default function App() {
   }));
 
   return (
-    <main className="crudvotations">
-      <section className="container">
+    <main className="crudvotations admin-votations">
+      <section className="container admin-votations__container">
         <ButtonCreate onClick={openCreateForm} />
 
         {isFormVisible && (

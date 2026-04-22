@@ -9,13 +9,13 @@ const Main = ({
   onSelect,
 }) => {
   return (
-    <article className="card" style={{ background: colores.fondo }}>
-      <div className="info">
-        <h2 style={{ background: colores.titulo }}>{nombre}</h2>
-        <div className="voto">
+    <article className="card vote-card" style={{ background: colores.fondo }}>
+      <div className="info vote-card__info">
+        <h2 className="vote-card__title" style={{ background: colores.titulo }}>{nombre}</h2>
+        <div className="voto vote-card__vote">
           <p>VOTAR: </p>
-          <div className="votos">
-            <label className="cyber-checkbox">
+          <div className="votos vote-card__vote-options">
+            <label className="cyber-checkbox vote-card__checkbox">
               <input
                 type="checkbox"
                 name="partido"
@@ -44,7 +44,7 @@ const Main = ({
           </div>
         </div>
       </div>
-      <figure>
+      <figure className="vote-card__media">
         <img src={imagen} alt={`Logo ${nombre}`} />
       </figure>
     </article>

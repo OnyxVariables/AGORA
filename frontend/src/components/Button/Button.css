@@ -1,17 +1,8 @@
-:root {
-    --pink: #eebefa;
-    --pink-shade: #db9fea;
-    --red: #ffc9c9;
-    --red-shade: #daa2a2;
-    --red-2: #f44336;
-    --green: #4caf50;
-}
-
 .btn {
     padding: 5px 10px;
-    border: 1px solid black;
-    border-radius: 1em;
-    transition: 0.3s;
+    border: 1px solid var(--color-border-dark);
+    border-radius: var(--radius-md);
+    transition: var(--transition-fast);
     cursor: pointer;
 }
 
@@ -22,33 +13,33 @@
 
 .btn--create,
 .btn--edit {
-    background: var(--pink);
+    background: #eebefa;
 }
 
 .btn--create:hover,
 .btn--edit:hover {
-    background: var(--pink-shade);
+    background: #db9fea;
 }
 
 .btn--delete {
-    background: var(--red);
+    background: #ffc9c9;
 }
 
 .btn--delete:hover {
-    background: var(--red-shade);
+    background: #daa2a2;
 }
 
 .btn--cancel {
-    background-color: var(--red-2);
-    color: white;
+    background-color: #f44336;
+    color: var(--color-text-light);
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
 }
 
 .btn--save {
-    background-color: var(--green);
-    color: white;
+    background-color: #4caf50;
+    color: var(--color-text-light);
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
