@@ -498,7 +498,7 @@ export default function Main() {
   const auditPagesTotal = Math.max(1, Math.ceil(auditTotal / PAGE_SIZE));
 
   return (
-    <main className="main">
+    <main className="main metrics-page">
       {loadError && <p className="metrics-banner-error">{loadError}</p>}
       <SectionContainer>
         <div className="metrics-header">

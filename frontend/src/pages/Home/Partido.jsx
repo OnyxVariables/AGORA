@@ -1,13 +1,13 @@
 function Partido({ nombre, descripcion, img, estilos }) {
   return (
-    <main className="home">
-      <article className="partido" style={{ background: estilos.fondo }}>
-        <div>
-          <h2 style={{ background: estilos.titulo }}>{nombre}</h2>
-          <p>{descripcion}</p>
+    <main className="home parties">
+      <article className="partido parties__card" style={{ background: estilos.fondo }}>
+        <div className="parties__content">
+          <h2 className="parties__title" style={{ background: estilos.titulo }}>{nombre}</h2>
+          <p className="parties__description">{descripcion}</p>
         </div>
 
-        <figure>
+        <figure className="parties__media">
           <img src={img} alt={nombre} />
         </figure>
       </article>

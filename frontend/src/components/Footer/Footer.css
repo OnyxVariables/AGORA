@@ -1,27 +1,32 @@
+.footer,
 footer {
-    background: linear-gradient(270deg,rgba(175, 135, 255, 1) 0%, rgba(61, 0, 145, 1) 50%, rgba(3, 0, 0, 1) 100%);
+    background: linear-gradient(270deg, var(--color-brand-light) 0%, var(--color-brand-mid) 50%, var(--color-brand-dark) 100%);
     padding: 1em 0;
-    border-top: 1px solid black;
+    border-top: 1px solid var(--color-border-dark);
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
 }
 
+.footer__logos,
 footer figure {
     display: flex;
     gap: 1em;
     margin-right: 1.5em;
 }
 
+.footer__logo-image,
 footer figure img {
     width: 5em;
 }
 
+.footer .boton,
 footer .boton{
     margin-left: 3em;
 }
 
+.footer__social-icon,
 .icons-social-media {
   align-items: center;
   margin-top: 10px;
@@ -58,6 +63,7 @@ footer .boton{
 
 
 /* ----- MODAL PRIVACIDAD ----- */
+.footer__modal,
 .modal { 
     position: fixed;
     z-index: 1000;
@@ -72,6 +78,7 @@ footer .boton{
     margin-bottom: 10em;
 }
 
+.footer__modal-content,
 .modal-contenido {
     background: white;
     width: 90%;
@@ -83,21 +90,24 @@ footer .boton{
     animation: aparecer 0.3s ease;
     margin-top: 9em;
     height: 80vh;
-    border: 3px solid black;
+    border: 3px solid var(--color-border-dark);
 }
 
+.footer__modal-content h2,
 .modal-contenido h2 {
-    color: #3d0091;
+    color: var(--color-brand-mid);
     margin-bottom: 1em;
     text-align: center;
 }
 
+.footer__modal-content p,
 .modal-contenido p {
     margin-bottom: 1em;
     font-size: 0.95rem;
     line-height: 1.5;
 }
 
+.footer__modal-close,
 .cerrar {
     float: right;
     font-size: 25px;
@@ -113,6 +123,7 @@ footer .boton{
 /* Tablets y pantallas medianas */
 @media (max-width: 900px) {
 
+    .footer__modal-content,
     .modal-contenido{
         margin-top: 7em;
         height: 85vh;
@@ -123,12 +134,14 @@ footer .boton{
 @media (max-width: 800px) {
 
     /* Footer en columna */
+    .footer,
     footer {
         flex-direction: column;
         gap: 1.5em;
         text-align: center;
     }
 
+    .footer .boton,
     footer .boton{
         margin-left: 0;
         width: 90%;
@@ -136,6 +149,7 @@ footer .boton{
         margin-top: 1em;
     }
 
+    .footer__logos,
     footer figure {
         margin-right: 0;
     }

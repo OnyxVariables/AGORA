@@ -48,7 +48,7 @@ export default function Main() {
   };
 
   return (
-    <main className="index">
+    <main className="index landing">
       {/* FONDO DE PARTICULAS */}
       <div
         style={{
@@ -71,7 +71,7 @@ export default function Main() {
       </div>
 
       {/* section 1 */}
-      <section className="section1">
+      <section className="section1 landing__hero">
         <figure>
           <img src="/img/LogoAgora.png" alt="Logo" />
           <h1>Agora</h1>
@@ -79,7 +79,7 @@ export default function Main() {
       </section>
 
       {/* section 2 */}
-      <section className="section2">
+      <section className="section2 landing__access">
         <h2>¿Listo para votar?</h2>
         <p>Ingrese su certificado digital</p>
         <button type="button" onClick={handleLogin}>

@@ -6,21 +6,21 @@
   background-color: #eebefa;
   flex-wrap: wrap;
   padding: 1em;
-  border-radius: 1em;
-  border: 3px solid black;
+  border-radius: var(--radius-md);
+  border: 3px solid var(--color-border-dark);
   font-weight: bold;
-  box-shadow: 10px 10px 2px #8c00dd20;
+  box-shadow: var(--shadow-card);
   transition: all 0.35s ease;
   margin-bottom: 1.5em;
 }
 
 .select-container:hover {
   transform: translateY(-5px);
-  box-shadow: 12px 12px 12px #00000030;
+  box-shadow: var(--shadow-card-hover);
 }
 
 .select {
-  border-radius: 0.5em;
+  border-radius: var(--radius-sm);
   padding: 5px 10px;
   flex-basis: 10em;
 }

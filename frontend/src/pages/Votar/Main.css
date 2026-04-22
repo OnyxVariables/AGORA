@@ -1,9 +1,11 @@
+.voting-page,
 .background {
   position: relative;
     overflow: hidden;
 }
 
 /* grid principal */
+.voting-page__grid,
 .grid-partidos {
     width: 90%;
     margin: 40px auto;
@@ -14,37 +16,42 @@
 }
 
 /* TARJETA BASE */
+.vote-card,
 .card {
     display: flex;
-    border-radius: 1em;
+    border-radius: var(--radius-md);
     overflow: hidden;
     border: 3px solid #00000096;
-    box-shadow: 10px 10px 2px #8c00dd20;
+    box-shadow: var(--shadow-card);
     height: 180px;
-    transition: 0.3s;
+    transition: var(--transition-fast);
 }
 
+.vote-card:hover,
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 12px 12px 12px #00000030;
+    box-shadow: var(--shadow-card-hover);
 }
 
+.vote-card .vote-card__info,
 .card .info {
     width: 65%;
-    border-right: 2px solid black;
+    border-right: 2px solid var(--color-border-dark);
     display: flex;
     flex-direction: column;
 }
 
+.vote-card__media,
 .card figure {
     width: 35%;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: white;
+    background: var(--color-text-light);
     padding: 1em;
 }
 
+.vote-card__media img,
 .card figure img {
     width: 100%;
     object-fit: contain;
@@ -52,13 +59,14 @@
     transition: all 0.35s ease;
 }
 
+.vote-card__title,
 .card h2 {
     font-size: 2rem;
     font-weight: bold;
     padding: 0.3em;
-    color: white;
+    color: var(--color-text-light);
     padding: 0.5em;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid var(--color-border-dark);
     text-align: center;
 }
 
@@ -70,9 +78,9 @@
 /* From Uiverse.io by 00Kubi */ 
 .cyber-checkbox {
   --checkbox-size: 24px;
-  --checkbox-color: #000000;
+  --checkbox-color: var(--color-border-dark);
   --checkbox-check-color: #ffffff;
-  --checkbox-hover-color: #000000;
+  --checkbox-hover-color: var(--color-border-dark);
   --checkbox-spark-offset: -20px;
 
   position: relative;
@@ -486,6 +494,7 @@
   }
 }
 
+.vote-card__vote,
 .voto{
     display: flex;
     align-items: center;
@@ -495,18 +504,20 @@
     height: 100%;
 }
 
+.voting-page__submit,
 .submit{
   text-align: center;
 }
 
+.voting-page__submit-button,
 .enviar{
   padding: 1em 2em;
   margin-bottom: 1em;
-  border-radius: 0.5em;
+  border-radius: var(--radius-sm);
   font-weight: bolder;
   font-size: 2vw;
   width: 50%;
-  border:3px solid black;
+  border:3px solid var(--color-border-dark);
   background-color: blueviolet;
 
 }
@@ -525,23 +536,28 @@
         margin-top: 0;
     }
 
+    .voting-page__grid,
     .grid-partidos {
         grid-template-columns: 1fr;
     }
 
+    .vote-card,
     .card {
         height: auto;
         flex-direction: column;
     }
 
+    .vote-card .vote-card__info,
+    .vote-card .vote-card__media,
     .card .info, .card figure {
         width: 100%;
         border-right: none;
     }
 
+    .vote-card__vote,
     .voto{
         padding: 1em;
-        border-bottom: 2px solid black;
+        border-bottom: 2px solid var(--color-border-dark);
         font-size: 1em;
     }
 
@@ -549,6 +565,7 @@
 
 /* Móviles pequeños */
 @media (max-width: 500px) {
+    .vote-card__vote,
     .voto{
         font-size: 0.8em;
     }

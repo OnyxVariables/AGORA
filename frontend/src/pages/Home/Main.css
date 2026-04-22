@@ -1,3 +1,4 @@
+.parties:first-of-type,
 .home:first-of-type {
     width: 90%;
     margin: 40px auto;
@@ -6,11 +7,13 @@
     padding-top: 7em;
 }
 
+.parties,
 .home {
     width: 90%;
     margin: 40px auto;
 }
 
+.parties-list,
 .main-partidos {
     position: relative;
     min-height: 100vh;
@@ -18,36 +21,41 @@
 }
 
 /* articles */
+.parties__card,
 .partido {
     display: flex;
     align-items: stretch;
-    border-radius: 1em;
+    border-radius: var(--radius-md);
     overflow: hidden;
     border: 3px solid #00000096;
-    box-shadow: 10px 10px 2px #8c00dd20;
+    box-shadow: var(--shadow-card);
 }
 
+.parties__content,
 .home article > div {
     flex: 2;
-    border-right: 2px solid black;
+    border-right: 2px solid var(--color-border-dark);
 }
 
+.parties__media,
 .home article figure {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: white;
+    background: var(--color-text-light);
     padding: 1em;
     overflow: hidden; /* evita desbordes */
 }
 
+.parties__media img,
 .partido figure img {
     width: 70%;
     height: auto;
     object-fit: contain; /* evita que una imagen haga más grande un article */
 }
 
+.parties__title,
 .partido h2 {
     font-size: 2rem;
     font-weight: bold;
@@ -58,25 +66,30 @@
 }
 
 .partido h2 {
-    color: white;
+    color: var(--color-text-light);
     padding: 0.5em;
     font-size: 2rem;
     font-weight: bold;
 }
 
+.parties__description,
 .partido p {
     padding: 1em;
-    border-top: 2px solid black;
+    border-top: 2px solid var(--color-border-dark);
 }
 
 /* Detalles perfectos con hover */
-.home article, .home article figure img {
+.parties article,
+.parties article figure img,
+.home article,
+.home article figure img {
     transition: all 0.35s ease;
 }
 
+.parties article:hover,
 .home article:hover {
     transform: translateY(-5px);
-    box-shadow: 12px 12px 12px #00000030;
+    box-shadow: var(--shadow-card-hover);
 }
 
 article figure img:hover {
@@ -87,6 +100,7 @@ article figure img:hover {
 /* RESPONSIVE */
 /* Tablets y pantallas medianas */
 @media (max-width: 900px) {
+    .parties:first-of-type,
     .home:first-of-type{
         padding-top: 5em;
     }
@@ -96,10 +110,12 @@ article figure img:hover {
         font-size: 1.6rem;
     }
 
+    .parties article > div,
     .home article > div {
         width: 60%;
     }
 
+    .parties article figure,
     .home article figure {
         width: 40%;
     }
@@ -112,19 +128,24 @@ article figure img:hover {
         flex-direction: column;
     }
 
+    .parties article > div,
     .home article > div {
         flex: none;
     }
 
+    .parties article > div,
+    .parties article figure,
     .home article > div,
     .home article figure {
         width: 100%;
     }
 
+    .parties article figure,
     .home article figure {
         flex-grow: 1;
     }
 
+    .parties article figure img,
     .home article figure img {
         width: 70%;
         height: auto;
@@ -135,6 +156,7 @@ article figure img:hover {
         border-bottom: 2px solid black;
     }
 
+    .parties article > div,
     .home article > div {
         border-right: none;
     }

@@ -1,3 +1,4 @@
+.error-page,
 .mainError {
     position: relative;
     min-height: 100vh;
@@ -5,6 +6,7 @@
     overflow: hidden;
 }
 
+.error-page__content,
 .error {
     display: flex;
     align-items: center;
@@ -12,37 +14,43 @@
     margin: 0 auto;
 }
 
+.error-page__content article,
 .error article {
     flex: 1;
 }
 
+.error-page__message,
 .errorMessage {
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 2em;
-    border: 3px solid black;
+    border: 3px solid var(--color-border-dark);
     padding: 1em;
-    border-radius: 1em;
-    box-shadow: 10px 10px 2px #8c00dd20;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
     transition: all 0.35s ease;
 }
 
+.error-page__message:hover,
 .errorMessage:hover {
     transform: translateY(-5px);
-    box-shadow: 12px 12px 12px #00000030;
+    box-shadow: var(--shadow-card-hover);
 }
 
+.error-page__image img,
 .errorImg img{
     width: 100%;
     object-fit: cover;
 }
 
 @media (max-width: 1270px){
+    .error-page__content,
     .error{
         flex-direction: column;
     }
 
+    .error-page__content article,
     .error article{
         flex:0;
         margin-top:3em;

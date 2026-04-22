@@ -40,16 +40,16 @@ function Header({ menu }) {
 
   return (
     <>
-      <header>
-        <div className="primerDiv">
+      <header className="header">
+        <div className="primerDiv header__inner">
           {/* LOGO */}
-          <figure className="logo">
-            <img src="/img/LogoAgora.png" alt="Logo" />
-            <h1>Agora</h1>
+          <figure className="logo header__brand">
+            <img className="header__brand-image" src="/img/LogoAgora.png" alt="Logo" />
+            <h1 className="header__brand-title">Agora</h1>
           </figure>
 
           {/* HAMBURGUESA */}
-          <label className="bar">
+          <label className="bar header__toggle">
             <input
               type="checkbox"
               checked={sidebarOpen}
@@ -61,7 +61,7 @@ function Header({ menu }) {
           </label>
 
           {/* NAV escritorio */}
-          <nav>
+          <nav className="header__nav">
             {items.map(({ to, label, icon: Icon }) => {
               if (label === "SALIR") {
                 return (

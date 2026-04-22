@@ -1,4 +1,5 @@
 /* MAIN */
+.results-map,
 .electionsMap {
     padding-top: 9.5em;
     width: 95%;
@@ -8,12 +9,13 @@
 }
 
 /* section 1 */
+.results-map .section1,
 .electionsMap .section1 {
     background-color: #d0bfff;
     padding: 1em;
-    border-radius: 1em;
-    border: 3px solid black;
-    box-shadow: 10px 10px 2px #8c00dd20;
+    border-radius: var(--radius-md);
+    border: 3px solid var(--color-border-dark);
+    box-shadow: var(--shadow-card);
     position: relative;
 }
 
@@ -23,51 +25,57 @@
     text-decoration: underline;
 }
 
+.results-map .select,
 .electionsMap .select {
-    border-radius: 0.5em;
+    border-radius: var(--radius-sm);
 }
 
+.results-map .article2,
 .electionsMap .article2 {
-    background-color: white;
+    background-color: var(--color-text-light);
     margin-top: 1em;
     text-align: center;
     padding: 0.5em;
-    border-radius: 1em;
-    border: 2px solid black;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--color-border-dark);
 }
 
 /* section 2 */
+.results-map .section2,
 .electionsMap .section2 {
     background-color: #eebefa;
     padding: 1em;
-    border-radius: 1em;
+    border-radius: var(--radius-md);
     margin-top: 2em;
-    border: 3px solid black;
+    border: 3px solid var(--color-border-dark);
     font-weight: bold;
-    box-shadow: 10px 10px 2px #8c00dd20;
+    box-shadow: var(--shadow-card);
     position: relative;
 }
 
+.results-map .nickname,
 .electionsMap .nickname {
-    border-radius: 0.5em;
+    border-radius: var(--radius-sm);
     font-weight: bold;
     padding: 0.3em;
     width: 100%;
     margin-top: 0.5em;
 }
 
+.results-map .verify-vote-button,
 .electionsMap .verify-vote-button {
     display: block;
     margin-top: 0.75em;
     padding: 0.5em 1.25em;
     font-weight: bold;
-    border-radius: 0.5em;
-    border: 2px solid black;
-    background: white;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--color-border-dark);
+    background: var(--color-text-light);
     cursor: pointer;
     box-shadow: 4px 4px 0 #8c00dd20;
 }
 
+.results-map .verify-vote-button:hover,
 .electionsMap .verify-vote-button:hover {
     transform: translateY(-2px);
     box-shadow: 6px 6px 0 #00000020;
@@ -75,43 +83,52 @@
 
 
 /* section 3 */
+.results-map .section3,
 .electionsMap .section3 {
-    border-radius: 1em;
+    border-radius: var(--radius-md);
     padding: 1em;
     margin-top: 2em;
     position: relative;
     transition: all 0.35s ease;
     background-color: #eebefa;
-    box-shadow: 10px 10px 2px #8c00dd20;
-    border: 3px solid black;
+    box-shadow: var(--shadow-card);
+    border: 3px solid var(--color-border-dark);
 }
 
+.results-map .filtrado,
 .electionsMap .filtrado {
     display: flex;
     gap: 0.5em;
     font-weight: 600;
 }
 
+.results-map .types,
 .electionsMap .types {
-    border: 2px solid black;
-    border-radius: 0.5em;
+    border: 2px solid var(--color-border-dark);
+    border-radius: var(--radius-sm);
     padding: 0.5em;
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1em;
-    background-color: white;
+    background-color: var(--color-text-light);
 }
 
 /* Hovers */
+.results-map .section1:hover,
+.results-map .section2:hover,
+.results-map .section3:hover,
 .electionsMap .section1:hover,
 .electionsMap .section2:hover,
 .electionsMap .section3:hover {
     transform: translateY(-5px);
-    box-shadow: 12px 12px 12px #00000030;
+    box-shadow: var(--shadow-card-hover);
 }
 
+.results-map .section1,
+.results-map .section2,
+.results-map .section3,
 .electionsMap .section1,
 .electionsMap .section2,
 .electionsMap .section3 {
@@ -119,19 +136,20 @@
 }
 
 /* section4 */
+.results-map .section4,
 .electionsMap .section4 {
     margin-top: 2em;
     overflow: hidden;
     position: relative;
     background-color: rgb(147, 215, 255);
-    border-radius: 1em;
+    border-radius: var(--radius-md);
     padding: 1em;
 
 }
 
 /* MAPA */
 .map path {
-    stroke: black;
+    stroke: var(--color-border-dark);
     stroke-width: 1.5;
     transition: all 0.2s;
 }
@@ -165,7 +183,7 @@
 }
 
 .dialog-content {
-    background: white;
+    background: var(--color-text-light);
     width: 90%;
     margin: 10% auto;
     padding: 20px;
@@ -175,7 +193,7 @@
     animation: aparecer 0.3s ease;
     margin-top: 9em;
     height: 80vh;
-    border: 3px solid black;
+    border: 3px solid var(--color-border-dark);
     display: grid;
     grid-template-areas:
         "dialogTitle . . cerrar"
