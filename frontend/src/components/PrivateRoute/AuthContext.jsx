@@ -5,6 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { API_CONFIG } from "../../config/api";
 
 const AuthContext = createContext();
+const SESSION_STORAGE_KEYS_TO_CLEAR = [
+  "agora_seen_active_votations",
+  "agora_seen_finisihed_votations",
+  "agora_seed_pending_votations",
+];
 
 export const AuthProvider = ({ children }) => {
   // El rol se queda aquí, si es null no hay sesión (tras comprobar cookie en el servidor)
@@ -42,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (role) => setUserRole(role);
-  
+
   const logout = async () => {
     try {
       const xsrfToken = await getXsrfToken();
@@ -67,6 +72,9 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      SESSION_STORAGE_KEYS_TO_CLEAR.forEach((key) => {
+        localStorage.removeItem(key);
+      });
       setUserRole(null);
       setAuthReady(true);
       toastSuccess("Sesión cerrada");

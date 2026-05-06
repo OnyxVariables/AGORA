@@ -23,6 +23,7 @@ import "./ChartSection.css";
 import { useParties } from "../../data/partidos";
 import SpainMap from "../SpainMap/SpainMap";
 import { votesForMapProvince } from "../../utils/spainNames";
+import { formatBucketLabel } from "../../utils/date";
 
 ChartJS.register(
   ArcElement,
@@ -126,7 +127,9 @@ function PieChartComponent({ data }) {
 
   return (
     <div className="chart-container pie-chart">
-      <Pie data={data} options={options} plugins={[customPieLabels]} />
+      <div className="chart-host">
+        <Pie data={data} options={options} plugins={[customPieLabels]} />
+      </div>
     </div>
   );
 }
@@ -169,76 +172,105 @@ function BarChartComponent({ data }) {
 
   return (
     <div className="chart-container bar-chart">
-      <Bar data={data} options={options} />
+      <div className="chart-host">
+        <Bar data={data} options={options} />
+      </div>
     </div>
   );
 }
 
 export const BarChart = memo(BarChartComponent);
 
-export function LineChart({ labels, partidos, series }) {
-  const data = {
-    labels,
-    datasets: partidos.map((p) => {
-      const borderColor = p.colores?.fondo ?? p.colorFondo ?? "grey";
-      const backgroundColor = p.colores?.fondo ?? p.colorFondo ?? "grey";
-      const strokeColor = p.colores?.titulo ?? p.colorTitulo ?? "grey";
+export function LineChart({ labels, partidos, series, showTimeAxis = false }) {
+  const data = useMemo(
+    () => ({
+      labels,
+      datasets: partidos.map((p) => {
+        const borderColor = p.colores?.fondo ?? p.colorFondo ?? "grey";
+        const backgroundColor = p.colores?.fondo ?? p.colorFondo ?? "grey";
+        const strokeColor = p.colores?.titulo ?? p.colorTitulo ?? "grey";
 
-      return {
-        label: p.nombre,
-        data: series[p.nombre] ?? [],
-        borderColor,
-        backgroundColor,
-        strokeColor, // Custom property for legend
-        lineWidth: 1,
-        tension: 0.3,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-      };
+        return {
+          label: p.nombre,
+          data: series[p.nombre] ?? [],
+          borderColor,
+          backgroundColor,
+          strokeColor,
+          lineWidth: 1,
+          tension: 0.3,
+          pointRadius: showTimeAxis ? 2 : 3,
+          pointHoverRadius: 6,
+        };
+      }),
     }),
-  };
+    [labels, partidos, series, showTimeAxis],
+  );
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        labels: {
-          generateLabels(chart) {
-            const datasets = chart.data.datasets;
+  const options = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            generateLabels(chart) {
+              const datasets = chart.data.datasets;
 
-            return datasets.map((dataset, i) => ({
-              text: dataset.label,
-              fillStyle: dataset.backgroundColor,
-              strokeStyle: dataset.strokeColor,
-              lineWidth: 1,
-              hidden: !chart.isDatasetVisible(i),
-              datasetIndex: i,
-            }));
+              return datasets.map((dataset, i) => ({
+                text: dataset.label,
+                fillStyle: dataset.backgroundColor,
+                strokeStyle: dataset.strokeColor,
+                lineWidth: 1,
+                hidden: !chart.isDatasetVisible(i),
+                datasetIndex: i,
+              }));
+            },
+          },
+        },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+        },
+      },
+      scales: {
+        x: {
+          display: showTimeAxis,
+          ticks: {
+            maxRotation: 45,
+            minRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 12,
+          },
+          grid: {
+            display: showTimeAxis,
+            color: "rgba(0,0,0,0.06)",
+          },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0,
+          },
+          grid: {
+            color: "rgba(0,0,0,0.06)",
           },
         },
       },
-      tooltip: {
-        mode: "index",
-        intersect: false,
-      },
-    },
-    scales: {
-      x: {
-        display: false,
-      },
-    },
-  };
+    }),
+    [showTimeAxis],
+  );
 
   return (
     <div className="chart-container line-chart">
-      <Line data={data} options={options} />
+      <div className="chart-host">
+        <Line data={data} options={options} />
+      </div>
     </div>
   );
 }
 
 // Mapa de calor por provincia (votos agregados). Usa `votesByProvinceName` del bundle de métricas
-function HeatChartComponent({ votesByProvinceName = {} }) {
+function HeatChartComponent({ votesByProvinceName = {}, suppressEmptyMessage = false }) {
   const mapRef = useRef(null);
 
   const byProvince = useMemo(() => {
@@ -315,7 +347,7 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
 
   return (
     <div className="chart-container heat-chart">
-      {!hasData && (
+      {!suppressEmptyMessage && !hasData && (
         <p className="heat-chart-empty">
           Sin datos por provincia para esta votación (espera a que existan votos).
         </p>
@@ -327,16 +359,7 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
               <span key={label}>{label}</span>
             ))}
           </div>
-          <div 
-            className="legend-bar" 
-            style={{
-              background: 'linear-gradient(to bottom, rgb(230,240,255) 0%, rgb(210,200,235) 20%, rgb(180,170,220) 40%, rgb(150,140,205) 60%, rgb(100,90,180) 80%, rgb(50,40,155) 100%)',
-              width: '24px',
-              height: '320px',
-              borderRadius: '4px',
-              border: '1px solid #999'
-            }}
-          />
+          <div className="heat-chart-legend-bar" aria-hidden />
         </div>
         <div className="heat-chart-map-wrap">
           <SpainMap
@@ -352,7 +375,33 @@ function HeatChartComponent({ votesByProvinceName = {} }) {
 
 export const HeatChart = memo(HeatChartComponent);
 
-export default function ChartSection({ voteMetrics }) {
+function buildLineSeriesFromTimeseries(partidos, timeseries, fallbackLabels) {
+  const labelsIso = timeseries?.labels;
+  if (!Array.isArray(labelsIso) || labelsIso.length === 0) {
+    return { timeLabels: fallbackLabels, timeSeriesData: null, showTimeAxis: false };
+  }
+  const windowStart = timeseries.startDate ?? null;
+  const windowEnd = timeseries.endDate ?? null;
+  const timeLabels = labelsIso.map((iso) =>
+    windowStart && windowEnd
+      ? formatBucketLabel(iso, windowStart, windowEnd)
+      : String(iso),
+  );
+  const timeSeriesData = {};
+  partidos.forEach((p) => {
+    const arr = timeseries.byParty?.[String(p.id)];
+    timeSeriesData[p.nombre] = Array.isArray(arr)
+      ? arr
+      : Array(labelsIso.length).fill(0);
+  });
+  return {
+    timeLabels,
+    timeSeriesData,
+    showTimeAxis: labelsIso.length >= 2,
+  };
+}
+
+export default function ChartSection({ voteMetrics, timeseries }) {
   const { partidos, loading } = useParties();
   const deferredProvinceVotes = useDeferredValue(voteMetrics?.votesByProvinceName);
 
@@ -401,37 +450,47 @@ export default function ChartSection({ voteMetrics }) {
       },
     ],
   };
-  // Para el line chart - historial simplificado (placeholder, se mejorara en futura version)
-  const timeLabels = ["Inicio", "Actual"];
-  const timeSeriesData = {};
-  partyData.forEach(p => {
-    timeSeriesData[p.nombre] = [0, p.votos];
+
+  const fallbackLineLabels = ["Inicio", "Actual"];
+  const fallbackSeries = {};
+  partyData.forEach((p) => {
+    fallbackSeries[p.nombre] = [0, p.votos];
   });
 
-  // Info adicional para mostrar
+  const { timeLabels, timeSeriesData, showTimeAxis } = buildLineSeriesFromTimeseries(
+    partidos,
+    timeseries,
+    fallbackLineLabels,
+  );
+  const lineLabels = timeSeriesData ? timeLabels : fallbackLineLabels;
+  const lineSeries = timeSeriesData ?? fallbackSeries;
+
   const totalVotos = voteMetrics.totalVotes || 0;
+  const hasVotes = totalVotos > 0;
 
   return (
-    <section className={`charts ${totalVotos > 0 ? "" : "charts-empty"}`}>
-      {totalVotos > 0 ? (
-        <>
-          <PieChart data={aggregatedData} />
-          <BarChart data={aggregatedData} />
-
-          <LineChart
-            labels={timeLabels}
-            partidos={partidos}
-            series={timeSeriesData}
-          />
-
-          <HeatChart votesByProvinceName={deferredProvinceVotes} />
-        </>
-      ) : (
-        <div className="no-votes">
-          <p>Aún no hay votos registrados para esta votación.</p>
-          <p>Los gráficos aparecerán cuando lleguen los primeros votos.</p>
+    <section className={`charts ${hasVotes ? "" : "charts--disabled"}`}>
+      {!hasVotes ? (
+        <div className="charts-disabled-overlay" aria-hidden>
+          <span className="charts-disabled-overlay__pill">
+            Esperando votos para habilitar las gráficas
+          </span>
         </div>
-      )}
+      ) : null}
+      <PieChart data={aggregatedData} />
+      <BarChart data={aggregatedData} />
+
+      <LineChart
+        labels={lineLabels}
+        partidos={partidos}
+        series={lineSeries}
+        showTimeAxis={showTimeAxis}
+      />
+
+      <HeatChart
+        votesByProvinceName={deferredProvinceVotes}
+        suppressEmptyMessage={!hasVotes}
+      />
     </section>
   );
 }

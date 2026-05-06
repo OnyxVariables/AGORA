@@ -7,22 +7,38 @@
   grid-template-areas:
     "pieChart barChart"
     "lineChart heatChart";
-  justify-content: stretch;
+  /* Altura fija por fila: evita que Chart.js / el mapa amplíen la celda en bucle */
+  grid-auto-rows: minmax(0, 460px);
   align-items: stretch;
   gap: 2em;
+  position: relative;
 }
 
 .chart-container {
-  display: grid;
-  justify-items: center;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: stretch;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  max-height: 45vh;
-  background-color: white;
+  height: 460px;
+  max-height: 460px;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background-color: #ffffff;
   border-radius: 8px;
-  padding: 1rem;
+  border: 3px solid var(--color-border-dark);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
   box-sizing: border-box;
+}
+
+.chart-host {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  position: relative;
 }
 
 .pie-chart {
@@ -39,24 +55,62 @@
 
 .heat-chart {
   grid-area: heatChart;
-  background-color: white;
   color: #111;
-  padding: 1rem;
-  border-radius: 8px;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  max-height: 45vh;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  height: 460px;
+  max-height: 460px;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 3px solid var(--color-border-dark);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+  box-sizing: border-box;
 }
 
 .charts-empty {
-  gap: 0em;
+  gap: 0;
 }
 
-@media (max-width: 1200px) {
+.charts--disabled .chart-container,
+.charts--disabled .heat-chart {
+  filter: grayscale(0.95) brightness(0.92);
+}
+
+.charts--disabled .chart-host,
+.charts--disabled .heat-chart-content {
+  pointer-events: none;
+}
+
+.charts-disabled-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 15em;
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.charts-disabled-overlay__pill {
+  display: inline-block;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #f5edff;
+  border: 2px solid var(--color-brand-light);
+  background: rgba(61, 0, 145, 0.78);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 1100px) {
   .charts {
     grid-template-columns: 1fr;
     grid-template-areas:
@@ -64,6 +118,7 @@
       "barChart"
       "lineChart"
       "heatChart";
+    width: min(90vw, 100%);
   }
 }
 
@@ -71,34 +126,40 @@
   width: 100%;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .heat-chart-content {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  gap: 1rem;
+  align-items: stretch;
+  gap: 0.75rem;
   width: 100%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .heat-chart-legend-vertical {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: stretch;
   gap: 0.5rem;
-  height: 320px;
   flex-shrink: 0;
+  align-self: stretch;
+  min-height: 0;
 }
 
 .legend-labels {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 320px;
+  flex: 1;
+  min-height: 0;
   text-align: right;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #444;
   padding: 2px 0;
 }
@@ -106,6 +167,23 @@
 .legend-labels span {
   line-height: 1;
   white-space: nowrap;
+}
+
+.heat-chart-legend-bar {
+  width: 18px;
+  min-height: 120px;
+  flex: 1;
+  border-radius: 4px;
+  border: 1px solid #999;
+  background: linear-gradient(
+    to bottom,
+    rgb(230, 240, 255) 0%,
+    rgb(210, 200, 235) 20%,
+    rgb(180, 170, 220) 40%,
+    rgb(150, 140, 205) 60%,
+    rgb(100, 90, 180) 80%,
+    rgb(50, 40, 155) 100%
+  );
 }
 
 .heat-chart-legend {
@@ -117,4 +195,5 @@
   color: #666;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }

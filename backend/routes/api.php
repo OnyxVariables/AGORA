@@ -17,6 +17,7 @@ Route::get('/votation/active', [VotationController::class, 'active']);
 Route::get('/votations/summary', [VotationController::class, 'publicSummary']);
 Route::get('/votations/{id}/results', [VotationController::class, 'results']);
 Route::get('/votations/{id}/results/summary', [VotationController::class, 'resultsSummary']);
+Route::get('/votations/{id}/votes-timeseries', [MetricsController::class, 'votationTimeseriesPublic']);
 
 // Ruta protegida por Sanctum donde solo puede acceder usuario autenticado
 Route::middleware('auth:sanctum')->group(function () {
@@ -38,6 +39,7 @@ Route::middleware('auth:sanctum', 'role:1')->group(function () {
     Route::get('/metrics/votation/{votationId}/votes', [MetricsController::class, 'votationVotes']);
     Route::get('/metrics/votation/{votationId}/blocks', [MetricsController::class, 'votationBlocks']);
     Route::get('/metrics/votation/{votationId}/audit', [MetricsController::class, 'votationAudit']);
+    Route::get('/metrics/votation/{votationId}/timeseries', [MetricsController::class, 'votationTimeseries']);
     Route::get('/admin/health/db', [AdminHealthController::class, 'database']);
     Route::get('/admin/health/blockchain', [AdminHealthController::class, 'blockchain']);
 });

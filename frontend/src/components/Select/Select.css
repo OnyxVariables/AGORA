@@ -22,5 +22,4 @@
 .select {
   border-radius: var(--radius-sm);
   padding: 5px 10px;
-  flex-basis: 10em;
 }

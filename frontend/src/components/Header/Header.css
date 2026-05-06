@@ -142,15 +142,16 @@ input[type="checkbox"]:checked ~ .middle {
 .sidebar {
     position: fixed;
     right: -500px; /* oculto al inicio */
+    top: 5.4em;
     width: 60%;
     display:flex;
     justify-content: end;
-    height: 100vh;
+    height: calc(100vh - 5.4em);
     background: var(--color-sidebar-bg);
     z-index: 9998;
     transition: right 0.35s ease;
     overflow-y: auto;
-    margin-top: 5.4em;
+    margin-top: 0;
     max-width: 300px;
 }
 

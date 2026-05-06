@@ -7,6 +7,7 @@ use App\Models\Seat;
 use App\Models\Votation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -62,6 +63,182 @@ class MetricsController extends Controller
             'metrics' => $metrics,
             'blockFilterOptions' => $this->blockFilterOptionsForVotation($votationId, $votation),
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // Serie temporal de votos por intervalo (acumulado por partido) para gráficos.
+    // Admin-only. Query params: buckets (1-200, default 30)
+    public function votationTimeseries(Request $request, int $votationId): JsonResponse
+    {
+        if ($deny = $this->assertAdmin()) {
+            return $deny;
+        }
+
+        $votation = Votation::find($votationId);
+        if (! $votation) {
+            return response()->json(['error' => 'Votación no encontrada'], 404);
+        }
+
+        $bucketsCount = (int) $request->query('buckets', 30);
+        $bucketsCount = min(200, max(1, $bucketsCount));
+
+        $start = $votation->startDate
+            ? Carbon::parse($votation->startDate)
+            : Carbon::now()->subHour();
+        $end = $votation->endDate
+            ? Carbon::parse($votation->endDate)
+            : Carbon::now();
+
+        if ($end->lessThanOrEqualTo($start)) {
+            $end = $start->copy()->addMinute();
+        }
+
+        $totalSeconds = max(1, $end->getTimestamp() - $start->getTimestamp());
+        $bucketSeconds = max(1, (int) ceil($totalSeconds / $bucketsCount));
+        $maxBucketIndex = $bucketsCount - 1;
+
+        $startSql = $start->format('Y-m-d H:i:s');
+
+        $payload = $this->buildVotationTimeseriesPayload(
+            $votationId,
+            $bucketsCount,
+            $start,
+            $end,
+            $totalSeconds,
+            $bucketSeconds,
+            $maxBucketIndex,
+            $startSql
+        );
+
+        return response()->json($payload, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // Serie temporal pública solo para votaciones finalizadas (página resultados)
+    public function votationTimeseriesPublic(Request $request, int $votationId): JsonResponse
+    {
+        $votation = Votation::find($votationId);
+        if (! $votation || $votation->state !== 'finished') {
+            return response()->json(['error' => 'Votación no disponible'], 404);
+        }
+
+        $bucketsCount = (int) $request->query('buckets', 30);
+        $bucketsCount = min(200, max(1, $bucketsCount));
+
+        $start = $votation->startDate
+            ? Carbon::parse($votation->startDate)
+            : Carbon::now()->subHour();
+        $end = $votation->endDate
+            ? Carbon::parse($votation->endDate)
+            : Carbon::now();
+
+        if ($end->lessThanOrEqualTo($start)) {
+            $end = $start->copy()->addMinute();
+        }
+
+        $totalSeconds = max(1, $end->getTimestamp() - $start->getTimestamp());
+        $bucketSeconds = max(1, (int) ceil($totalSeconds / $bucketsCount));
+        $maxBucketIndex = $bucketsCount - 1;
+        $startSql = $start->format('Y-m-d H:i:s');
+
+        $payload = $this->buildVotationTimeseriesPayload(
+            $votationId,
+            $bucketsCount,
+            $start,
+            $end,
+            $totalSeconds,
+            $bucketSeconds,
+            $maxBucketIndex,
+            $startSql
+        );
+
+        return response()->json($payload, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildVotationTimeseriesPayload(
+        int $votationId,
+        int $bucketsCount,
+        Carbon $start,
+        Carbon $end,
+        int $totalSeconds,
+        int $bucketSeconds,
+        int $maxBucketIndex,
+        string $startSql,
+    ): array {
+        $endSql = $end->format('Y-m-d H:i:s');
+
+        $bucketExpr = 'LEAST(?, FLOOR(TIMESTAMPDIFF(SECOND, ?, `createdAt`) / ?))';
+
+        $rows = DB::table('vote')
+            ->where('votationId', $votationId)
+            ->where('createdAt', '>=', $startSql)
+            ->where('createdAt', '<=', $endSql)
+            ->selectRaw(
+                "{$bucketExpr} AS bucket_index, partyId, COUNT(*) AS c",
+                [$maxBucketIndex, $startSql, $bucketSeconds]
+            )
+            ->groupByRaw("{$bucketExpr}, partyId", [$maxBucketIndex, $startSql, $bucketSeconds])
+            ->get();
+
+        $partyIds = DB::table('vote')
+            ->where('votationId', $votationId)
+            ->distinct()
+            ->pluck('partyId')
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($partyIds === []) {
+            $partyIds = Party::query()->pluck('id')->all();
+        }
+
+        $raw = [];
+        foreach ($partyIds as $pid) {
+            $raw[(int) $pid] = array_fill(0, $bucketsCount, 0);
+        }
+
+        foreach ($rows as $row) {
+            $idx = (int) $row->bucket_index;
+            $pid = (int) $row->partyId;
+            if ($idx < 0 || $idx >= $bucketsCount) {
+                continue;
+            }
+            if (! isset($raw[$pid])) {
+                $raw[$pid] = array_fill(0, $bucketsCount, 0);
+            }
+            $raw[$pid][$idx] += (int) $row->c;
+        }
+
+        $byParty = [];
+        foreach ($raw as $pid => $counts) {
+            $cum = [];
+            $running = 0;
+            for ($i = 0; $i < $bucketsCount; $i++) {
+                $running += $counts[$i];
+                $cum[] = $running;
+            }
+            $byParty[(string) $pid] = $cum;
+        }
+
+        $labels = [];
+        for ($i = 0; $i < $bucketsCount; $i++) {
+            $secondsAtEnd = min($totalSeconds, ($i + 1) * $bucketSeconds);
+            $t = $start->copy()->addSeconds($secondsAtEnd);
+            if ($t->greaterThan($end)) {
+                $t = $end->copy();
+            }
+            $labels[] = $t->toIso8601String();
+        }
+
+        return [
+            'bucketSeconds' => $bucketSeconds,
+            'buckets' => $bucketsCount,
+            'startDate' => $start->toIso8601String(),
+            'endDate' => $end->toIso8601String(),
+            'labels' => $labels,
+            'byParty' => $byParty,
+        ];
     }
 
     /**

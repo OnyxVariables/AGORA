@@ -5,13 +5,20 @@ import SpainMap from "../../components/SpainMap/SpainMap";
 import { API_CONFIG } from "../../config/api";
 import { popupError, popupInfo } from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
-import { BarChart, PieChart } from "../../components/ChartSection/ChartSection";
+import {
+  BarChart,
+  LineChart,
+  PieChart,
+} from "../../components/ChartSection/ChartSection";
+import { useParties } from "../../data/partidos";
+import FingerIcon from "../../icons/FingerIcon";
 import {
   ccaaAliasToCanonical,
   matchesCCAA,
   matchesProvince,
 } from "../../utils/spainNames";
 
+import { formatBucketLabel } from "../../utils/date";
 import "./ElectionsMap.css";
 
 const ccaaColors = {
@@ -242,6 +249,9 @@ export default function ElectionsMap() {
   const [resultsLoading, setResultsLoading] = useState(false);
   const [resultsError, setResultsError] = useState(null);
   const [partiesAggregated, setPartiesAggregated] = useState([]);
+  const [modalTimeseries, setModalTimeseries] = useState(null);
+
+  const { partidos: partidosCatalog } = useParties();
 
   const finishedVotations = useMemo(
     () => votationSummaries.filter((v) => v.state === "finished"),
@@ -287,6 +297,37 @@ export default function ElectionsMap() {
       return String(finishedVotations[0].id);
     });
   }, [finishedVotations]);
+
+  useEffect(() => {
+    if (!showDialog || !selectedVotationId) {
+      setModalTimeseries(null);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATION_VOTES_TIMESERIES_PUBLIC(Number(selectedVotationId))}?buckets=32`;
+        const res = await fetch(url);
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) {
+          return;
+        }
+        if (!res.ok) {
+          setModalTimeseries(null);
+          return;
+        }
+        setModalTimeseries(data);
+      } catch {
+        if (!cancelled) {
+          setModalTimeseries(null);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [showDialog, selectedVotationId]);
 
   useEffect(() => {
     if (!selectedVotationId) {
@@ -375,11 +416,50 @@ export default function ElectionsMap() {
     }
   };
 
+  const mapDisabled =
+    !selectedVotationId ||
+    resultsLoading ||
+    !resultsDetail ||
+    Boolean(resultsError);
+
+  const modalLineConfig = useMemo(() => {
+    if (!modalTimeseries?.labels?.length) {
+      return null;
+    }
+    const windowStart = modalTimeseries.startDate;
+    const windowEnd = modalTimeseries.endDate;
+    const labels = modalTimeseries.labels.map((iso) =>
+      windowStart && windowEnd
+        ? formatBucketLabel(iso, windowStart, windowEnd)
+        : String(iso),
+    );
+    const series = {};
+    partidosCatalog.forEach((p) => {
+      const arr = modalTimeseries.byParty?.[String(p.id)];
+      series[p.nombre] = Array.isArray(arr)
+        ? arr
+        : Array(modalTimeseries.labels.length).fill(0);
+    });
+    return {
+      labels,
+      series,
+      showTimeAxis: modalTimeseries.labels.length >= 2,
+    };
+  }, [modalTimeseries, partidosCatalog]);
+
   const getFeatureStyle = useCallback(
     (feature, geoData) => {
       const name = feature.properties?.name ?? "";
       if (name === "Africa Norte" || name === "Portugal" || name === "Francia Sur") {
         return { fill: "#D1D1D1", pointerEvents: "none" };
+      }
+      if (mapDisabled) {
+        return {
+          fill: "url(#disabled-region-gradient)",
+          pointerEvents: "none",
+          stroke: "#888888",
+          strokeWidth: "0.5",
+        };
       }
       if (mapLevel === "ccaa") {
         const canonicalName = getCanonicalCCAA(name);
@@ -410,11 +490,14 @@ export default function ElectionsMap() {
       }
       return { fill: "#ff4141ff" };
     },
-    [mapLevel],
+    [mapLevel, mapDisabled],
   );
 
   const onPathMouseEnter = useCallback(
     (map, path) => {
+      if (mapDisabled) {
+        return;
+      }
       if (mapLevel === "nation") {
         map.querySelectorAll("path").forEach((p) => {
           const pName = p.getAttribute("data-name");
@@ -448,11 +531,14 @@ export default function ElectionsMap() {
         });
       }
     },
-    [mapLevel],
+    [mapLevel, mapDisabled],
   );
 
   const onPathMouseLeave = useCallback(
     (map) => {
+      if (mapDisabled) {
+        return;
+      }
       if (mapLevel === "province") {
         map.querySelectorAll("path").forEach((p) => {
           p.style.filter = "brightness(1)";
@@ -464,12 +550,12 @@ export default function ElectionsMap() {
         });
       }
     },
-    [mapLevel],
+    [mapLevel, mapDisabled],
   );
 
   const onFeatureClick = useCallback(
     (name) => {
-      if (!resultsDetail?.byProvince || !name) return;
+      if (mapDisabled || !resultsDetail?.byProvince || !name) return;
       const displayName = mapLevel === "nation" ? "España" : name;
       setSelectedName(displayName);
       setShowDialog(true);
@@ -486,7 +572,7 @@ export default function ElectionsMap() {
       setBarData(buildChartData(parties));
       setPieData(buildSeatsPieData(parties));
     },
-    [resultsDetail, mapLevel],
+    [resultsDetail, mapLevel, mapDisabled],
   );
 
   const levels = [
@@ -550,51 +636,82 @@ export default function ElectionsMap() {
               "Pincha en el mapa para ver estadísticas (datos oficiales de la votación)."}
             {!selectedVotationId &&
               !resultsLoading &&
-              "Cuando exista una votación finalizada, podrás ver el mapa de resultados."}
+              !resultsError &&
+              "El mapa está en vista previa hasta que exista una votación finalizada."}
           </p>
         </article>
       </section>
 
-      <section className="section2">
-        <label htmlFor="verify-votation-select">Votación para verificar el código:</label>
-        <select
-          id="verify-votation-select"
-          className="select"
-          style={{ width: "100%", marginTop: "0.5rem" }}
-          value={verifyVotationId}
-          onChange={(e) => setVerifyVotationId(e.target.value)}
-          aria-label="Votación para verificación"
-        >
-          {votationSummaries.length === 0 ? (
-            <option value="">Cargando…</option>
-          ) : (
-            votationSummaries
-              .filter((v) => v.state === "active" || v.state === "finished")
-              .map((v) => (
-                <option key={v.id} value={String(v.id)}>
-                  #{v.id} — {v.title} ({v.state})
-                </option>
-              ))
-          )}
-        </select>
-        <label htmlFor="verification-code">
-          Buscar por código de verificación (64 caracteres, recibido al votar):
-        </label>
-        <input
-          id="verification-code"
-          className="nickname"
-          placeholder="Pega aquí tu código…"
-          value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value)}
-          autoComplete="off"
-        />
-        <button
-          type="button"
-          className="verify-vote-button"
-          onClick={handleVerifyVote}
-        >
-          Verificar mi voto
-        </button>
+      <section className="section2 verify-vote-card">
+        <div className="verify-vote-card__intro">
+          <div className="verify-vote-card__title-row">
+            <h3 className="verify-vote-card__title">Verifica tu voto</h3>
+            <span className="verify-vote-card__icon" aria-hidden>
+              <FingerIcon />
+            </span>
+          </div>
+          <p className="verify-vote-card__lead">
+            Comprueba en cadena que tu voto se registró correctamente con el código de 64 caracteres
+            que recibiste al emitirlo.
+          </p>
+        </div>
+        <div className="verify-vote-card__form">
+          <div className="verify-vote-card__fields">
+            <div className="verify-vote-card__field verify-vote-card__field--votation">
+              <label
+                className="verify-vote-card__label verify-vote-card__label--inline"
+                htmlFor="verify-votation-select"
+              >
+                Votación
+              </label>
+              <select
+                id="verify-votation-select"
+                className="select verify-vote-card__select"
+                value={verifyVotationId}
+                onChange={(e) => setVerifyVotationId(e.target.value)}
+                aria-label="Votación para verificación"
+              >
+                {votationSummaries.length === 0 ? (
+                  <option value="">Cargando…</option>
+                ) : (
+                  votationSummaries
+                    .filter((v) => v.state === "active" || v.state === "finished")
+                    .map((v) => (
+                      <option key={v.id} value={String(v.id)}>
+                        #{v.id} — {v.title} ({v.state})
+                      </option>
+                    ))
+                )}
+              </select>
+            </div>
+            <div className="verify-vote-card__field verify-vote-card__field--code">
+              <label className="verify-vote-card__label" htmlFor="verification-code">
+                Código de verificación
+              </label>
+              <div className="verify-vote-card__code-row">
+                <input
+                  id="verification-code"
+                  className="nickname verify-vote-card__code-input"
+                  placeholder="Pega aquí tu código…"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <span className="verify-vote-card__counter" aria-live="polite">
+                  {verificationCode.trim().length}/64
+                </span>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="verify-vote-button verify-vote-card__submit"
+            onClick={handleVerifyVote}
+          >
+            Verificar
+          </button>
+        </div>
       </section>
 
       <section className="section3">
@@ -615,20 +732,26 @@ export default function ElectionsMap() {
       </section>
 
       <section className="section4">
-        <article className="map">
+        <article className={`map map-surface ${mapDisabled ? "map-surface--disabled" : ""}`}>
           <div
             id="map-container"
-            style={{ width: "100%", minHeight: "520px", height: "70vh" }}
+            className="map-container-inner"
           >
-            {selectedVotationId && resultsDetail && !resultsError && (
-              <SpainMap
-                level={mapLevel}
-                getFeatureStyle={getFeatureStyle}
-                onFeatureClick={onFeatureClick}
-                onPathMouseEnter={onPathMouseEnter}
-                onPathMouseLeave={onPathMouseLeave}
-              />
-            )}
+            <SpainMap
+              disabled={mapDisabled}
+              level={mapLevel}
+              getFeatureStyle={getFeatureStyle}
+              onFeatureClick={onFeatureClick}
+              onPathMouseEnter={onPathMouseEnter}
+              onPathMouseLeave={onPathMouseLeave}
+            />
+            {mapDisabled ? (
+              <div className="map-disabled-overlay" aria-hidden>
+                <span className="map-disabled-overlay__pill">
+                  Esperando votaciones finalizadas
+                </span>
+              </div>
+            ) : null}
           </div>
         </article>
       </section>
@@ -636,10 +759,20 @@ export default function ElectionsMap() {
       {showDialog && (
         <dialog className="dialog" open>
           <div className="dialog-content">
-            <span className="cerrar" onClick={() => setShowDialog(false)}>
-              &times;
-            </span>
-            <h2 className="dialog-title">Información de {selectedName}</h2>
+            <div className="dialog-header">
+              <h2 className="dialog-title">Información de {selectedName}</h2>
+              <button
+                type="button"
+                className="cerrar"
+                onClick={() => {
+                  setShowDialog(false);
+                  setModalTimeseries(null);
+                }}
+                aria-label="Cerrar"
+              >
+                &times;
+              </button>
+            </div>
             <div className="results-summary">
               <div className="results-totals">
                 <div className="results-total-card">
@@ -695,8 +828,26 @@ export default function ElectionsMap() {
               </div>
             </div>
             <div className="chart-section">
-              {pieData && pieData.labels.length > 0 && <PieChart data={pieData} />}
-              {barData && barData.labels.length > 0 && <BarChart data={barData} />}
+              {pieData && pieData.labels.length > 0 ? (
+                <div className="chart-section__slot chart-section__slot--pie">
+                  <PieChart data={pieData} />
+                </div>
+              ) : null}
+              {barData && barData.labels.length > 0 ? (
+                <div className="chart-section__slot chart-section__slot--bar">
+                  <BarChart data={barData} />
+                </div>
+              ) : null}
+              {modalLineConfig ? (
+                <div className="chart-section__slot chart-section__slot--line">
+                  <LineChart
+                    labels={modalLineConfig.labels}
+                    partidos={partidosCatalog}
+                    series={modalLineConfig.series}
+                    showTimeAxis={modalLineConfig.showTimeAxis}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </dialog>

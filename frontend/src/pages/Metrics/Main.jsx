@@ -5,6 +5,7 @@ import SectionContainer from "../../components/SectionContainer/SectionContainer
 import Select from "../../components/Select/Select";
 import Table from "../../components/Table/Table";
 import ChartSection from "../../components/ChartSection/ChartSection";
+import Pagination from "../../components/Pagination/Pagination";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { API_CONFIG } from "../../config/api";
 import { popupError, toastTiny } from "../../services/alerts";
@@ -19,17 +20,26 @@ import {
 
 const PAGE_SIZE = 100;
 
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M10.5 3.5a7 7 0 0 1 5.56 11.24l4.1 4.1a1 1 0 0 1-1.42 1.42l-4.1-4.1A7 7 0 1 1 10.5 3.5Zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 export default function Main() {
   const [votationList, setVotationList] = useState([]);
   const [bundle, setBundle] = useState(null);
   const [selectedVotation, setSelectedVotation] = useState(null);
-  const [selectedBlock, setSelectedBlock] = useState("");
   const [selectedUser, setSelectedUser] = useState("");
   const [voteMetrics, setVoteMetrics] = useState(null);
   const [loadError, setLoadError] = useState(null);
 
   const [votesPage, setVotesPage] = useState(1);
-  const [votesRefreshTick, setVotesRefreshTick] = useState(0);
   const [votesRows, setVotesRows] = useState([]);
   const [votesTotal, setVotesTotal] = useState(0);
   const [votesLoading, setVotesLoading] = useState(false);
@@ -46,6 +56,16 @@ export default function Main() {
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState(null);
+
+  const [timeseries, setTimeseries] = useState(null);
+  const [timeseriesLoading, setTimeseriesLoading] = useState(false);
+  const [timeseriesTick, setTimeseriesTick] = useState(0);
+  const timeseriesBumpTimerRef = useRef(null);
+
+  const [votesQuery, setVotesQuery] = useState("");
+  const [debouncedVotesQuery, setDebouncedVotesQuery] = useState("");
+  const [blocksQuery, setBlocksQuery] = useState("");
+  const [debouncedBlocksQuery, setDebouncedBlocksQuery] = useState("");
 
   const { partidos } = useParties();
 
@@ -65,14 +85,6 @@ export default function Main() {
       })),
     [votationList],
   );
-
-  const blockOptions = useMemo(() => {
-    const opts = bundle?.blockFilterOptions ?? [];
-    return opts.map((b) => ({
-      value: b.hash,
-      label: `Bloque ${b.blockNumber} — ${b.hash.slice(0, 10)}…`,
-    }));
-  }, [bundle]);
 
   const userRoleOptions = [
     { value: "2", label: "Ciudadano" },
@@ -111,6 +123,20 @@ export default function Main() {
       </button>
     );
   }, []);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedVotesQuery(votesQuery.trim());
+    }, 250);
+    return () => clearTimeout(id);
+  }, [votesQuery]);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedBlocksQuery(blocksQuery.trim());
+    }, 250);
+    return () => clearTimeout(id);
+  }, [blocksQuery]);
 
   useEffect(() => {
     const load = async () => {
@@ -153,10 +179,13 @@ export default function Main() {
         }
         const data = await response.json();
         setBundle(data);
-        setSelectedBlock("");
         setVotesPage(1);
         setBlocksPage(1);
         setAuditPage(1);
+        setVotesQuery("");
+        setDebouncedVotesQuery("");
+        setBlocksQuery("");
+        setDebouncedBlocksQuery("");
         if (data.metrics) {
           setVoteMetrics({
             votationId: data.metrics.votationId,
@@ -177,6 +206,42 @@ export default function Main() {
 
   useEffect(() => {
     if (!selectedVotation) {
+      setTimeseries(null);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      setTimeseriesLoading(true);
+      try {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_TIMESERIES(selectedVotation)}?buckets=40`;
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) {
+          return;
+        }
+        if (!res.ok) {
+          setTimeseries(null);
+          return;
+        }
+        setTimeseries(data);
+      } catch {
+        if (!cancelled) {
+          setTimeseries(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setTimeseriesLoading(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVotation, timeseriesTick]);
+
+  useEffect(() => {
+    if (!selectedVotation) {
       return;
     }
     let cancelled = false;
@@ -188,9 +253,6 @@ export default function Main() {
           page: String(votesPage),
           pageSize: String(PAGE_SIZE),
         });
-        if (selectedBlock) {
-          q.set("blockHash", selectedBlock);
-        }
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_VOTES(selectedVotation)}?${q}`;
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
@@ -218,7 +280,7 @@ export default function Main() {
     return () => {
       cancelled = true;
     };
-  }, [selectedVotation, votesPage, selectedBlock, votesRefreshTick]);
+  }, [selectedVotation, votesPage]);
 
   useEffect(() => {
     if (!selectedVotation) {
@@ -310,6 +372,16 @@ export default function Main() {
   const pendingMetricsRef = useRef(null);
   const rafMetricsRef = useRef(null);
 
+  const scheduleTimeseriesRefresh = useCallback(() => {
+    if (timeseriesBumpTimerRef.current != null) {
+      return;
+    }
+    timeseriesBumpTimerRef.current = setTimeout(() => {
+      timeseriesBumpTimerRef.current = null;
+      setTimeseriesTick((t) => t + 1);
+    }, 4000);
+  }, []);
+
   const handleVoteReceived = useCallback(
     (voteData) => {
       if (voteData.votationId !== selectedVotation) return;
@@ -349,9 +421,10 @@ export default function Main() {
             },
           };
         });
+        scheduleTimeseriesRefresh();
       });
     },
-    [selectedVotation],
+    [selectedVotation, scheduleTimeseriesRefresh],
   );
 
   const wsUrl = import.meta.env.VITE_SPRING_WS_URL || "ws://localhost:8081/ws";
@@ -390,8 +463,16 @@ export default function Main() {
     ];
   }, [bundle?.metrics]);
 
+  const filteredVotesRowsRaw = useMemo(() => {
+    const q = debouncedVotesQuery.toLowerCase();
+    if (!q) {
+      return votesRows;
+    }
+    return votesRows.filter((r) => String(r.id ?? "").toLowerCase().startsWith(q));
+  }, [votesRows, debouncedVotesQuery]);
+
   const votesDetailRows = useMemo(() => {
-    return votesRows.map((r) => {
+    return filteredVotesRowsRaw.map((r) => {
       const mName = r.municipalityName;
       const pName = r.provinceName;
       const ccaa = r.autonomousCommunityName;
@@ -426,7 +507,7 @@ export default function Main() {
         creado: formatDate(r.createdAt),
       };
     });
-  }, [votesRows, CopyButton]);
+  }, [filteredVotesRowsRaw, CopyButton]);
 
   const auditRows = useMemo(() => {
     return auditRowsRaw.map((a) => ({
@@ -447,8 +528,18 @@ export default function Main() {
     }));
   }, [auditRowsRaw, CopyButton]);
 
+  const filteredBlocksRaw = useMemo(() => {
+    const q = debouncedBlocksQuery.toLowerCase();
+    if (!q) {
+      return blocksRowsRaw;
+    }
+    return blocksRowsRaw.filter((b) =>
+      String(b.blockNumber ?? "").toLowerCase().startsWith(q),
+    );
+  }, [blocksRowsRaw, debouncedBlocksQuery]);
+
   const blocksRows = useMemo(() => {
-    return blocksRowsRaw.map((b) => ({
+    return filteredBlocksRaw.map((b) => ({
       num: b.blockNumber,
       hash: (
         <>{b.hash.slice(0, 12)}…<CopyButton text={b.hash} /></>
@@ -460,7 +551,7 @@ export default function Main() {
       ok: b.isValid ? "Sí" : "No",
       creado: formatDate(b.createdAt),
     }));
-  }, [blocksRowsRaw, CopyButton]);
+  }, [filteredBlocksRaw, CopyButton]);
 
   useEffect(() => {
     const onExport = async () => {
@@ -561,12 +652,37 @@ export default function Main() {
 
       {voteMetrics && (
         <>
-          <ChartSection voteMetrics={voteMetrics} />
+          {timeseriesLoading && !timeseries ? (
+            <p className="metrics-timeseries-hint">Cargando serie temporal…</p>
+          ) : null}
+          <ChartSection voteMetrics={voteMetrics} timeseries={timeseries} />
         </>
       )}
 
       <SectionContainer>
         <h2 className="metrics-section-title">Detalle de votos</h2>
+        <div className="metrics-table-search">
+          <div className="metrics-table-search__field">
+            <span className="metrics-table-search__prompt">Buscar por ID (para esta tabla)</span>
+            <div className="metrics-table-search__input-wrap">
+              <span className="metrics-table-search__icon" aria-hidden>
+                <SearchIcon />
+              </span>
+              <input
+                id="votes-search"
+                type="search"
+                className="metrics-table-search__input"
+                placeholder="Ej. 154"
+                value={votesQuery}
+                onChange={(e) => setVotesQuery(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </div>
+        {debouncedVotesQuery && filteredVotesRowsRaw.length === 0 && !votesLoading ? (
+          <p className="metrics-table-search__empty">Sin coincidencias en esta tabla.</p>
+        ) : null}
         {votesError ? <p className="metrics-banner-error">{votesError}</p> : null}
         {votesLoading ? <p>Cargando…</p> : null}
         <div
@@ -580,53 +696,44 @@ export default function Main() {
           />
         </div>
         {votesTotal > PAGE_SIZE ? (
-          <p style={{ margin: "0.75rem 0", fontSize: "0.9rem" }}>
-            Página {votesPage} de {votesPagesTotal} — {votesTotal.toLocaleString("es-ES")} votos en total
-            {" "}
-            <button
-              type="button"
-              disabled={votesLoading || votesPage <= 1}
-              onClick={() => setVotesPage((p) => Math.max(1, p - 1))}
-            >
-              Anterior
-            </button>
-            {" "}
-            <button
-              type="button"
-              disabled={votesLoading || votesPage >= votesPagesTotal}
-              onClick={() => setVotesPage((p) => p + 1)}
-            >
-              Siguiente
-            </button>
-            {" "}
-            <button
-              type="button"
-              disabled={votesLoading}
-              onClick={() => setVotesRefreshTick((t) => t + 1)}
-            >
-              Actualizar
-            </button>
-          </p>
+          <Pagination
+            page={votesPage}
+            totalPages={votesPagesTotal}
+            totalItems={votesTotal}
+            itemLabel="votos en total"
+            loading={votesLoading}
+            onPrev={() => setVotesPage((p) => Math.max(1, p - 1))}
+            onNext={() => setVotesPage((p) => p + 1)}
+          />
         ) : null}
-        <Select
-          id="blockFilter"
-          label="Filtrar votos por bloque (opcional):"
-          value={selectedBlock}
-          onChange={(e) => {
-            setSelectedBlock(e.target.value);
-            setVotesPage(1);
-          }}
-          options={blockOptions}
-          placeholderLabel="Todos los bloques"
-          placeholderValue=""
-          disabled={blockOptions.length === 0}
-        />
       </SectionContainer>
 
       <SectionContainer>
         <h2 className="metrics-section-title">Bloques (cadena en blockchain)</h2>
         {blocksError ? <p className="metrics-banner-error">{blocksError}</p> : null}
         {blocksLoading ? <p>Cargando…</p> : null}
+        <div className="metrics-table-search">
+          <div className="metrics-table-search__field">
+            <span className="metrics-table-search__prompt">Buscar por Nº (para esta tabla)</span>
+            <div className="metrics-table-search__input-wrap">
+              <span className="metrics-table-search__icon" aria-hidden>
+                <SearchIcon />
+              </span>
+              <input
+                id="blocks-search"
+                type="search"
+                className="metrics-table-search__input"
+                placeholder="Ej. 12"
+                value={blocksQuery}
+                onChange={(e) => setBlocksQuery(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </div>
+        {debouncedBlocksQuery && filteredBlocksRaw.length === 0 && !blocksLoading ? (
+          <p className="metrics-table-search__empty">Sin coincidencias en esta tabla.</p>
+        ) : null}
         <div
           className={`table-scroll-container ${blocksRows.length > 10 ? "scrollable" : ""}`}
         >
@@ -638,25 +745,15 @@ export default function Main() {
           />
         </div>
         {blocksTotal > PAGE_SIZE ? (
-          <p style={{ margin: "0.75rem 0", fontSize: "0.9rem" }}>
-            Página {blocksPage} de {blocksPagesTotal} — {blocksTotal.toLocaleString("es-ES")} bloques
-            {" "}
-            <button
-              type="button"
-              disabled={blocksLoading || blocksPage <= 1}
-              onClick={() => setBlocksPage((p) => Math.max(1, p - 1))}
-            >
-              Anterior
-            </button>
-            {" "}
-            <button
-              type="button"
-              disabled={blocksLoading || blocksPage >= blocksPagesTotal}
-              onClick={() => setBlocksPage((p) => p + 1)}
-            >
-              Siguiente
-            </button>
-          </p>
+          <Pagination
+            page={blocksPage}
+            totalPages={blocksPagesTotal}
+            totalItems={blocksTotal}
+            itemLabel="bloques"
+            loading={blocksLoading}
+            onPrev={() => setBlocksPage((p) => Math.max(1, p - 1))}
+            onNext={() => setBlocksPage((p) => p + 1)}
+          />
         ) : null}
       </SectionContainer>
 
@@ -671,25 +768,15 @@ export default function Main() {
           rowKeys={["id", "user", "action", "desc", "tx", "block", "fecha"]}
         />
         {auditTotal > PAGE_SIZE ? (
-          <p style={{ margin: "0.75rem 0", fontSize: "0.9rem" }}>
-            Página {auditPage} de {auditPagesTotal} — {auditTotal.toLocaleString("es-ES")} registros
-            {" "}
-            <button
-              type="button"
-              disabled={auditLoading || auditPage <= 1}
-              onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
-            >
-              Anterior
-            </button>
-            {" "}
-            <button
-              type="button"
-              disabled={auditLoading || auditPage >= auditPagesTotal}
-              onClick={() => setAuditPage((p) => p + 1)}
-            >
-              Siguiente
-            </button>
-          </p>
+          <Pagination
+            page={auditPage}
+            totalPages={auditPagesTotal}
+            totalItems={auditTotal}
+            itemLabel="registros"
+            loading={auditLoading}
+            onPrev={() => setAuditPage((p) => Math.max(1, p - 1))}
+            onNext={() => setAuditPage((p) => p + 1)}
+          />
         ) : null}
         <Select
           id="auditFilter"
