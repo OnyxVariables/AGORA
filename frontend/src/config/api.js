@@ -18,6 +18,8 @@ export const API_CONFIG = {
     METRICS_VOTATION_VOTES: (id) => `/api/metrics/votation/${id}/votes`,
     METRICS_VOTATION_BLOCKS: (id) => `/api/metrics/votation/${id}/blocks`,
     METRICS_VOTATION_AUDIT: (id) => `/api/metrics/votation/${id}/audit`,
+    METRICS_VOTATION_TIMESERIES: (id) => `/api/metrics/votation/${id}/timeseries`,
+    VOTATION_VOTES_TIMESERIES_PUBLIC: (id) => `/api/votations/${id}/votes-timeseries`,
     VOTATION_RESULTS: (id) => `/api/votations/${id}/results`,
     VOTATION_RESULTS_SUMMARY: (id) => `/api/votations/${id}/results/summary`,
     PARTIES: '/api/parties',
