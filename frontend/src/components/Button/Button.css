@@ -21,6 +21,31 @@
     background: #db9fea;
 }
 
+.btn--pager,
+.btn--pager-refresh {
+    background: linear-gradient(135deg, #5f00c7 0%, #8a2be2 55%, #ad5cff 100%);
+    color: #ffffff;
+    border: 2px solid var(--color-border-dark);
+    font-weight: 700;
+    padding: 0.45rem 0.85rem;
+    box-shadow: 0 3px 0 #2e005e;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.btn--pager:disabled,
+.btn--pager-refresh:disabled {
+    opacity: 0.5;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.btn--pager:not(:disabled):hover,
+.btn--pager-refresh:not(:disabled):hover {
+    background: linear-gradient(135deg, #7f1dff 0%, #a84dff 55%, #cf88ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #2e005e;
+}
+
 .btn--delete {
     background: #ffc9c9;
 }
