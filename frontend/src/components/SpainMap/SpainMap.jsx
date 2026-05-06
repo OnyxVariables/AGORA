@@ -133,6 +133,7 @@ const SpainMap = forwardRef(function SpainMap(
     onPathMouseEnter,
     onPathMouseLeave,
     className = "",
+    disabled = false,
   },
   ref,
 ) {
@@ -200,6 +201,18 @@ const SpainMap = forwardRef(function SpainMap(
       { x1: "0", y1: "1", x2: "0", y2: "0", transform: "rotate(40)" },
     );
 
+    if (disabled) {
+      createLinearGradient(
+        defs,
+        "disabled-region-gradient",
+        [
+          { offset: "0%", color: "#d8d8d8", opacity: 1 },
+          { offset: "100%", color: "#8f8f8f", opacity: 1 },
+        ],
+        { x1: "0", y1: "0", x2: "1", y2: "1" },
+      );
+    }
+
     const bbox = getBBox(geoData);
     const projectFn = buildProjection(bbox, svgWidth, svgHeight);
 
@@ -239,17 +252,19 @@ const SpainMap = forwardRef(function SpainMap(
         path.style.strokeWidth = "1";
       }
 
-      path.addEventListener("mouseenter", () => {
-        if (onPathMouseEnter) onPathMouseEnter(map, path, feature);
-      });
-      path.addEventListener("mouseleave", () => {
-        if (onPathMouseLeave) onPathMouseLeave(map);
-      });
-      path.addEventListener("click", () => {
-        if (onFeatureClick && path.style.pointerEvents !== "none") {
-          onFeatureClick(name, feature);
-        }
-      });
+      if (!disabled) {
+        path.addEventListener("mouseenter", () => {
+          if (onPathMouseEnter) onPathMouseEnter(map, path, feature);
+        });
+        path.addEventListener("mouseleave", () => {
+          if (onPathMouseLeave) onPathMouseLeave(map);
+        });
+        path.addEventListener("click", () => {
+          if (onFeatureClick && path.style.pointerEvents !== "none") {
+            onFeatureClick(name, feature);
+          }
+        });
+      }
 
       const isCanariasFeature =
         name === "Islas Canarias" ||
@@ -307,7 +322,7 @@ const SpainMap = forwardRef(function SpainMap(
       "viewBox",
       `${vb.x - 20} ${vb.y - 20} ${vb.width + 40} ${vb.height + 40}`,
     );
-  }, [geoData, level, onFeatureClick, onPathMouseEnter, onPathMouseLeave]);
+  }, [geoData, level, onFeatureClick, onPathMouseEnter, onPathMouseLeave, disabled]);
 
   useImperativeHandle(
     ref,
