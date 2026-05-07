@@ -131,6 +131,7 @@
     font-size: 0.78rem;
     color: var(--color-brand-mid);
     white-space: nowrap;
+    font-weight: bold;
 }
 
 .verify-vote-card__label--inline {
@@ -171,7 +172,7 @@
     margin-top: 0;
     width: auto;
     max-width: 100%;
-    padding: 0.5em;
+    padding: 0.8em;
 }
 
 .verify-vote-card__counter {
@@ -212,6 +213,7 @@
     color: var(--color-border-dark);
     cursor: pointer;
     box-shadow: 4px 4px 0 #8c00dd20;
+    background-color: #d0bfff;
 }
 
 .results-map .verify-vote-button:hover,
@@ -576,6 +578,36 @@
 
 .chart-section__slot--line {
     grid-area: line;
+}
+
+.chart-section__line-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.35rem;
+    min-width: 0;
+}
+
+.chart-section__line-title {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--color-brand-mid);
+}
+
+.chart-section__line-status {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #5c4a7a;
+}
+
+.chart-section__line-status--ok {
+    color: #1b6b3a;
+}
+
+.chart-section__line-status--fallback {
+    color: #8a5a00;
 }
 
 .electionsMap .dialog .chart-section__slot--pie .chart-container,

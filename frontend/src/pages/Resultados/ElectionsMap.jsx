@@ -19,6 +19,7 @@ import {
 } from "../../utils/spainNames";
 
 import { formatBucketLabel } from "../../utils/date";
+import VotationPicker from "../../components/VotationPicker/VotationPicker";
 import "./ElectionsMap.css";
 
 const ccaaColors = {
@@ -250,11 +251,34 @@ export default function ElectionsMap() {
   const [resultsError, setResultsError] = useState(null);
   const [partiesAggregated, setPartiesAggregated] = useState([]);
   const [modalTimeseries, setModalTimeseries] = useState(null);
+  const [modalTimeseriesLoading, setModalTimeseriesLoading] = useState(false);
 
   const { partidos: partidosCatalog } = useParties();
 
   const finishedVotations = useMemo(
     () => votationSummaries.filter((v) => v.state === "finished"),
+    [votationSummaries],
+  );
+
+  const finishedPickerItems = useMemo(
+    () =>
+      finishedVotations.map((v) => ({
+        id: v.id,
+        title: v.title,
+        state: v.state,
+      })),
+    [finishedVotations],
+  );
+
+  const verifyPickerItems = useMemo(
+    () =>
+      votationSummaries
+        .filter((v) => v.state === "active" || v.state === "finished")
+        .map((v) => ({
+          id: v.id,
+          title: v.title,
+          state: v.state,
+        })),
     [votationSummaries],
   );
 
@@ -301,12 +325,14 @@ export default function ElectionsMap() {
   useEffect(() => {
     if (!showDialog || !selectedVotationId) {
       setModalTimeseries(null);
+      setModalTimeseriesLoading(false);
       return;
     }
     let cancelled = false;
     const run = async () => {
+      setModalTimeseriesLoading(true);
       try {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATION_VOTES_TIMESERIES_PUBLIC(Number(selectedVotationId))}?buckets=32`;
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATION_VOTES_TIMESERIES_PUBLIC(Number(selectedVotationId))}`;
         const res = await fetch(url);
         const data = await res.json().catch(() => ({}));
         if (cancelled) {
@@ -321,11 +347,16 @@ export default function ElectionsMap() {
         if (!cancelled) {
           setModalTimeseries(null);
         }
+      } finally {
+        if (!cancelled) {
+          setModalTimeseriesLoading(false);
+        }
       }
     };
     run();
     return () => {
       cancelled = true;
+      setModalTimeseriesLoading(false);
     };
   }, [showDialog, selectedVotationId]);
 
@@ -422,30 +453,49 @@ export default function ElectionsMap() {
     !resultsDetail ||
     Boolean(resultsError);
 
+  // Serie temporal de la votación (API); si falla, mismo fallback que Métricas: Inicio: resultado en esta región
   const modalLineConfig = useMemo(() => {
-    if (!modalTimeseries?.labels?.length) {
+    if (!partidosCatalog.length) {
       return null;
     }
-    const windowStart = modalTimeseries.startDate;
-    const windowEnd = modalTimeseries.endDate;
-    const labels = modalTimeseries.labels.map((iso) =>
-      windowStart && windowEnd
-        ? formatBucketLabel(iso, windowStart, windowEnd)
-        : String(iso),
-    );
+
+    if (modalTimeseries?.labels?.length) {
+      const windowStart = modalTimeseries.startDate;
+      const windowEnd = modalTimeseries.endDate;
+      const labels = modalTimeseries.labels.map((iso) =>
+        windowStart && windowEnd
+          ? formatBucketLabel(iso, windowStart, windowEnd)
+          : String(iso),
+      );
+      const series = {};
+      partidosCatalog.forEach((p) => {
+        const arr = modalTimeseries.byParty?.[String(p.id)];
+        series[p.nombre] = Array.isArray(arr)
+          ? arr
+          : Array(modalTimeseries.labels.length).fill(0);
+      });
+      return {
+        labels,
+        series,
+        showTimeAxis: modalTimeseries.labels.length >= 2,
+      };
+    }
+
+    if (!partiesAggregated.length) {
+      return null;
+    }
+    const fallbackLabels = ["Inicio", "Actual"];
     const series = {};
     partidosCatalog.forEach((p) => {
-      const arr = modalTimeseries.byParty?.[String(p.id)];
-      series[p.nombre] = Array.isArray(arr)
-        ? arr
-        : Array(modalTimeseries.labels.length).fill(0);
+      const agg = partiesAggregated.find((ap) => ap.partyId === p.id);
+      series[p.nombre] = [0, agg?.votes ?? 0];
     });
     return {
-      labels,
+      labels: fallbackLabels,
       series,
-      showTimeAxis: modalTimeseries.labels.length >= 2,
+      showTimeAxis: false,
     };
-  }, [modalTimeseries, partidosCatalog]);
+  }, [modalTimeseries, partidosCatalog, partiesAggregated]);
 
   const getFeatureStyle = useCallback(
     (feature, geoData) => {
@@ -607,22 +657,21 @@ export default function ElectionsMap() {
       <section className="section1">
         <article className="article1">
           <h2>Elecciones Generales</h2>
-          <select
-            className="select"
+          <VotationPicker
+            id="results-finished-votation-picker"
+            label={null}
+            ariaLabel="Votación finalizada"
+            items={finishedPickerItems}
             value={selectedVotationId}
-            onChange={(e) => setSelectedVotationId(e.target.value)}
-            aria-label="Votación finalizada"
-          >
-            {finishedVotations.length === 0 ? (
-              <option value="">No hay votaciones finalizadas</option>
-            ) : (
-              finishedVotations.map((v) => (
-                <option key={v.id} value={String(v.id)}>
-                  #{v.id} — {v.title}
-                </option>
-              ))
-            )}
-          </select>
+            onChange={(v) => setSelectedVotationId(v)}
+            placeholderLabel={
+              finishedPickerItems.length === 0
+                ? "No hay votaciones finalizadas"
+                : "Selecciona…"
+            }
+            placeholderValue=""
+            disabled={finishedPickerItems.length === 0}
+          />
         </article>
         <article className="article2">
           <p>
@@ -664,25 +713,24 @@ export default function ElectionsMap() {
               >
                 Votación
               </label>
-              <select
+              <VotationPicker
                 id="verify-votation-select"
-                className="select verify-vote-card__select"
+                label={null}
+                ariaLabel="Votación para verificación"
+                variant="compact"
+                items={verifyPickerItems}
                 value={verifyVotationId}
-                onChange={(e) => setVerifyVotationId(e.target.value)}
-                aria-label="Votación para verificación"
-              >
-                {votationSummaries.length === 0 ? (
-                  <option value="">Cargando…</option>
-                ) : (
-                  votationSummaries
-                    .filter((v) => v.state === "active" || v.state === "finished")
-                    .map((v) => (
-                      <option key={v.id} value={String(v.id)}>
-                        #{v.id} — {v.title} ({v.state})
-                      </option>
-                    ))
-                )}
-              </select>
+                onChange={(v) => setVerifyVotationId(v)}
+                placeholderLabel={
+                  votationSummaries.length === 0
+                    ? "Cargando…"
+                    : verifyPickerItems.length === 0
+                      ? "No hay votaciones disponibles"
+                      : "Selecciona…"
+                }
+                placeholderValue=""
+                disabled={verifyPickerItems.length === 0}
+              />
             </div>
             <div className="verify-vote-card__field verify-vote-card__field--code">
               <label className="verify-vote-card__label" htmlFor="verification-code">
@@ -766,7 +814,6 @@ export default function ElectionsMap() {
                 className="cerrar"
                 onClick={() => {
                   setShowDialog(false);
-                  setModalTimeseries(null);
                 }}
                 aria-label="Cerrar"
               >
