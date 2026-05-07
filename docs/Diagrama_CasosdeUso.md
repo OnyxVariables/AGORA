@@ -120,7 +120,7 @@ graph LR
 ### Caso de uso: Ponerse un Nickname
 - **Tipo**: Primario 🔵 
 - **Incluye**: Iniciar sesión  
-- **Descripción**: Permite ponerse un nickname para luego poder buscar a quien has votado gracias al nickname y un código que proporcionará el propio sistema. Cabe destacar que si se pierde ese código no se podrá comprobar a quién has votado  
+- **Descripción**: Permite asignar un nickname para poder verificar posteriormente el voto mediante nickname + código proporcionado por el sistema. Si se pierde el código, no será posible realizar esa verificación.  
 - **Flujo principal**:
   1. El ciudadano inicia sesión.  
   2. El ciudadano pincha sobre “Perfil”.  
@@ -217,9 +217,9 @@ graph LR
     UC_Resultados -. extend .-> UC_Buscar["Buscar voto por Nickname + código"]:::extendido
 ```
 
-### Caso de uso: Busacr voto
+### Caso de uso: Buscar voto
 - **Tipo**: Extendido 🟠 (opcional, depende del flujo “Ver resultados”)  
-- **Descripción**: Permite buscar el voto de cada usuario escribiendo el Nickname + código que da el sistema cuando el usuario se pone un nickname **(IMPORTANTE no perder el código o no se podrás corrobar a quién votaste)**  
+- **Descripción**: Permite buscar el voto del usuario introduciendo el nickname + código entregado por el sistema **(si se pierde el código, no se podrá corroborar el voto emitido)**.  
 ```mermaid
 graph LR
     classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
@@ -315,7 +315,7 @@ graph LR
 ### Caso de uso: Salir
 - **Tipo**: Primario 🔵
 - **Incluye**: Iniciar sesión  
-- **Descripción**: Permite al administrardor cerrar sesión.  
+- **Descripción**: Permite al administrador cerrar sesión.  
 - **Flujo principal**:
   1. El administrador inicia sesión.  
   2. Selecciona SALIR.  

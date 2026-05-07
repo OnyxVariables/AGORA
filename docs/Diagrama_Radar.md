@@ -37,7 +37,8 @@ Cada eje del diagrama representa un componente crítico del sistema:
 
 <br>La escala utilizada va de **0 a 10**, donde:
 - 0 = No implementado
-- 5 = Totalmente implementado / maduro
+- 5 = Implementación funcional intermedia
+- 10 = Totalmente implementado / maduro
 
 
 ## 4. Diagrama Radar de AGORA
@@ -69,7 +70,7 @@ radar-beta
 ```
 
 ## 5. Interpretación del Diagrama
-1. Seguridad deberá ser el eje más fuerte del sistema, gracias al uso de certificados electrónicos y control de identidad.
-2. Blockchain y Auditoría presentarán un alto nivel de madurez, garantizando integridad y transparencia.
+1. Seguridad es uno de los ejes más fuertes del sistema, gracias al uso de certificados electrónicos y control de identidad.
+2. Blockchain y auditoría presentan un nivel alto de madurez, garantizando integridad y trazabilidad.
 3. Backend se encuentra bien estructurado, soportando roles, permisos y lógica de negocio.
-4. Frontend y Escalabilidad están correctamente definidos, pero abiertos a mejoras futuras (optimización UX, balanceo de carga, despliegue distribuido).
+4. Frontend y escalabilidad están correctamente definidos, con margen de mejora en UX, balanceo de carga y despliegue distribuido.

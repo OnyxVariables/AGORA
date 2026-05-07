@@ -81,7 +81,7 @@ sequenceDiagram
     Sistema-->>-Ciudadano: Resultados mostrados
 
     alt Usuario decide buscar por su nickname + código <<extend>>
-        Note over Sistema: Si pierde el código dado por el sistema al ponerse un nickname no podrá buscar a quíen votó
+        Note over Sistema: Si pierde el código dado por el sistema al ponerse un nickname no podrá verificar a quién votó
         Ciudadano->>+Sistema: Escribe nickname + código
         Sistema-->>-Ciudadano: Muestra resultado
     end
@@ -163,7 +163,7 @@ sequenceDiagram
     Sistema-->>-Ciudadano: Resultados mostrados
 
     alt Usuario decide buscar por su nickname + código <<extend>>
-        Note over Sistema: Si pierde el código dado por el sistema al ponerse un nickname no podrá buscar a quíen perteneció su voto
+        Note over Sistema: Si pierde el código dado por el sistema al ponerse un nickname no podrá verificar a quién perteneció su voto
         Ciudadano->>+Sistema: Escribe nickname + código
         Sistema-->>-Ciudadano: Muestra resultado
     end

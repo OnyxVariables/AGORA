@@ -28,7 +28,7 @@ Este documento tiene como objetivo:
 
 ## 2. Marco Legal Aplicable
 ### 2.1 Reglamento General de Protección de Datos (RGPD – UE 2016/679)
-AGORA cumple con el Reglamento General de Protección de Datos (RGPD), aplicable a cualquier sistema que trate datos personales de ciudadanos de la Unión Europea.
+AGORA se alinea con el Reglamento General de Protección de Datos (RGPD), aplicable a cualquier sistema que trate datos personales de ciudadanos de la Unión Europea.
 
 #### Principios RGPD aplicados:
 - Licitud, lealtad y transparencia  
@@ -40,7 +40,7 @@ AGORA cumple con el Reglamento General de Protección de Datos (RGPD), aplicable
 - Responsabilidad proactiva  
 
 ### 2.2 Ley Orgánica 3/2018 (LOPDGDD – España)
-AGORA se adecua a la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales, que complementa el RGPD en el ámbito español.
+AGORA se diseña conforme a la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales, que complementa el RGPD en el ámbito español.
 
 Se presta especial atención a:
 - Derechos digitales del ciudadano  
@@ -89,7 +89,7 @@ AGORA trata únicamente los datos **estrictamente necesarios**:
 ## 4. Seguridad de la Información
 ### 4.1 Seguridad en las Comunicaciones
 - Todo el tráfico se realiza mediante **HTTPS (TLS)**
-- Certificados gestionados con **Certbot / Let’s Encrypt** (si el proyecto se lleva a cabo usariamos uno de la FNMT)
+- Certificados gestionados con **Certbot / Let’s Encrypt** en entornos de despliegue habituales.
 - Protección frente a ataques Man-In-The-Middle (MITM)
 
 ### 4.2 Seguridad en Infraestructura
@@ -183,5 +183,5 @@ AGORA ha sido diseñado bajo los principios de **legal-by-design** y **security-
 ## 11. Referencias Normativas
 - [Reglamento (UE) 2016/679 – RGPD](https://www.boe.es/doue/2016/119/L00001-00088.pdf)
 - [Ley Orgánica 3/2018 – LOPDGDD](https://www.boe.es/buscar/act.php?id=BOE-A-2018-16673)
-- [ISO/IEC 27001 – Sistemas de Gestión de Seguridad de la Información](https://www.ursspain.com/certificaciones-iso/?gad_source=1&gad_campaignid=23147920219&gbraid=0AAAAAC59XbhmXckGM9GsV8ghvIxqkNnRA&gclid=CjwKCAiAwNDMBhBfEiwAd7ti1I3NTakkSH1euGf2wg8UetPj4le44jZ3gnGFdZPACHGVqH4OMa3JdBoCbDUQAvD_BwE)
+- [ISO/IEC 27001 – Information security management](https://www.iso.org/isoiec-27001-information-security.html)
 - [LOREG – Ley Orgánica del Régimen Electoral General](https://www.juntaelectoralcentral.es/cs/jec/loreg/contenido)

@@ -41,7 +41,7 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 3. **Acceder a la aplicación:**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:8000
-   - Base de datos: localhost:3306
+   - Base de datos: localhost:33306 (si usas el mapeo por defecto de `compose.dev.yml`)
 
 ### Entorno de Producción
 1. **Copiar el archivo de entorno de producción:**
@@ -121,12 +121,14 @@ Ver [Arquitectura_Runtime.md](Arquitectura_Runtime.md).
 ## Posibles problemas y su solución
 ### Problemas Comunes
 1. **Conflictos de puertos en desarrollo**
-   - Asegurarse de que los puertos 5173, 8000 y 3306 estén disponibles
-   - Verificar con: `netstat -an | grep :5173`
+   - Asegurarse de que los puertos 5173, 8000 y 33306 estén disponibles
+   - Verificar en PowerShell con: `netstat -an | findstr :5173`
+   - Verificar en bash con: `netstat -an | rg 5173`
 
 2. **Variables de entorno no cargando**
    - Asegurarse de que el archivo `.env` exista en la raíz del proyecto
-   - Verificar los permisos del archivo: `ls -la .env`
+   - Verificar existencia en PowerShell: `Test-Path .env`
+   - Verificar existencia en bash: `ls -la .env`
 
 3. **Problemas de CORS**
    - Verificar que `FRONTEND_URL` coincida con su URL del frontend

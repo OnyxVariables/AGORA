@@ -80,7 +80,7 @@ Descripción del flujo Ciudadano:
 6. **Decisión de envío**:
     - `Enviar voto`: Se registra en la Blockchain y confirma el envío.
     - `Cancelar voto`: Se anula la acción antes del envío.
-7. **Ver resultados: Puede consultar resultados generales.
+7. **Ver resultados**: Puede consultar resultados generales.
     - `Buscar voto por nickname + código`: Permite corroborar su propio voto.
 8. **Salir**: Cierra sesión.
 ```mermaid

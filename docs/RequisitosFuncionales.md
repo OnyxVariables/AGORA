@@ -109,7 +109,7 @@ Cada votación debe estar asociada a bloques de la blockchain.
 **Spring Boot – Ley D’Hondt**
 
 ### RF-12 Extracción de votos
-El servicio debe poder leer votos directamente desde la blockchain.
+El servicio debe calcular resultados a partir de los votos persistidos en base de datos relacional tras la sincronización de eventos blockchain.
 
 ### RF-13 Cálculo automático de escaños
 El sistema debe aplicar la **Ley D’Hondt** automáticamente tras finalizar una votación.
@@ -119,6 +119,9 @@ Los resultados deben persistirse en base de datos relacional.
 
 ### RF-15 Publicación de resultados
 Los resultados deben ser accesibles desde el frontend.
+
+> [!NOTE]
+> En la arquitectura actual, Laravel envía transacciones (`createVotation`, `submitVote`, `finishVotation`) y Spring Boot escucha eventos para sincronizar estado y ejecutar D’Hondt sobre la tabla `vote`.
 
 
 ## 8. Requisitos de Auditoría
