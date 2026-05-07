@@ -17,11 +17,13 @@ class Block extends Model
         'blockNumber',
         'previousHash',
         'transactions',
-        'isValid'
+        'isValid',
+        'chain_timestamp',
     ];
 
     protected $casts = [
         'isValid' => 'boolean',
-        'createdAt' => 'datetime'
+        'createdAt' => 'datetime',
+        'chain_timestamp' => 'integer',
     ];
 }
