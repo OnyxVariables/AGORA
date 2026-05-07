@@ -28,6 +28,12 @@ class MetricsController extends Controller
         return null;
     }
 
+    // Instante UTC inequívoco para el cliente (evita que ISO sin zona se interprete como hora local del navegador)
+    private function timeseriesInstantToUtcIso8601(Carbon $dt): string
+    {
+        return $dt->copy()->utc()->format('Y-m-d\TH:i:s\Z');
+    }
+
     private function paginationParams(Request $request): array
     {
         $page = max(1, (int) $request->query('page', 1));
@@ -65,8 +71,8 @@ class MetricsController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    // Serie temporal de votos por intervalo (acumulado por partido) para gráficos.
-    // Admin-only. Query params: buckets (1-200, default 30)
+    // Serie temporal. Query: buckets (1-200) O intervalSeconds (ancho fijo, ej. 5), cumulative (1/0).
+    // Admin-only. intervalSeconds divide la ventana en tramos iguales de N segundos (tipo “vela” fina).
     public function votationTimeseries(Request $request, int $votationId): JsonResponse
     {
         if ($deny = $this->assertAdmin()) {
@@ -77,9 +83,6 @@ class MetricsController extends Controller
         if (! $votation) {
             return response()->json(['error' => 'Votación no encontrada'], 404);
         }
-
-        $bucketsCount = (int) $request->query('buckets', 30);
-        $bucketsCount = min(200, max(1, $bucketsCount));
 
         $start = $votation->startDate
             ? Carbon::parse($votation->startDate)
@@ -92,11 +95,16 @@ class MetricsController extends Controller
             $end = $start->copy()->addMinute();
         }
 
-        $totalSeconds = max(1, $end->getTimestamp() - $start->getTimestamp());
-        $bucketSeconds = max(1, (int) ceil($totalSeconds / $bucketsCount));
-        $maxBucketIndex = $bucketsCount - 1;
+        [
+            $bucketsCount,
+            $start,
+            $end,
+            $totalSeconds,
+            $bucketSeconds,
+            $maxBucketIndex,
+        ] = $this->resolveMetricsTimeseriesBuckets($request, $start, $end);
 
-        $startSql = $start->format('Y-m-d H:i:s');
+        $cumulative = $this->parseTimeseriesCumulativeFlag($request);
 
         $payload = $this->buildVotationTimeseriesPayload(
             $votationId,
@@ -106,7 +114,7 @@ class MetricsController extends Controller
             $totalSeconds,
             $bucketSeconds,
             $maxBucketIndex,
-            $startSql
+            $cumulative,
         );
 
         return response()->json($payload, 200, [], JSON_UNESCAPED_UNICODE);
@@ -120,9 +128,6 @@ class MetricsController extends Controller
             return response()->json(['error' => 'Votación no disponible'], 404);
         }
 
-        $bucketsCount = (int) $request->query('buckets', 30);
-        $bucketsCount = min(200, max(1, $bucketsCount));
-
         $start = $votation->startDate
             ? Carbon::parse($votation->startDate)
             : Carbon::now()->subHour();
@@ -135,9 +140,11 @@ class MetricsController extends Controller
         }
 
         $totalSeconds = max(1, $end->getTimestamp() - $start->getTimestamp());
-        $bucketSeconds = max(1, (int) ceil($totalSeconds / $bucketsCount));
-        $maxBucketIndex = $bucketsCount - 1;
-        $startSql = $start->format('Y-m-d H:i:s');
+        $bucketsParam = $request->query('buckets');
+        $bucketsOverride = ($bucketsParam !== null && $bucketsParam !== '') ? (int) $bucketsParam : null;
+        [$bucketsCount, $bucketSeconds, $maxBucketIndex] = $this->resolveAdaptiveBucketLayout($totalSeconds, $bucketsOverride);
+
+        $cumulative = $this->parseTimeseriesCumulativeFlag($request);
 
         $payload = $this->buildVotationTimeseriesPayload(
             $votationId,
@@ -147,13 +154,94 @@ class MetricsController extends Controller
             $totalSeconds,
             $bucketSeconds,
             $maxBucketIndex,
-            $startSql
+            $cumulative,
         );
 
         return response()->json($payload, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    private function parseTimeseriesCumulativeFlag(Request $request): bool
+    {
+        $raw = $request->query('cumulative', '1');
+
+        return ! in_array(strtolower((string) $raw), ['0', 'false', 'no', 'off'], true);
+    }
+
     /**
+     * Reparte la duración en ~12 tramos (p. ej. 12 h → ~1 h/tramo; 20 min → ~100 s/tramo).
+     * Si $bucketsOverride no es null, usa ese número de buckets.
+     *
+     * @return array{0: int, 1: int, 2: int}
+     */
+    private function resolveAdaptiveBucketLayout(int $totalSeconds, ?int $bucketsOverride): array
+    {
+        $totalSeconds = max(1, $totalSeconds);
+
+        if ($bucketsOverride !== null) {
+            $bucketsCount = min(200, max(1, $bucketsOverride));
+            $bucketSeconds = max(1, (int) ceil($totalSeconds / $bucketsCount));
+            $maxBucketIndex = $bucketsCount - 1;
+
+            return [$bucketsCount, $bucketSeconds, $maxBucketIndex];
+        }
+
+        $targetIntervals = 12;
+        $bucketSeconds = max(1, (int) ceil($totalSeconds / $targetIntervals));
+        $bucketsCount = max(1, (int) ceil($totalSeconds / $bucketSeconds));
+        $maxBucketIndex = $bucketsCount - 1;
+
+        return [$bucketsCount, $bucketSeconds, $maxBucketIndex];
+    }
+
+    /**
+     * Ventana temporal para gráfico admin: o N buckets que reparten toda la duración, o ancho fijo intervalSeconds.
+     *
+     * @return array{0: int, 1: Carbon, 2: Carbon, 3: int, 4: int, 5: int}
+     */
+    private function resolveMetricsTimeseriesBuckets(Request $request, Carbon $start, Carbon $end): array
+    {
+        $intervalRaw = $request->query('intervalSeconds');
+        $hasInterval = $intervalRaw !== null && $intervalRaw !== '';
+
+        if ($hasInterval) {
+            $intervalSec = min(60, max(1, (int) $intervalRaw));
+            $originalStart = $start->copy();
+
+            $totalSeconds = max(1, $end->getTimestamp() - $start->getTimestamp());
+            $bucketSeconds = $intervalSec;
+            $maxBuckets = 2400;
+
+            $bucketsCount = (int) ceil($totalSeconds / $bucketSeconds);
+
+            if ($bucketsCount > $maxBuckets) {
+                $start = $end->copy()->subSeconds($maxBuckets * $bucketSeconds);
+                if ($start->lt($originalStart)) {
+                    $start = $originalStart->copy();
+                }
+                $totalSeconds = max(1, $end->getTimestamp() - $start->getTimestamp());
+                $bucketsCount = min($maxBuckets, (int) ceil($totalSeconds / $bucketSeconds));
+            }
+
+            $bucketsCount = max(1, $bucketsCount);
+            $maxBucketIndex = $bucketsCount - 1;
+
+            return [$bucketsCount, $start, $end, $totalSeconds, $bucketSeconds, $maxBucketIndex];
+        }
+
+        $totalSeconds = max(1, $end->getTimestamp() - $start->getTimestamp());
+        $bucketsParam = $request->query('buckets');
+        $bucketsOverride = ($bucketsParam !== null && $bucketsParam !== '') ? (int) $bucketsParam : null;
+        [$bucketsCount, $bucketSeconds, $maxBucketIndex] = $this->resolveAdaptiveBucketLayout($totalSeconds, $bucketsOverride);
+
+        return [$bucketsCount, $start, $end, $totalSeconds, $bucketSeconds, $maxBucketIndex];
+    }
+
+    /**
+     * Agrupa votos en intervalos temporales (por partido). cumulative=true: serie acumulada; false: votos por bucket.
+     *
+     * La agregación se hace en PHP (no TIMESTAMPDIFF + GROUP BY en SQL) para evitar:
+     * errores con ONLY_FULL_GROUP_BY, diferencias entre MariaDB/MySQL y otros drivers.
+     *
      * @return array<string, mixed>
      */
     private function buildVotationTimeseriesPayload(
@@ -164,22 +252,9 @@ class MetricsController extends Controller
         int $totalSeconds,
         int $bucketSeconds,
         int $maxBucketIndex,
-        string $startSql,
+        bool $cumulative = true,
     ): array {
-        $endSql = $end->format('Y-m-d H:i:s');
-
-        $bucketExpr = 'LEAST(?, FLOOR(TIMESTAMPDIFF(SECOND, ?, `createdAt`) / ?))';
-
-        $rows = DB::table('vote')
-            ->where('votationId', $votationId)
-            ->where('createdAt', '>=', $startSql)
-            ->where('createdAt', '<=', $endSql)
-            ->selectRaw(
-                "{$bucketExpr} AS bucket_index, partyId, COUNT(*) AS c",
-                [$maxBucketIndex, $startSql, $bucketSeconds]
-            )
-            ->groupByRaw("{$bucketExpr}, partyId", [$maxBucketIndex, $startSql, $bucketSeconds])
-            ->get();
+        $startTs = $start->getTimestamp();
 
         $partyIds = DB::table('vote')
             ->where('votationId', $votationId)
@@ -198,27 +273,74 @@ class MetricsController extends Controller
             $raw[(int) $pid] = array_fill(0, $bucketsCount, 0);
         }
 
-        foreach ($rows as $row) {
-            $idx = (int) $row->bucket_index;
-            $pid = (int) $row->partyId;
+        // Hora del voto: preferir chain_timestamp del bloque (instante en cadena). createdAt en `vote` es
+        // la inserción en BD (p. ej. microservicio) y puede agrupar votos reales al mismo minuto.
+        $voteQuery = DB::table('vote as v')
+            ->leftJoin('block as b', 'b.hash', '=', 'v.blockHash')
+            ->where('v.votationId', $votationId)
+            ->select([
+                'v.partyId as partyId',
+                'v.createdAt as vote_created_at',
+                'b.chain_timestamp as chain_timestamp',
+            ])
+            ->orderBy('v.id');
+
+        $endTs = $end->getTimestamp();
+
+        foreach ($voteQuery->cursor() as $row) {
+            $partyKey = $row->partyId ?? $row->partyid ?? null;
+            $pid = (int) $partyKey;
+            if ($pid <= 0) {
+                continue;
+            }
+            $voteUnix = null;
+            $ct = $row->chain_timestamp ?? $row->chainTimestamp ?? null;
+            if ($ct !== null && (int) $ct > 0) {
+                $voteUnix = (int) $ct;
+            } else {
+                $rawAt = $row->vote_created_at ?? $row->voteCreatedAt ?? null;
+                if ($rawAt === null) {
+                    continue;
+                }
+                try {
+                    // Sin zona en la cadena: interpretar como hora de la app (misma convención que startDate/endDate).
+                    $voteUnix = Carbon::parse($rawAt, config('app.timezone'))->getTimestamp();
+                } catch (\Throwable) {
+                    continue;
+                }
+            }
+            if ($voteUnix < $startTs || $voteUnix > $endTs) {
+                continue;
+            }
+            $secondsFromStart = $voteUnix - $startTs;
+            $secondsFromStart = max(0, min($totalSeconds, $secondsFromStart));
+            $idx = (int) min($maxBucketIndex, floor($secondsFromStart / $bucketSeconds));
             if ($idx < 0 || $idx >= $bucketsCount) {
                 continue;
             }
             if (! isset($raw[$pid])) {
                 $raw[$pid] = array_fill(0, $bucketsCount, 0);
             }
-            $raw[$pid][$idx] += (int) $row->c;
+            $raw[$pid][$idx] += 1;
         }
 
         $byParty = [];
         foreach ($raw as $pid => $counts) {
-            $cum = [];
-            $running = 0;
-            for ($i = 0; $i < $bucketsCount; $i++) {
-                $running += $counts[$i];
-                $cum[] = $running;
+            if ($cumulative) {
+                $cum = [];
+                $running = 0;
+                for ($i = 0; $i < $bucketsCount; $i++) {
+                    $running += $counts[$i];
+                    $cum[] = $running;
+                }
+                $byParty[(string) $pid] = $cum;
+            } else {
+                $series = [];
+                for ($i = 0; $i < $bucketsCount; $i++) {
+                    $series[] = (int) $counts[$i];
+                }
+                $byParty[(string) $pid] = $series;
             }
-            $byParty[(string) $pid] = $cum;
         }
 
         $labels = [];
@@ -228,16 +350,28 @@ class MetricsController extends Controller
             if ($t->greaterThan($end)) {
                 $t = $end->copy();
             }
-            $labels[] = $t->toIso8601String();
+            $labels[] = $this->timeseriesInstantToUtcIso8601($t);
+        }
+
+        if ($bucketsCount > 0) {
+            $labels[$bucketsCount - 1] = $this->timeseriesInstantToUtcIso8601($end);
+        }
+
+        if ($cumulative) {
+            foreach ($byParty as $pidKey => $series) {
+                $byParty[$pidKey] = array_merge([0], $series);
+            }
+            array_unshift($labels, $this->timeseriesInstantToUtcIso8601($start));
         }
 
         return [
             'bucketSeconds' => $bucketSeconds,
             'buckets' => $bucketsCount,
-            'startDate' => $start->toIso8601String(),
-            'endDate' => $end->toIso8601String(),
+            'startDate' => $this->timeseriesInstantToUtcIso8601($start),
+            'endDate' => $this->timeseriesInstantToUtcIso8601($end),
             'labels' => $labels,
             'byParty' => $byParty,
+            'cumulative' => $cumulative,
         ];
     }
 
@@ -282,6 +416,39 @@ class MetricsController extends Controller
         return $out;
     }
 
+    // Prefijo numérico para búsqueda tipo "123%" (solo dígitos)
+    private function normalizeDigitPrefix(?string $raw): ?string
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        $digits = preg_replace('/\D+/', '', $raw);
+        if ($digits === '') {
+            return null;
+        }
+
+        return substr($digits, 0, 19);
+    }
+
+    /**
+     * Filtro "empieza por" sobre un entero almacenado como número (CAST a texto).
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     */
+    private function applyNumericColumnStartsWithPrefix($query, string $column, string $digitPrefix): void
+    {
+        if (! in_array($column, ['id', 'blockNumber'], true)) {
+            throw new \InvalidArgumentException('Invalid column for prefix filter');
+        }
+        $like = $digitPrefix.'%';
+        $driver = DB::connection()->getDriverName();
+        $cast = match ($driver) {
+            'sqlite', 'pgsql' => "CAST({$column} AS TEXT)",
+            default => "CAST({$column} AS CHAR)",
+        };
+        $query->whereRaw("{$cast} LIKE ?", [$like]);
+    }
+
     public function votationVotes(Request $request, int $votationId): JsonResponse
     {
         if ($deny = $this->assertAdmin()) {
@@ -297,15 +464,28 @@ class MetricsController extends Controller
         $blockHash = $request->query('blockHash');
         $blockHash = is_string($blockHash) && $blockHash !== '' ? $blockHash : null;
 
+        $idPrefix = $this->normalizeDigitPrefix(
+            is_string($request->query('idPrefix')) ? $request->query('idPrefix') : null,
+        );
+
         $base = DB::table('vote')->where('votationId', $votationId);
         if ($blockHash !== null) {
             $base->where('blockHash', $blockHash);
         }
+        if ($idPrefix !== null) {
+            $this->applyNumericColumnStartsWithPrefix($base, 'id', $idPrefix);
+        }
 
         $total = (clone $base)->count();
 
-        $votes = (clone $base)
-            ->orderByDesc('id')
+        $votesQuery = clone $base;
+        if ($idPrefix !== null) {
+            $votesQuery->orderBy('id', 'asc');
+        } else {
+            $votesQuery->orderByDesc('id');
+        }
+
+        $votes = $votesQuery
             ->offset(($page - 1) * $pageSize)
             ->limit($pageSize)
             ->get();
@@ -366,6 +546,15 @@ class MetricsController extends Controller
         if ($votation->endBlockHash) {
             $blockHashes[] = $votation->endBlockHash;
         }
+
+        // Origen de cadena (p. ej. Hardhat: #0 génesis, #1 primer bloque): no suelen aparecer en votos
+        // pero sirven de contexto y permiten que la búsqueda por prefijo "0"/"1" encuentre la raíz.
+        $chainAnchorHashes = DB::table('block')
+            ->whereIn('blockNumber', [0, 1])
+            ->pluck('hash')
+            ->all();
+        $blockHashes = array_merge($blockHashes, $chainAnchorHashes);
+
         $blockHashes = array_values(array_unique(array_filter($blockHashes)));
 
         if ($blockHashes === []) {
@@ -377,11 +566,25 @@ class MetricsController extends Controller
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
 
-        $total = DB::table('block')->whereIn('hash', $blockHashes)->count();
+        $blockNumberPrefix = $this->normalizeDigitPrefix(
+            is_string($request->query('blockNumberPrefix')) ? $request->query('blockNumberPrefix') : null,
+        );
 
-        $blocks = DB::table('block')
-            ->whereIn('hash', $blockHashes)
-            ->orderByDesc('blockNumber')
+        $blocksBase = DB::table('block')->whereIn('hash', $blockHashes);
+        if ($blockNumberPrefix !== null) {
+            $this->applyNumericColumnStartsWithPrefix($blocksBase, 'blockNumber', $blockNumberPrefix);
+        }
+
+        $total = (clone $blocksBase)->count();
+
+        $blocksQuery = clone $blocksBase;
+        if ($blockNumberPrefix !== null) {
+            $blocksQuery->orderBy('blockNumber', 'asc');
+        } else {
+            $blocksQuery->orderByDesc('blockNumber');
+        }
+
+        $blocks = $blocksQuery
             ->offset(($page - 1) * $pageSize)
             ->limit($pageSize)
             ->get()

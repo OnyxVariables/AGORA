@@ -1,0 +1,125 @@
+.votation-picker {
+  width: 100%;
+  max-width: min(100%, 52rem);
+}
+
+.votation-picker__label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+  color: var(--color-brand-mid, #4b2992);
+}
+
+.votation-picker__shell {
+  position: relative;
+}
+
+.votation-picker__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 0.55rem 0.85rem;
+  padding-right: 2.25rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 2px solid var(--color-border-dark, #1a1a2e);
+  background: var(--color-text-light, #fff);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e1b2e;
+  cursor: pointer;
+  box-shadow: var(--shadow-card, 0 2px 8px rgba(0, 0, 0, 0.06));
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.votation-picker__trigger:hover:not(:disabled) {
+  border-color: var(--color-brand-mid, #6a00d4);
+}
+
+.votation-picker__trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.votation-picker__line {
+  min-width: 0;
+  text-align: left;
+}
+
+.votation-picker__placeholder {
+  flex: 1;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.votation-picker__chevron {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  color: var(--color-brand-mid, #6a00d4);
+  pointer-events: none;
+}
+
+.votation-picker__menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 50;
+  margin: 0;
+  padding: 0.35rem 0;
+  list-style: none;
+  max-height: min(55vh, 320px);
+  overflow-y: auto;
+  border-radius: var(--radius-sm, 8px);
+  border: 2px solid var(--color-border-dark, #1a1a2e);
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(15, 15, 35, 0.18);
+}
+
+.votation-picker__option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e1b2e;
+  text-align: left;
+}
+
+.votation-picker__option:hover,
+.votation-picker__option:focus-visible {
+  background: rgba(106, 0, 212, 0.08);
+  outline: none;
+}
+
+.votation-picker__option--current {
+  background: rgba(106, 0, 212, 0.12);
+}
+
+.votation-picker__option-title {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+/* Variante dentro de tarjetas (resultados) */
+.votation-picker--compact .votation-picker__trigger {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.verify-vote-card .votation-picker__trigger {
+  width: 100%;
+}

@@ -435,7 +435,17 @@ class BlockchainService
             return;
         }
 
-        if (Block::where('hash', $blockHash)->exists()) {
+        $existing = Block::where('hash', $blockHash)->first();
+        if ($existing !== null) {
+            if ($existing->chain_timestamp === null || (int) $existing->chain_timestamp === 0) {
+                $meta = $this->getBlockByHash($blockHash);
+                $chainTs = $this->normalizeBlockChainTimestamp($meta['timestamp'] ?? null);
+                if ($chainTs !== null) {
+                    $existing->chain_timestamp = $chainTs;
+                    $existing->save();
+                }
+            }
+
             return;
         }
 
@@ -449,14 +459,46 @@ class BlockchainService
             }
         }
 
+        $meta = $this->getBlockByHash($blockHash);
+        $chainTs = $this->normalizeBlockChainTimestamp($meta['timestamp'] ?? null);
+
         Block::create([
             'hash' => $blockHash,
             'blockNumber' => $blockNumber ?? 0,
             'previousHash' => $previousHash,
             'transactions' => 1,
             'isValid' => true,
+            'chain_timestamp' => $chainTs,
         ]);
-        Log::info("Bloque insertado: {$blockHash}", ['parentHash' => $previousHash]);
+        Log::info("Bloque insertado: {$blockHash}", ['parentHash' => $previousHash, 'chain_timestamp' => $chainTs]);
+    }
+
+    // Unix seconds del bloque en cadena (Ethereum quantity hex o decimal)
+    private function normalizeBlockChainTimestamp(mixed $raw): ?int
+    {
+        if ($raw === null) {
+            return null;
+        }
+        if (is_int($raw)) {
+            return $raw > 0 ? $raw : null;
+        }
+        if (is_string($raw)) {
+            $raw = trim($raw);
+            if ($raw === '') {
+                return null;
+            }
+            if (str_starts_with(strtolower($raw), '0x')) {
+                return (int) hexdec(substr($raw, 2));
+            }
+            if (ctype_digit($raw)) {
+                return (int) $raw;
+            }
+        }
+        if (is_object($raw) && method_exists($raw, 'toString')) {
+            return $this->normalizeBlockChainTimestamp($raw->toString());
+        }
+
+        return null;
     }
 
     // Manejo de errores

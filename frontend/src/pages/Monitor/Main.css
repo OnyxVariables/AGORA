@@ -28,7 +28,7 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   border-radius: 12px;
-  border: 1px solid rgba(106, 0, 212, 0.15);
+  border: 3px solid black;
   padding: 1rem 1.25rem;
   box-shadow: 0 4px 24px rgba(80, 40, 120, 0.08);
 }
@@ -80,7 +80,7 @@
   margin-top: 2rem;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
-  border: 1px solid rgba(106, 0, 212, 0.15);
+  border: 2px solid black;
   padding: 1.25rem;
 }
 

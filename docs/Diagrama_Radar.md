@@ -61,7 +61,7 @@ radar-beta
   axis escalabilidad["Escalabilidad"]
   axis auditoria["Auditoría"]
 
-  curve actual["Versión Actual"]{8, 10, 9, 10, 10, 10}
+  curve actual["Versión Actual"]{9, 10, 9, 10, 10, 10}
 
   graticule polygon
   ticks 5
