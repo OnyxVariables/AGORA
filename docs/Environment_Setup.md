@@ -23,6 +23,7 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 - **URLs**:
   - Frontend: `https://agorachain.es`
   - Backend API: `https://agorachain.es`
+  - Spring Boot: servicio interno del Compose de producción; publicar mediante proxy/TLS solo si se exponen métricas, actuator o WebSocket fuera de la red Docker
   - Base de datos: `agora`
 
 
@@ -80,6 +81,17 @@ El proyecto admite configuraciones separadas para entornos de desarrollo y produ
 | `VITE_API_URL` | URL del API del backend (en dev con Nginx suele ser el mismo host/puerto que el front) | `http://localhost:8080` | `https://agorachain.es` |
 | `VITE_APP_URL` | URL del frontend | `http://localhost:5173` | `https://agorachain.es` |
 | `VITE_SPRING_WS_URL` | WebSocket Spring (métricas tiempo real) | `ws://localhost:8081/ws` | Ajustar a tu dominio/puerto TLS |
+| `VITE_SPRING_HTTP_URL` | Base HTTP de Spring para actuator y API admin de cluster | `http://localhost:8081` | Ajustar a tu dominio/puerto TLS o proxy interno |
+| `VITE_VOTATIONS_ADMIN_TOKEN` | Token opcional para endpoints protegidos de Spring | Vacío o mismo valor que `VOTATIONS_ADMIN_TOKEN` | Mismo valor que `VOTATIONS_ADMIN_TOKEN` si se protege Spring |
+
+### Variables de Entorno de Spring Boot y Monitoreo
+| Variable | Descripción | Desarrollo | Producción |
+|----------|-------------|-------------|------------|
+| `SPRING_PORT` | Puerto HTTP interno de Spring Boot | `8081` | `8081` |
+| `SPRING_PROFILE` | Perfil activo de Spring Boot | `dev` | `prod` |
+| `VOTATIONS_ADMIN_TOKEN` | Token opcional para actuator/API admin | Vacío o valor local | Valor secreto de producción |
+| `KUBERNETES_ENABLED` | Activa lectura del cluster Besu/Kubernetes para Monitoreo | `false` | `true` si se despliega con Kubernetes |
+| `KUBERNETES_NAMESPACE` | Namespace donde se consultan los pods Besu | `besu` | `besu` o el namespace real |
 
 ### Scheduler Laravel (votaciones programadas)
 El comando `votations:process-lifecycle` está registrado para ejecutarse **cada minuto**. **Si nadie ejecuta la agenda de Laravel, el estado en BD no pasará a `active` ni se llamará a `createVotation`**, aunque la hora de inicio ya haya llegado.
@@ -137,6 +149,11 @@ Ver [Arquitectura_Runtime.md](Arquitectura_Runtime.md).
 4. **Problemas de conexión a la base de datos**
    - Asegurarse de que el contenedor de la base de datos esté en ejecución
    - Verificar las credenciales de la base de datos en el archivo de entorno
+
+5. **La página Monitoreo muestra servicios caídos**
+   - Verificar `VITE_SPRING_HTTP_URL` y `VITE_SPRING_WS_URL`
+   - Verificar que el contenedor `springboot` esté en ejecución
+   - Si se consulta Kubernetes, comprobar `KUBERNETES_ENABLED`, `KUBERNETES_NAMESPACE` y el ServiceAccount `agora-votations-monitor`
 
 ### Limpieza
 **Eliminar todos los contenedores y volúmenes:**

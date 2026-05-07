@@ -20,7 +20,7 @@ Mientras que los diagramas de secuencia representan **la interacción temporal**
 - Representar **transiciones críticas** como:
   - Inicio y cierre de sesión.
   - Emisión y cancelación de votos.
-  - Gestión CRUD y exportación de métricas.
+  - Gestión CRUD, monitoreo de servicios y exportación de métricas.
 - Garantizar la **coherencia del flujo** y la trazabilidad de las acciones.
 - Facilitar la comprensión de los procesos para desarrolladores y auditores.
 
@@ -43,6 +43,7 @@ stateDiagram
   Inactivo --> Autenticación_Ciudadano:Ciudadano inicia sesión
   Autenticación_Ciudadano --> Ciudadano_Activo:Certificado válido
   Ciudadano_Activo --> Consultar_Programas:Consultar programas electorales
+  Ciudadano_Activo --> Ponerse_Nickname:Ponerse un nickname
   Ciudadano_Activo --> Votando:Votar
   Votando --> Enviar_Voto:Enviar voto
   Votando --> Cancelar_Voto:Cancelar voto
@@ -55,6 +56,7 @@ stateDiagram
   Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
   Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
+  Admin_Activo --> Visualizar_Servicios_Operativos:Visualizar servicios operativos
   Visualizar_Métricas --> Exportar_Datos:Exportar datos
   Admin_Activo --> Inactivo:Salir
   Inactivo --> [*]
@@ -67,8 +69,8 @@ stateDiagram
 2. Inicia sesión mediante certificado electrónico → **Autenticación_Ciudadano**.  
 3. Certificado válido → **Ciudadano_Activo**.  
 4. Acciones disponibles en **Ciudadano_Activo**:
-   - `Ver_Info` → visualización de información del proyecto.  
    - `Consultar_Programas` → consulta de programas electorales.  
+   - `Ponerse_Nickname` → definición del nickname para verificación posterior.
    - `Votando` → flujo de votación:
      - `Enviar_Voto` → voto registrado en Blockchain.  
      - `Cancelar_Voto` → voto anulado antes de confirmación.  
@@ -86,6 +88,7 @@ stateDiagram
   Inactivo --> Autenticación_Ciudadano:Ciudadano inicia sesión
   Autenticación_Ciudadano --> Ciudadano_Activo:Certificado válido
   Ciudadano_Activo --> Consultar_Programas:Consultar programas electorales
+  Ciudadano_Activo --> Ponerse_Nickname:Ponerse un nickname
   Ciudadano_Activo --> Votando:Votar
   Votando --> Enviar_Voto:Enviar voto
   Votando --> Cancelar_Voto:Cancelar voto
@@ -105,6 +108,7 @@ stateDiagram
 4. Acciones disponibles en **Admin_Activo**:
    - `CRUD_Votaciones` → gestión de votaciones (crear, leer, actualizar, eliminar).  
    - `Visualizar_Metricas` → consulta de métricas on-chain.
+   - `Visualizar_Servicios_Operativos` → consulta del estado de Laravel, MariaDB, Blockchain RPC, Spring Boot, WebSocket y cluster Besu/Kubernetes.
    - `Exportar_Datos` → flujo opcional de exportación de métricas.  
 5. Administrador finaliza sesión → vuelve a **Inactivo**.
 ```mermaid
@@ -119,6 +123,7 @@ stateDiagram
   Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
   Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
+  Admin_Activo --> Visualizar_Servicios_Operativos:Visualizar servicios operativos
   Visualizar_Métricas --> Exportar_Datos:Exportar datos
   Admin_Activo --> Inactivo:Salir
   Inactivo --> [*]
@@ -128,9 +133,11 @@ stateDiagram
 - Los estados corresponden a **los mismos casos de uso previamente definidos**, asegurando coherencia:  
   - Iniciar sesión  
   - Consultar programas electorales  
+  - Ponerse un nickname
   - Votar / Enviar voto / Cancelar voto  
   - Ver resultados  
   - CRUD votaciones  
+  - Visualizar servicios operativos
   - Visualizar métricas / Exportar datos  
 
 - Permite **ver la vida de cada acción** y la transición entre estados, garantizando trazabilidad y consistencia.

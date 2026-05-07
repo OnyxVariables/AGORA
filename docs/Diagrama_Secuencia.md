@@ -26,6 +26,7 @@ El diagrama de secuencia tiene como objetivos principales:
   - Autenticación mediante certificado electrónico.
   - Emisión y cancelación del voto.
   - Registro del voto en la Blockchain.
+  - Monitoreo de servicios operativos.
   - Gestión administrativa del sistema.
 - Servir como documentación técnica para:
   - Desarrollo backend y frontend.
@@ -102,6 +103,9 @@ sequenceDiagram
         Sistema-->>-Administrador: Exportar datos
     end
 
+    Administrador->>+Sistema: Visualizar servicios operativos
+    Sistema-->>-Administrador: Estado de servicios mostrado
+
     Administrador->>+Sistema: Salir
     Sistema-->>-Administrador: Fin sesión administrador
 ```
@@ -116,6 +120,7 @@ El flujo de interacción del **Ciudadano** se desarrolla de la siguiente manera:
    - Si el certificado no es válido, el acceso es denegado y el proceso finaliza.
 4. Una vez autenticado, el ciudadano puede:
    - Visualizar los programas electorales.
+   - Ponerse un nickname para verificar posteriormente su voto con nickname + código.
    - Votar a un partido política cuando haya una votación activa.
    - Consultar los resultados cuando la votación haya finalizado o buscar por nickname + código para comprobar a quién fue dirigido su voto.
    - Salir y cerrar sesión.
@@ -181,6 +186,7 @@ El flujo de interacción del **Administrador** es el siguiente:
 4. Una vez autenticado, el administrador puede:
    - Consultar el estado de las votaciones, CRUD de votaciones.
    - Visualizar métricas almacenadas en la Blockchain.
+   - Visualizar qué servicios están operativos desde la página de Monitoreo.
    - Salir y cerrar sesión.
 5. Las acciones administrativas no alteran los votos emitidos, garantizando la **inmutabilidad del proceso electoral**.
 ```mermaid
@@ -204,6 +210,9 @@ sequenceDiagram
         Sistema-->>-Administrador: Exportar datos
     end
 
+    Administrador->>+Sistema: Visualizar servicios operativos
+    Sistema-->>-Administrador: Estado de servicios mostrado
+
     Administrador->>+Sistema: Salir
     Sistema-->>-Administrador: Fin sesión administrador
 ```
@@ -212,13 +221,16 @@ sequenceDiagram
 ## 6. Relación con los Casos de Uso
 El diagrama de secuencia está directamente relacionado con los casos de uso definidos [(Casos de Uso)](Diagrama_CasosdeUso.md):
 - **Iniciar sesión (certificado electrónico)**  
-- **Ver proyectos electorales**
 - **Consultar programas electorales**
+- **Ponerse un nickname**
 - **Votar**
 - **Enviar voto**
 - **Cancelar voto**
-- **Gestionar proyectos**
+- **Ver resultados**
+- **Gestionar votaciones**
 - **Consultar métricas**
+- **Visualizar servicios operativos**
+- **Exportar métricas**
 - **Salir**
 
 Cada mensaje del diagrama de secuencia corresponde a una ejecución real de uno de estos casos de uso, permitiendo validar la coherencia del diseño del sistema.

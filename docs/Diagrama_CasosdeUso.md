@@ -46,6 +46,7 @@ graph LR
     %% Casos de Uso: Administrador
     UC_CRUD(Gestión CRUD votaciones):::primario
     UC_Metricas(Visualizar métricas):::primario
+    UC_Monitor(Visualizar servicios operativos):::primario
     UC_Exportar(Exportar datos):::extendido
 
     %% Relaciones Ciudadano
@@ -67,10 +68,12 @@ graph LR
     %% Relaciones Administrador
     Administrador --- UC_CRUD
     Administrador --- UC_Metricas
+    Administrador --- UC_Monitor
     Administrador --- UC_Salir
 
     UC_CRUD -.->|include| UC_Login
     UC_Metricas -.->|include| UC_Login
+    UC_Monitor -.->|include| UC_Login
     UC_Exportar -.->|extend| UC_Metricas
     UC_Salir -.->|include| UC_Login
 ```
@@ -284,7 +287,7 @@ graph LR
 - **Extiende**: Exportar métricas  
 - **Descripción**: El administrador puede ver estadísticas en tiempo real sobre los votos emitidos, nodos activos y bloques generados.  
 - **Extensión (Exportar métricas)**:  
-  - Permite exportar los datos a un archivo CSV o PDF para su análisis o auditoría externa.  
+  - Permite exportar los datos a un archivo CSV o HTML para su análisis o auditoría externa.  
 ```mermaid
 graph LR
     classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
@@ -297,6 +300,26 @@ graph LR
     UC_Metricas -.->|include| UC_Login[Iniciar sesión]:::soporte
     UC_Exportar[Exportar métricas]:::extendido -.->|extend| UC_Metricas
 ``` 
+
+### Caso de uso: Visualizar servicios operativos
+- **Tipo**: Primario 🔵
+- **Incluye**: Iniciar sesión
+- **Descripción**: Permite al administrador consultar la página de Monitoreo para comprobar qué servicios del sistema están operativos y si existe alguna degradación.
+- **Flujo principal**:
+  1. El administrador inicia sesión.
+  2. Selecciona “Monitoreo”.
+  3. El sistema muestra el estado de Laravel, MariaDB, Blockchain RPC, Spring Boot, WebSocket y el cluster Besu/Kubernetes.
+  4. El administrador revisa si cada servicio está operativo, degradado o caído.
+```mermaid
+graph LR
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
+    classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
+
+    Administrador((<b>Administrador</b>)):::actor
+    Administrador --> UC_Monitor[Visualizar servicios operativos]:::primario
+    UC_Monitor -.->|include| UC_Login[Iniciar sesión]:::soporte
+```
 
 ### Caso de uso: Exportar métricas
 - **Tipo**: Extendido 🟠 (opcional, depende de “Visualizar métricas”)  

@@ -13,7 +13,7 @@ Permite visualizar **procesos, decisiones y resultados** de manera clara, incluy
 
 Se incluyen flujos para:
 - **Ciudadano**: inicio de sesión, votación, visualización de resultados, gestión de nickname y cierre de sesión.  
-- **Administrador**: inicio de sesión, gestión CRUD de votaciones, métricas on-chain, exportación de datos y cierre de sesión.
+- **Administrador**: inicio de sesión, gestión CRUD de votaciones, métricas on-chain, monitoreo de servicios, exportación de datos y cierre de sesión.
 
 
 ## 2. Convenciones del Diagrama de Flujo
@@ -62,9 +62,10 @@ flowchart TB
     InicioA --> LoginA[Iniciar sesión con certificado]:::proceso
     LoginA --> CRUDA[Gestión CRUD de votaciones]:::proceso
     CRUDA --> MetricA[Visualizar métricas on-chain]:::proceso
+    MetricA --> MonitorA[Visualizar servicios operativos]:::proceso
 
-    MetricA --> DecisionExp{¿Exportar métricas?}:::decision
-    DecisionExp -->|Sí| ExportA[Exportar métricas a CSV/PDF]:::extendido
+    MonitorA --> DecisionExp{¿Exportar métricas?}:::decision
+    DecisionExp -->|Sí| ExportA[Exportar métricas a CSV/HTML]:::extendido
     DecisionExp -->|No| SalirA[Cerrar sesión]:::proceso
     ExportA --> SalirA
     SalirA --> FinA((Fin Administrador)):::inicioFin
@@ -121,10 +122,11 @@ Descripción del flujo Administrador:
 2. **Iniciar sesión**: Se autentica mediante certificado electrónico institucional.
 3. **Gestión CRUD**: Puede crear, leer, actualizar o eliminar votaciones.
 4. **Visualizar métricas**: Consulta estadísticas en tiempo real sobre votos, nodos activos y bloques.
-5. **Decisión de exportación**:
-    - `Exportar métricas`: Descarga en CSV o PDF para auditoría externa.
+5. **Visualizar servicios operativos**: Consulta el estado de Laravel, MariaDB, Blockchain RPC, Spring Boot, WebSocket y cluster Besu/Kubernetes.
+6. **Decisión de exportación**:
+    - `Exportar métricas`: Descarga en CSV o HTML para auditoría externa.
     - `No exportar`: Continúa al cierre de sesión.
-6. **Salir**: Cierra sesión del sistema.
+7. **Salir**: Cierra sesión del sistema.
 ```mermaid
 flowchart LR
     %% Estilos
@@ -139,9 +141,10 @@ flowchart LR
     InicioA --> LoginA[Iniciar sesión con certificado]:::proceso
     LoginA --> CRUDA[Gestión CRUD de votaciones]:::proceso
     CRUDA --> MetricA[Visualizar métricas on-chain]:::proceso
+    MetricA --> MonitorA[Visualizar servicios operativos]:::proceso
 
-    MetricA --> DecisionExp{¿Exportar métricas?}:::decision
-    DecisionExp -->|Sí| ExportA[Exportar métricas a CSV/PDF]:::extendido
+    MonitorA --> DecisionExp{¿Exportar métricas?}:::decision
+    DecisionExp -->|Sí| ExportA[Exportar métricas a CSV/HTML]:::extendido
     DecisionExp -->|No| SalirA[Cerrar sesión]:::proceso
     ExportA --> SalirA
     SalirA --> FinA((Fin Administrador)):::inicioFin

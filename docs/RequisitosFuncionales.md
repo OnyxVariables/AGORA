@@ -32,6 +32,7 @@ El sistema AGORA permite:
 - Registro inmutable de votos en blockchain
 - Cálculo automático de resultados electorales
 - Consulta pública de resultados
+- Monitoreo operativo de servicios críticos
 - Auditoría completa del proceso
 - Administración del sistema por personal autorizado
 
@@ -71,7 +72,7 @@ El sistema debe registrar la participación del ciudadano sin vincular su identi
 
 
 ### RF-05 Consulta de resultados
-El ciudadano debe poder consultar los resultados una vez finalizada la votación.
+El ciudadano debe poder consultar los resultados una vez finalizada la votación y verificar su voto mediante nickname + código cuando disponga de esos datos.
 
 
 ## 5. Requisitos Funcionales del Administrador
@@ -86,9 +87,17 @@ El sistema debe permitir la creación y gestión de partidos participantes.
 
 ### RF-08 Supervisión del sistema
 El administrador debe poder consultar:
-- Estado de los servicios
+- Estado de los servicios desde la página de Monitoreo
 - Estado de los nodos blockchain
 - Registros de auditoría
+
+**Servicios supervisados:**
+- Laravel
+- MariaDB
+- Blockchain RPC
+- Spring Boot
+- WebSocket
+- Cluster Besu/Kubernetes
 
 
 ## 6. Requisitos Funcionales de la Blockchain
@@ -147,7 +156,7 @@ El administrador debe poder consultar los registros de auditoría.
 | Requisito | Módulo |
 |----------|--------|
 | RF-01 – RF-05 | Frontend / Backend |
-| RF-06 – RF-08 | Backend |
+| RF-06 – RF-08 | Frontend / Backend / Spring Boot |
 | RF-09 – RF-11 | Blockchain |
 | RF-12 – RF-15 | Spring Boot |
 | RF-16 – RF-17 | Auditoría |
