@@ -649,8 +649,6 @@
     }
 
     .dialog-content {
-        width: 92vw;
-        margin-top: 5.5rem;
         height: auto;
         max-height: 90vh;
         grid-template-columns: 1fr;

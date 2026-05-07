@@ -17,6 +17,7 @@ import {
   matchesCCAA,
   matchesProvince,
 } from "../../utils/spainNames";
+import { normalizeTimeseriesForCharts } from "../../utils/metricsTimeseriesMerge";
 
 import { formatBucketLabel } from "../../utils/date";
 import VotationPicker from "../../components/VotationPicker/VotationPicker";
@@ -251,7 +252,6 @@ export default function ElectionsMap() {
   const [resultsError, setResultsError] = useState(null);
   const [partiesAggregated, setPartiesAggregated] = useState([]);
   const [modalTimeseries, setModalTimeseries] = useState(null);
-  const [modalTimeseriesLoading, setModalTimeseriesLoading] = useState(false);
 
   const { partidos: partidosCatalog } = useParties();
 
@@ -325,14 +325,16 @@ export default function ElectionsMap() {
   useEffect(() => {
     if (!showDialog || !selectedVotationId) {
       setModalTimeseries(null);
-      setModalTimeseriesLoading(false);
       return;
     }
     let cancelled = false;
     const run = async () => {
-      setModalTimeseriesLoading(true);
       try {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATION_VOTES_TIMESERIES_PUBLIC(Number(selectedVotationId))}`;
+        const q = new URLSearchParams({
+          buckets: "6",
+          cumulative: "1",
+        });
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.VOTATION_VOTES_TIMESERIES_PUBLIC(Number(selectedVotationId))}?${q}`;
         const res = await fetch(url);
         const data = await res.json().catch(() => ({}));
         if (cancelled) {
@@ -347,16 +349,11 @@ export default function ElectionsMap() {
         if (!cancelled) {
           setModalTimeseries(null);
         }
-      } finally {
-        if (!cancelled) {
-          setModalTimeseriesLoading(false);
-        }
       }
     };
     run();
     return () => {
       cancelled = true;
-      setModalTimeseriesLoading(false);
     };
   }, [showDialog, selectedVotationId]);
 
@@ -455,29 +452,71 @@ export default function ElectionsMap() {
 
   // Serie temporal de la votación (API); si falla, mismo fallback que Métricas: Inicio: resultado en esta región
   const modalLineConfig = useMemo(() => {
-    if (!partidosCatalog.length) {
+    if (!partiesAggregated.length && !partidosCatalog.length) {
       return null;
     }
 
-    if (modalTimeseries?.labels?.length) {
-      const windowStart = modalTimeseries.startDate;
-      const windowEnd = modalTimeseries.endDate;
-      const labels = modalTimeseries.labels.map((iso) =>
+    const linePartiesBase =
+      partiesAggregated.length > 0
+        ? partiesAggregated
+            .filter((p) => Number(p.votes) > 0)
+            .map((p) => ({
+              id: p.partyId,
+              nombre: p.partyName,
+              colorFondo: p.colorBackground || "#ccc",
+              colorTitulo: p.colorTitle || "#000",
+            }))
+        : partidosCatalog;
+
+    if (!linePartiesBase.length) {
+      return null;
+    }
+
+    const normalizedModalTimeseries = normalizeTimeseriesForCharts(
+      modalTimeseries,
+      linePartiesBase,
+    );
+
+    if (normalizedModalTimeseries?.labels?.length) {
+      const windowStart = normalizedModalTimeseries.startDate;
+      const windowEnd = normalizedModalTimeseries.endDate;
+      const labels = normalizedModalTimeseries.labels.map((iso) =>
         windowStart && windowEnd
           ? formatBucketLabel(iso, windowStart, windowEnd)
           : String(iso),
       );
       const series = {};
-      partidosCatalog.forEach((p) => {
-        const arr = modalTimeseries.byParty?.[String(p.id)];
+      linePartiesBase.forEach((p) => {
+        const arr = normalizedModalTimeseries.byParty?.[String(p.id)];
         series[p.nombre] = Array.isArray(arr)
           ? arr
-          : Array(modalTimeseries.labels.length).fill(0);
+          : Array(normalizedModalTimeseries.labels.length).fill(0);
       });
+
+      const hasVotesInTimeseries = Object.values(series).some(
+        (arr) => Array.isArray(arr) && arr.some((v) => Number(v) > 0),
+      );
+
+      if (!hasVotesInTimeseries && partiesAggregated.length > 0) {
+        const fallbackLabels = ["Inicio", "Actual"];
+        const fallbackSeries = {};
+        linePartiesBase.forEach((p) => {
+          const agg = partiesAggregated.find((ap) => ap.partyId === p.id);
+          fallbackSeries[p.nombre] = [0, agg?.votes ?? 0];
+        });
+        return {
+          labels: fallbackLabels,
+          series: fallbackSeries,
+          partidos: linePartiesBase,
+          showTimeAxis: false,
+        };
+      }
+
       return {
         labels,
         series,
-        showTimeAxis: modalTimeseries.labels.length >= 2,
+        partidos: linePartiesBase,
+        showTimeAxis: normalizedModalTimeseries.labels.length >= 2,
       };
     }
 
@@ -486,13 +525,14 @@ export default function ElectionsMap() {
     }
     const fallbackLabels = ["Inicio", "Actual"];
     const series = {};
-    partidosCatalog.forEach((p) => {
+    linePartiesBase.forEach((p) => {
       const agg = partiesAggregated.find((ap) => ap.partyId === p.id);
       series[p.nombre] = [0, agg?.votes ?? 0];
     });
     return {
       labels: fallbackLabels,
       series,
+      partidos: linePartiesBase,
       showTimeAxis: false,
     };
   }, [modalTimeseries, partidosCatalog, partiesAggregated]);
@@ -889,9 +929,10 @@ export default function ElectionsMap() {
                 <div className="chart-section__slot chart-section__slot--line">
                   <LineChart
                     labels={modalLineConfig.labels}
-                    partidos={partidosCatalog}
+                    partidos={modalLineConfig.partidos}
                     series={modalLineConfig.series}
                     showTimeAxis={modalLineConfig.showTimeAxis}
+                    xAxisMaxTicks={6}
                   />
                 </div>
               ) : null}
