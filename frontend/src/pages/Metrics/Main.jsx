@@ -4,6 +4,7 @@ import "./Main.css";
 import SectionContainer from "../../components/SectionContainer/SectionContainer";
 import Select from "../../components/Select/Select";
 import Table from "../../components/Table/Table";
+import VotationStatusBadge from "../../components/VotationPicker/VotationStatusBadge";
 import ChartSection from "../../components/ChartSection/ChartSection";
 import Pagination from "../../components/Pagination/Pagination";
 import { useWebSocket } from "../../hooks/useWebSocket";
@@ -37,6 +38,7 @@ export default function Main() {
   const [selectedVotation, setSelectedVotation] = useState(null);
   const [selectedUser, setSelectedUser] = useState("");
   const [voteMetrics, setVoteMetrics] = useState(null);
+  const [timeseries, setTimeseries] = useState(null);
   const [loadError, setLoadError] = useState(null);
 
   const [votesPage, setVotesPage] = useState(1);
@@ -57,10 +59,9 @@ export default function Main() {
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditError, setAuditError] = useState(null);
 
-  const [timeseries, setTimeseries] = useState(null);
-  const [timeseriesLoading, setTimeseriesLoading] = useState(false);
-  const [timeseriesTick, setTimeseriesTick] = useState(0);
-  const timeseriesBumpTimerRef = useRef(null);
+  // Con esto evito un fetch con página obsoleta al cambiar prefijo o votacion
+  const votesFetchCtxRef = useRef(null);
+  const blocksFetchCtxRef = useRef(null);
 
   const [votesQuery, setVotesQuery] = useState("");
   const [debouncedVotesQuery, setDebouncedVotesQuery] = useState("");
@@ -81,7 +82,7 @@ export default function Main() {
     () =>
       votationList.map((v) => ({
         value: v.id,
-        label: `#${v.id} — ${v.title} (${v.state})`,
+        label: `#${v.id} — ${v.title}`,
       })),
     [votationList],
   );
@@ -211,14 +212,15 @@ export default function Main() {
     }
     let cancelled = false;
     const run = async () => {
-      setTimeseriesLoading(true);
       try {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_TIMESERIES(selectedVotation)}?buckets=40`;
+        const q = new URLSearchParams({
+          buckets: "6",
+          cumulative: "1",
+        });
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_TIMESERIES(selectedVotation)}?${q}`;
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
         if (!res.ok) {
           setTimeseries(null);
           return;
@@ -228,17 +230,13 @@ export default function Main() {
         if (!cancelled) {
           setTimeseries(null);
         }
-      } finally {
-        if (!cancelled) {
-          setTimeseriesLoading(false);
-        }
       }
     };
     run();
     return () => {
       cancelled = true;
     };
-  }, [selectedVotation, timeseriesTick]);
+  }, [selectedVotation]);
 
   useEffect(() => {
     if (!selectedVotation) {
@@ -246,13 +244,30 @@ export default function Main() {
     }
     let cancelled = false;
     const run = async () => {
+      const prevCtx = votesFetchCtxRef.current;
+      const ctxChanged =
+        prevCtx === null ||
+        prevCtx.vid !== selectedVotation ||
+        prevCtx.q !== debouncedVotesQuery;
+      const pageForRequest = ctxChanged ? 1 : votesPage;
+      if (ctxChanged && votesPage !== 1) {
+        setVotesPage(1);
+      }
+      votesFetchCtxRef.current = {
+        vid: selectedVotation,
+        q: debouncedVotesQuery,
+      };
+
       setVotesLoading(true);
       setVotesError(null);
       try {
         const q = new URLSearchParams({
-          page: String(votesPage),
+          page: String(pageForRequest),
           pageSize: String(PAGE_SIZE),
         });
+        if (debouncedVotesQuery) {
+          q.set("idPrefix", debouncedVotesQuery);
+        }
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_VOTES(selectedVotation)}?${q}`;
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
@@ -280,7 +295,7 @@ export default function Main() {
     return () => {
       cancelled = true;
     };
-  }, [selectedVotation, votesPage]);
+  }, [selectedVotation, votesPage, debouncedVotesQuery]);
 
   useEffect(() => {
     if (!selectedVotation) {
@@ -288,13 +303,30 @@ export default function Main() {
     }
     let cancelled = false;
     const run = async () => {
+      const prevCtx = blocksFetchCtxRef.current;
+      const ctxChanged =
+        prevCtx === null ||
+        prevCtx.vid !== selectedVotation ||
+        prevCtx.q !== debouncedBlocksQuery;
+      const pageForRequest = ctxChanged ? 1 : blocksPage;
+      if (ctxChanged && blocksPage !== 1) {
+        setBlocksPage(1);
+      }
+      blocksFetchCtxRef.current = {
+        vid: selectedVotation,
+        q: debouncedBlocksQuery,
+      };
+
       setBlocksLoading(true);
       setBlocksError(null);
       try {
         const q = new URLSearchParams({
-          page: String(blocksPage),
+          page: String(pageForRequest),
           pageSize: String(PAGE_SIZE),
         });
+        if (debouncedBlocksQuery) {
+          q.set("blockNumberPrefix", debouncedBlocksQuery);
+        }
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.METRICS_VOTATION_BLOCKS(selectedVotation)}?${q}`;
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
@@ -322,7 +354,7 @@ export default function Main() {
     return () => {
       cancelled = true;
     };
-  }, [selectedVotation, blocksPage]);
+  }, [selectedVotation, blocksPage, debouncedBlocksQuery]);
 
   useEffect(() => {
     if (!selectedVotation) {
@@ -372,16 +404,6 @@ export default function Main() {
   const pendingMetricsRef = useRef(null);
   const rafMetricsRef = useRef(null);
 
-  const scheduleTimeseriesRefresh = useCallback(() => {
-    if (timeseriesBumpTimerRef.current != null) {
-      return;
-    }
-    timeseriesBumpTimerRef.current = setTimeout(() => {
-      timeseriesBumpTimerRef.current = null;
-      setTimeseriesTick((t) => t + 1);
-    }, 4000);
-  }, []);
-
   const handleVoteReceived = useCallback(
     (voteData) => {
       if (voteData.votationId !== selectedVotation) return;
@@ -421,10 +443,9 @@ export default function Main() {
             },
           };
         });
-        scheduleTimeseriesRefresh();
       });
     },
-    [selectedVotation, scheduleTimeseriesRefresh],
+    [selectedVotation],
   );
 
   const wsUrl = import.meta.env.VITE_SPRING_WS_URL || "ws://localhost:8081/ws";
@@ -437,7 +458,7 @@ export default function Main() {
       { field: "ID", value: v.id },
       { field: "Título", value: v.title },
       { field: "Descripción", value: v.description },
-      { field: "Estado", value: v.state },
+      { field: "Estado", value: <VotationStatusBadge state={v.state} /> },
       { field: "Inicio", value: formatDate(v.startDate) },
       { field: "Fin", value: formatDate(v.endDate) },
       {
@@ -463,16 +484,8 @@ export default function Main() {
     ];
   }, [bundle?.metrics]);
 
-  const filteredVotesRowsRaw = useMemo(() => {
-    const q = debouncedVotesQuery.toLowerCase();
-    if (!q) {
-      return votesRows;
-    }
-    return votesRows.filter((r) => String(r.id ?? "").toLowerCase().startsWith(q));
-  }, [votesRows, debouncedVotesQuery]);
-
   const votesDetailRows = useMemo(() => {
-    return filteredVotesRowsRaw.map((r) => {
+    return votesRows.map((r) => {
       const mName = r.municipalityName;
       const pName = r.provinceName;
       const ccaa = r.autonomousCommunityName;
@@ -507,7 +520,7 @@ export default function Main() {
         creado: formatDate(r.createdAt),
       };
     });
-  }, [filteredVotesRowsRaw, CopyButton]);
+  }, [votesRows, CopyButton]);
 
   const auditRows = useMemo(() => {
     return auditRowsRaw.map((a) => ({
@@ -528,18 +541,8 @@ export default function Main() {
     }));
   }, [auditRowsRaw, CopyButton]);
 
-  const filteredBlocksRaw = useMemo(() => {
-    const q = debouncedBlocksQuery.toLowerCase();
-    if (!q) {
-      return blocksRowsRaw;
-    }
-    return blocksRowsRaw.filter((b) =>
-      String(b.blockNumber ?? "").toLowerCase().startsWith(q),
-    );
-  }, [blocksRowsRaw, debouncedBlocksQuery]);
-
   const blocksRows = useMemo(() => {
-    return filteredBlocksRaw.map((b) => ({
+    return blocksRowsRaw.map((b) => ({
       num: b.blockNumber,
       hash: (
         <>{b.hash.slice(0, 12)}…<CopyButton text={b.hash} /></>
@@ -551,7 +554,7 @@ export default function Main() {
       ok: b.isValid ? "Sí" : "No",
       creado: formatDate(b.createdAt),
     }));
-  }, [filteredBlocksRaw, CopyButton]);
+  }, [blocksRowsRaw, CopyButton]);
 
   useEffect(() => {
     const onExport = async () => {
@@ -593,19 +596,21 @@ export default function Main() {
       {loadError && <p className="metrics-banner-error">{loadError}</p>}
       <SectionContainer>
         <div className="metrics-header">
-          <Select
-            id="votationId"
-            label="Escoge una votación para ver sus métricas"
-            value={selectedVotation ?? ""}
-            onChange={(e) => {
-              const v = e.target.value;
-              setSelectedVotation(v === "" ? null : Number(v));
-            }}
-            options={votationOptions}
-            placeholderLabel="Elige un ID"
-            placeholderValue=""
-            disabled={votationOptions.length === 0}
-          />
+          <div className="metrics-votation-picker-block">
+            <Select
+              id="votationId"
+              label="Escoge una votación para ver sus métricas"
+              value={selectedVotation ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                setSelectedVotation(v === "" ? null : Number(v));
+              }}
+              options={votationOptions}
+              placeholderLabel="Elige un ID"
+              placeholderValue=""
+              disabled={votationOptions.length === 0}
+            />
+          </div>
         </div>
         <Table
           id="votation-summary"
@@ -652,9 +657,6 @@ export default function Main() {
 
       {voteMetrics && (
         <>
-          {timeseriesLoading && !timeseries ? (
-            <p className="metrics-timeseries-hint">Cargando serie temporal…</p>
-          ) : null}
           <ChartSection voteMetrics={voteMetrics} timeseries={timeseries} />
         </>
       )}
@@ -663,7 +665,9 @@ export default function Main() {
         <h2 className="metrics-section-title">Detalle de votos</h2>
         <div className="metrics-table-search">
           <div className="metrics-table-search__field">
-            <span className="metrics-table-search__prompt">Buscar por ID (para esta tabla)</span>
+            <span className="metrics-table-search__prompt">
+              Buscar por ID (orden ascendente)
+            </span>
             <div className="metrics-table-search__input-wrap">
               <span className="metrics-table-search__icon" aria-hidden>
                 <SearchIcon />
@@ -680,8 +684,10 @@ export default function Main() {
             </div>
           </div>
         </div>
-        {debouncedVotesQuery && filteredVotesRowsRaw.length === 0 && !votesLoading ? (
-          <p className="metrics-table-search__empty">Sin coincidencias en esta tabla.</p>
+        {debouncedVotesQuery && votesRows.length === 0 && !votesLoading ? (
+          <p className="metrics-table-search__empty">
+            Sin coincidencias para ese prefijo en esta votación.
+          </p>
         ) : null}
         {votesError ? <p className="metrics-banner-error">{votesError}</p> : null}
         {votesLoading ? <p>Cargando…</p> : null}
@@ -714,7 +720,9 @@ export default function Main() {
         {blocksLoading ? <p>Cargando…</p> : null}
         <div className="metrics-table-search">
           <div className="metrics-table-search__field">
-            <span className="metrics-table-search__prompt">Buscar por Nº (para esta tabla)</span>
+            <span className="metrics-table-search__prompt">
+              Buscar por Nº de bloque (orden ascendente)
+            </span>
             <div className="metrics-table-search__input-wrap">
               <span className="metrics-table-search__icon" aria-hidden>
                 <SearchIcon />
@@ -731,8 +739,10 @@ export default function Main() {
             </div>
           </div>
         </div>
-        {debouncedBlocksQuery && filteredBlocksRaw.length === 0 && !blocksLoading ? (
-          <p className="metrics-table-search__empty">Sin coincidencias en esta tabla.</p>
+        {debouncedBlocksQuery && blocksRowsRaw.length === 0 && !blocksLoading ? (
+          <p className="metrics-table-search__empty">
+            Sin coincidencias para ese prefijo entre los bloques de esta votación.
+          </p>
         ) : null}
         <div
           className={`table-scroll-container ${blocksRows.length > 10 ? "scrollable" : ""}`}

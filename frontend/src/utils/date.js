@@ -16,9 +16,10 @@ export function formatDate(dateStr) {
  * @param {string|Date} bucketEnd
  * @param {string|Date} windowStart
  * @param {string|Date} windowEnd
+ * @param {number} [bucketSecondsHint] si ≤15s, muestra HH:MM:SS para no repetir etiquetas en el mismo minuto
  * @returns {string}
  */
-export function formatBucketLabel(bucketEnd, windowStart, windowEnd) {
+export function formatBucketLabel(bucketEnd, windowStart, windowEnd, bucketSecondsHint) {
   const d = bucketEnd instanceof Date ? bucketEnd : new Date(bucketEnd);
   const start = windowStart instanceof Date ? windowStart : new Date(windowStart);
   const end = windowEnd instanceof Date ? windowEnd : new Date(windowEnd);
@@ -27,13 +28,15 @@ export function formatBucketLabel(bucketEnd, windowStart, windowEnd) {
   }
   const pad = (n) => String(n).padStart(2, "0");
   const totalMs = Math.max(1, end.getTime() - start.getTime());
-  const elapsedMs = Math.max(0, d.getTime() - start.getTime());
 
-  if (totalMs < 60 * 60 * 1000) {
-    const totalSec = Math.floor(elapsedMs / 1000);
-    const mm = Math.floor(totalSec / 60);
-    const ss = totalSec % 60;
-    return `${pad(mm)}:${pad(ss)}`;
+  const fineSteps =
+    typeof bucketSecondsHint === "number" &&
+    bucketSecondsHint > 0 &&
+    bucketSecondsHint <= 15 &&
+    totalMs < 24 * 60 * 60 * 1000;
+
+  if (fineSteps) {
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
   if (totalMs < 24 * 60 * 60 * 1000) {
     return `${pad(d.getHours())}:${pad(d.getMinutes())}`;

@@ -49,8 +49,26 @@
   grid-area: barChart;
 }
 
-.line-chart {
+.line-chart-stack {
   grid-area: lineChart;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.line-chart-stack .chart-container.line-chart {
+  flex: 1;
+  min-height: 0;
+}
+
+.charts-line-caption {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4a3d6b;
+  line-height: 1.35;
 }
 
 .heat-chart {

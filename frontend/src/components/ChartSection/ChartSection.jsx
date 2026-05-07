@@ -5,6 +5,7 @@ import {
   memo,
   useDeferredValue,
   useRef,
+  useState,
 } from "react";
 import {
   Chart as ChartJS,
@@ -181,7 +182,14 @@ function BarChartComponent({ data }) {
 
 export const BarChart = memo(BarChartComponent);
 
-export function LineChart({ labels, partidos, series, showTimeAxis = false }) {
+export function LineChart({
+  labels,
+  partidos,
+  series,
+  showTimeAxis = false,
+  lineTension = 0.3,
+  xAxisMaxTicks,
+}) {
   const data = useMemo(
     () => ({
       labels,
@@ -197,13 +205,13 @@ export function LineChart({ labels, partidos, series, showTimeAxis = false }) {
           backgroundColor,
           strokeColor,
           lineWidth: 1,
-          tension: 0.3,
+          tension: lineTension,
           pointRadius: showTimeAxis ? 2 : 3,
           pointHoverRadius: 6,
         };
       }),
     }),
-    [labels, partidos, series, showTimeAxis],
+    [labels, partidos, series, showTimeAxis, lineTension],
   );
 
   const options = useMemo(
@@ -239,7 +247,7 @@ export function LineChart({ labels, partidos, series, showTimeAxis = false }) {
             maxRotation: 45,
             minRotation: 0,
             autoSkip: true,
-            maxTicksLimit: 12,
+            maxTicksLimit: xAxisMaxTicks ?? 12,
           },
           grid: {
             display: showTimeAxis,
@@ -257,7 +265,7 @@ export function LineChart({ labels, partidos, series, showTimeAxis = false }) {
         },
       },
     }),
-    [showTimeAxis],
+    [showTimeAxis, xAxisMaxTicks],
   );
 
   return (
@@ -375,69 +383,96 @@ function HeatChartComponent({ votesByProvinceName = {}, suppressEmptyMessage = f
 
 export const HeatChart = memo(HeatChartComponent);
 
-function buildLineSeriesFromTimeseries(partidos, timeseries, fallbackLabels) {
-  const labelsIso = timeseries?.labels;
-  if (!Array.isArray(labelsIso) || labelsIso.length === 0) {
-    return { timeLabels: fallbackLabels, timeSeriesData: null, showTimeAxis: false };
+function formatLivePointLabel(timestamp, index) {
+  const n = Date.parse(String(timestamp ?? ""));
+  if (Number.isNaN(n)) {
+    return `Voto ${index}`;
   }
+  return new Date(n).toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+}
+
+function normalizeSeries(values, len, cumulativeInput) {
+  const out = Array(len).fill(0);
+  let running = 0;
+  let previous = 0;
+  for (let i = 0; i < len; i++) {
+    const raw = Number(Array.isArray(values) ? values[i] : 0);
+    const value = Number.isFinite(raw) ? raw : 0;
+    if (cumulativeInput) {
+      previous = Math.max(previous, value);
+      out[i] = previous;
+    } else {
+      running += Math.max(0, value);
+      out[i] = running;
+    }
+  }
+  return out;
+}
+
+function buildSeedFromTimeseries(partidos, timeseries) {
+  if (!Array.isArray(partidos) || partidos.length === 0) {
+    return null;
+  }
+  const labelsIso = timeseries?.labels;
+  if (!Array.isArray(labelsIso) || labelsIso.length < 2) {
+    return null;
+  }
+  const cumulativeInput = timeseries.cumulative !== false;
   const windowStart = timeseries.startDate ?? null;
   const windowEnd = timeseries.endDate ?? null;
-  const timeLabels = labelsIso.map((iso) =>
+  const bucketHint = timeseries.bucketSeconds;
+  const labels = labelsIso.map((iso, i) =>
     windowStart && windowEnd
-      ? formatBucketLabel(iso, windowStart, windowEnd)
-      : String(iso),
+      ? formatBucketLabel(iso, windowStart, windowEnd, bucketHint)
+      : formatLivePointLabel(iso, i + 1),
   );
-  const timeSeriesData = {};
+  const series = {};
   partidos.forEach((p) => {
-    const arr = timeseries.byParty?.[String(p.id)];
-    timeSeriesData[p.nombre] = Array.isArray(arr)
-      ? arr
-      : Array(labelsIso.length).fill(0);
+    series[p.nombre] = normalizeSeries(
+      timeseries.byParty?.[String(p.id)],
+      labelsIso.length,
+      cumulativeInput,
+    );
   });
-  return {
-    timeLabels,
-    timeSeriesData,
-    showTimeAxis: labelsIso.length >= 2,
-  };
+  return { labels, series };
 }
 
 export default function ChartSection({ voteMetrics, timeseries }) {
   const { partidos, loading } = useParties();
   const deferredProvinceVotes = useDeferredValue(voteMetrics?.votesByProvinceName);
-
-  if (loading) {
-    return <div className="charts">Cargando datos...</div>;
-  }
-
-  if (!voteMetrics) {
-    return <div className="charts">Selecciona una votación para ver métricas</div>;
-  }
-
-  if (!partidos || partidos.length === 0) {
-    return <div className="charts">Cargando datos de partidos...</div>;
-  }
+  const [liveLine, setLiveLine] = useState({
+    votationId: null,
+    labels: [],
+    series: {},
+    source: "none",
+  });
 
   // Mapear votesByParty (que usa partyId) a los nombres de partidos
-  const votesByPartyId = voteMetrics.votesByParty || {};
+  const votesByPartyForCharts = voteMetrics?.votesByParty || {};
 
-  const partyData = partidos.map(p => {
-    const votosRaw = votesByPartyId[p.id];
+  const partyData = (partidos || []).map((p) => {
+    const votosRaw = votesByPartyForCharts[p.id];
     const votos = Number(votosRaw) || 0;
     return {
       id: p.id,
       nombre: p.nombre,
-      colorFondo: p.colores?.fondo || '#ccc',
-      colorTitulo: p.colores?.titulo || '#000',
-      votos: votos,
+      colorFondo: p.colores?.fondo || "#ccc",
+      colorTitulo: p.colores?.titulo || "#000",
+      votos,
     };
   });
 
   // Filtrar partidos con votos para los graficos
-  const partidosConVotos = partyData.filter(p => p.votos > 0);
-  
+  const partidosConVotos = partyData.filter((p) => p.votos > 0);
+
   // Datos para Pie y Bar (solo partidos con votos, o todos si no hay ninguno)
   const chartData = partidosConVotos.length > 0 ? partidosConVotos : partyData;
-  
+
   const aggregatedData = {
     labels: chartData.map((p) => p.nombre),
     datasets: [
@@ -457,13 +492,134 @@ export default function ChartSection({ voteMetrics, timeseries }) {
     fallbackSeries[p.nombre] = [0, p.votos];
   });
 
-  const { timeLabels, timeSeriesData, showTimeAxis } = buildLineSeriesFromTimeseries(
-    partidos,
-    timeseries,
-    fallbackLineLabels,
-  );
-  const lineLabels = timeSeriesData ? timeLabels : fallbackLineLabels;
-  const lineSeries = timeSeriesData ?? fallbackSeries;
+  useEffect(() => {
+    if (!voteMetrics?.votationId || !Array.isArray(partidos) || partidos.length === 0) {
+      return;
+    }
+    const currentTotals = {};
+    partidos.forEach((p) => {
+      currentTotals[p.nombre] = Number(voteMetrics.votesByParty?.[p.id]) || 0;
+    });
+    const seed = buildSeedFromTimeseries(partidos, timeseries);
+
+    setLiveLine((prev) => {
+      const sameVotation = prev.votationId === voteMetrics.votationId;
+
+      // Si arranco en fallback (2 puntos) y luego llega la serie API, rehidrato
+      // para conservar el eje temporal real tras recarga (no funciona del todo bien)
+      if (
+        sameVotation &&
+        seed &&
+        Array.isArray(prev.labels) &&
+        prev.labels.length <= 2
+      ) {
+        return {
+          votationId: voteMetrics.votationId,
+          labels: seed.labels,
+          series: seed.series,
+          source: "seed",
+        };
+      }
+
+      if (sameVotation) {
+        return prev;
+      }
+      if (seed) {
+        return {
+          votationId: voteMetrics.votationId,
+          labels: seed.labels,
+          series: seed.series,
+          source: "seed",
+        };
+      }
+      const baseSeries = {};
+      partidos.forEach((p) => {
+        baseSeries[p.nombre] = [0, currentTotals[p.nombre]];
+      });
+      return {
+        votationId: voteMetrics.votationId,
+        labels: ["Inicio", formatLivePointLabel(voteMetrics.timestamp, 1)],
+        series: baseSeries,
+        source: "fallback",
+      };
+    });
+  }, [voteMetrics?.votationId, voteMetrics?.timestamp, voteMetrics?.votesByParty, partidos, timeseries]);
+
+  useEffect(() => {
+    if (!voteMetrics?.votationId || !Array.isArray(partidos) || partidos.length === 0) {
+      return;
+    }
+
+    setLiveLine((prev) => {
+      if (prev.votationId !== voteMetrics.votationId) {
+        return prev;
+      }
+      const currentTotals = {};
+      partidos.forEach((p) => {
+        currentTotals[p.nombre] = Number(voteMetrics.votesByParty?.[p.id]) || 0;
+      });
+
+      if (!Array.isArray(prev.labels) || prev.labels.length === 0) {
+        return prev;
+      }
+
+      const currentLength = prev.labels.length;
+      let changed = false;
+      partidos.forEach((p) => {
+        const arr = prev.series[p.nombre] ?? [];
+        const last = Number(arr[arr.length - 1]) || 0;
+        if (last !== currentTotals[p.nombre]) {
+          changed = true;
+        }
+      });
+      if (!changed) {
+        return prev;
+      }
+
+      const nextSeries = {};
+      partidos.forEach((p) => {
+        const prevArr = prev.series[p.nombre] ?? Array(currentLength).fill(0);
+        const arr = prevArr.slice(0, currentLength);
+        while (arr.length < currentLength) {
+          arr.push(arr.length > 0 ? arr[arr.length - 1] : 0);
+        }
+        arr.push(currentTotals[p.nombre]);
+        nextSeries[p.nombre] = arr;
+      });
+
+      return {
+        votationId: prev.votationId,
+        labels: [
+          ...prev.labels,
+          formatLivePointLabel(voteMetrics.timestamp, currentLength),
+        ],
+        series: nextSeries,
+        source: prev.source,
+      };
+    });
+  }, [voteMetrics, partidos]);
+
+  if (loading) {
+    return <div className="charts">Cargando datos...</div>;
+  }
+
+  if (!voteMetrics) {
+    return <div className="charts">Selecciona una votación para ver métricas</div>;
+  }
+
+  if (!partidos || partidos.length === 0) {
+    return <div className="charts">Cargando datos de partidos...</div>;
+  }
+
+  const lineLabels =
+    liveLine.votationId === voteMetrics.votationId && liveLine.labels.length >= 2
+      ? liveLine.labels
+      : fallbackLineLabels;
+  const lineSeries =
+    liveLine.votationId === voteMetrics.votationId && liveLine.labels.length >= 2
+      ? liveLine.series
+      : fallbackSeries;
+  const showTimeAxis = lineLabels.length > 2;
 
   const totalVotos = voteMetrics.totalVotes || 0;
   const hasVotes = totalVotos > 0;
@@ -480,12 +636,15 @@ export default function ChartSection({ voteMetrics, timeseries }) {
       <PieChart data={aggregatedData} />
       <BarChart data={aggregatedData} />
 
-      <LineChart
-        labels={lineLabels}
-        partidos={partidos}
-        series={lineSeries}
-        showTimeAxis={showTimeAxis}
-      />
+      <div className="line-chart-stack">
+        <LineChart
+          labels={lineLabels}
+          partidos={partidos}
+          series={lineSeries}
+          showTimeAxis={showTimeAxis}
+          xAxisMaxTicks={6}
+        />
+      </div>
 
       <HeatChart
         votesByProvinceName={deferredProvinceVotes}
