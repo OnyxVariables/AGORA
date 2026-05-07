@@ -17,6 +17,19 @@
   min-width: 300px;
 }
 
+.metrics-votation-picker-block {
+  flex: 1;
+  min-width: 300px;
+}
+
+.metrics-votation-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
 .select-container:not(:first-of-type) {
   margin-top: 4em;
 }
