@@ -62,6 +62,7 @@ erDiagram
     %% RELACIONES
     user ||--o{ auditory : registra
     user ||--o{ participation : participa
+    user ||--o{ vote_intent : solicita
     user }o--|| role : tiene
     user }o--|| municipality : pertenece
 
@@ -71,12 +72,16 @@ erDiagram
     votation ||--o{ participation : incluye
     votation ||--o{ vote : genera
     votation ||--o{ seat : produce
+    votation ||--o{ vote_intent : prepara
 
     party ||--o{ vote : recibe
     party ||--o{ seat : obtiene
     province ||--o{ seat : tiene
+    municipality ||--o{ vote : agrupa
 
     block ||--o{ votation : referencia
+    block ||--o{ vote : confirma
+    block ||--o{ auditory : evidencia
 
     %% TABLAS
     user {
@@ -97,13 +102,17 @@ erDiagram
 
     auditory {
         int id PK
+        int userId FK
         varchar action
-        timestamp createdAt
         text description
+        varchar txHash
+        varchar blockHash FK
+        timestamp createdAt
     }
 
     votation {
         int id PK
+        varchar txHash
         varchar startBlockHash FK
         varchar endBlockHash FK
         varchar title
@@ -122,15 +131,23 @@ erDiagram
     vote {
         int id PK
         varchar voteHash
-        varchar voteHashMunicipality
         int votationId FK
         int partyId FK
+        int municipalityId FK
+        varchar blockHash FK
+        varchar txHash
         timestamp createdAt
     }
 
     party {
         int id PK
         varchar name
+        varchar code
+        text description
+        varchar image
+        char color_background
+        char color_title
+        boolean active
     }
 
     seat {
@@ -145,11 +162,12 @@ erDiagram
 
     block {
         varchar hash PK
-        int block_number
+        int blockNumber
         varchar previousHash
         timestamp createdAt
         int transactions
         boolean isValid
+        int chain_timestamp
     }
 
     municipality {
@@ -164,6 +182,7 @@ erDiagram
         int ineId
         int autonomousCommunityId FK
         varchar name
+        int totalSeats
     }
 
     autonomouscommunity {
@@ -171,9 +190,17 @@ erDiagram
         varchar name
     }
 
+    vote_intent {
+        int id PK
+        int userId FK
+        varchar voteHash
+        int votationId FK
+        timestamp createdAt
+    }
+
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class user,role,auditory,municipality,province,autonomouscommunity,block,votation,participation,vote,party,seat entity
+    class user,role,auditory,municipality,province,autonomouscommunity,block,votation,participation,vote,party,seat,vote_intent entity
 ```
 
 
@@ -195,6 +222,7 @@ erDiagram
     %% RELACIONES
     user ||--o{ auditory : registra
     user ||--o{ participation : participa
+    user ||--o{ vote_intent : solicita
     user }o--|| role : tiene
     user }o--|| municipality : pertenece
 
@@ -212,7 +240,7 @@ erDiagram
 
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class user, auditory, participation, role, municipality entity
+    class user, auditory, participation, vote_intent, role, municipality entity
 ```
 
 ### 4.2 Rol (role)
@@ -251,6 +279,7 @@ Registra todas las acciones relevantes del sistema:
 - Emisión y validación de votos
 - Cálculo de resultados
 - Operaciones administrativas
+- Hashes de transacción y bloque asociados a acciones críticas
 ```mermaid
 ---
 config:
@@ -261,18 +290,22 @@ erDiagram
 
     %% RELACIONES
     user ||--o{ auditory : registra
+    block ||--o{ auditory : evidencia
 
     %% TABLAS
     auditory {
         int id PK
+        int userId FK
         varchar action
-        timestamp createdAt
         text description
+        varchar txHash
+        varchar blockHash FK
+        timestamp createdAt
     }
 
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class user,auditory entity
+    class user,auditory,block entity
 ```
 
 > [!NOTE]
@@ -283,6 +316,7 @@ Entidad central del sistema electoral. Incluye:
 - Periodo de validez
 - Estado del proceso
 - Referencias a bloques Blockchain de inicio y cierre
+- Hash de la transacción de creación en blockchain
 ```mermaid
 ---
 config:
@@ -295,11 +329,13 @@ erDiagram
     votation ||--o{ participation : incluye
     votation ||--o{ vote : contiene
     votation ||--o{ seat : produce
+    votation ||--o{ vote_intent : prepara
     block ||--o{ votation : referencia
 
     %% TABLAS
     votation {
         int id PK
+        varchar txHash
         varchar startBlockHash FK
         varchar endBlockHash FK
         varchar title
@@ -311,7 +347,7 @@ erDiagram
 
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class votation,participation,vote,seat, party, block entity
+    class votation,participation,vote,seat,vote_intent,party,block entity
 ```
 
 ### 4.5 Participación (participation)
@@ -348,6 +384,8 @@ Representa el voto emitido.
 - No contiene información identificativa del usuario
 - Se almacena mediante hashes
 - Se vincula a partido y votación
+- Se agrupa por municipio para métricas territoriales
+- Se confirma con el bloque y la transacción de blockchain
 - Puede verificarse con Blockchain
 ```mermaid
 ---
@@ -360,26 +398,31 @@ erDiagram
     %% RELACIONES
     votation ||--o{ vote : genera
     party ||--o{ vote : recibe
+    municipality ||--o{ vote : agrupa
+    block ||--o{ vote : confirma
 
     %% TABLAS
     vote {
         int id PK
         varchar voteHash
-        varchar voteHashMunicipality
         int votationId FK
         int partyId FK
+        int municipalityId FK
+        varchar blockHash FK
+        varchar txHash
         timestamp createdAt
     }
 
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class vote,party,votation entity
+    class vote,party,votation,municipality,block entity
 ```
 
 ### 4.7 Partido (party)
 Representa las candidaturas políticas participantes. Se utiliza para:
 - Conteo de votos
 - Asignación de escaños
+- Visualización del programa, imagen y colores en frontend
 ```mermaid
 ---
 config:
@@ -396,6 +439,12 @@ erDiagram
     party {
         int id PK
         varchar name
+        varchar code
+        text description
+        varchar image
+        char color_background
+        char color_title
+        boolean active
     }
 
     %% ESTILOS
@@ -441,7 +490,9 @@ erDiagram
 Representa un bloque de la Blockchain.
 - Garantiza inmutabilidad
 - Enlaza votaciones con la cadena
+- Confirma votos y evidencias de auditoría
 - Permite verificación externa
+- Mantiene el timestamp de cadena para series temporales
 ```mermaid
 ---
 config:
@@ -452,20 +503,23 @@ erDiagram
 
     %% RELACIONES
     block ||--o{ votation : referencia
+    block ||--o{ vote : confirma
+    block ||--o{ auditory : evidencia
 
     %% TABLAS
     block {
         varchar hash PK
-        int block_number
+        int blockNumber
         varchar previousHash
         timestamp createdAt
         int transactions
         boolean isValid
+        int chain_timestamp
     }
 
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class block, votation entity
+    class block, votation, vote, auditory entity
 ```
 
 ### 4.10 División Territorial
@@ -477,6 +531,7 @@ Estructura jerárquica:
 Permite:
 - Resultados desagregados
 - Cálculos electorales por territorio
+- Número de escaños por circunscripción provincial
 - Escalabilidad nacional
 ```mermaid
 ---
@@ -504,6 +559,7 @@ erDiagram
         int ineId
         int autonomousCommunityId FK
         varchar name
+        int totalSeats
     }
 
     autonomouscommunity {
@@ -516,20 +572,57 @@ erDiagram
     class user, municipality, province, autonomouscommunity entity
 ```
 
+### 4.11 Intención de voto (vote_intent)
+Entidad temporal de correlación que:
+- Registra la intención antes de confirmar el voto en blockchain
+- Relaciona usuario y votación solo durante el proceso de envío
+- Permite a Spring Boot localizar el usuario tras el evento `VoteSubmitted`
+- Se elimina después de procesar la confirmación para no mantener una relación permanente usuario-voto
+```mermaid
+---
+config:
+  look: handDrawn
+---
+erDiagram
+    direction RL
+
+    %% RELACIONES
+    user ||--o{ vote_intent : solicita
+    votation ||--o{ vote_intent : prepara
+
+    %% TABLAS
+    vote_intent {
+        int id PK
+        int userId FK
+        varchar voteHash
+        int votationId FK
+        timestamp createdAt
+    }
+
+    %% ESTILOS
+    classDef entity fill:#261a58,stroke-width:2px
+    class user, votation, vote_intent entity
+```
+
 
 ## 5. Resumen de relaciones
 - usuarios (1) → (N) auditoria
 - usuarios (1) → (1) rol
 - usuarios (1) → (1) municipio
+- usuarios (1) → (N) intenciones de voto temporales
 - municipio (N) → (1) provincia
+- municipio (1) → (N) votos
 - provincia (N) → (1) comunidad_autonoma
 - usuarios (1) → (N) participaciones
 - votacion (1) → (N) participaciones
+- votacion (1) → (N) intenciones de voto temporales
 - votacion (1) → (N) escaños
 - escaños (N) → (1) provincia
 - escaños (N) → (1) partido
 - votos (N) ← (1) partido
 - votacion (1) → (N) votos
+- bloques (1) ← (N) votos
+- bloques (1) ← (N) auditoria
 - bloques (1) ← (N) votaciones (relación indirecta por hash de inicio)
 - bloques (1) ← (N) votaciones (relación indirecta por hash de fin)
 
@@ -540,17 +633,23 @@ erDiagram
 ## 6. Descripción de las Relaciones
 1. Un usuario:
     - Puede participar en múltiples votaciones
+    - Puede generar intenciones de voto temporales durante el envío
     - Genera múltiples registros de auditoría
     - Pertenece a un único municipio y rol
 2. Una votación:
     - Incluye múltiples participaciones
+    - Prepara intenciones de voto temporales
     - Genera votos
     - Produce escaños
     - Se ancla a la Blockchain
 3. Un partido:
     - Recibe votos
     - Obtiene escaños
-- La jerarquía territorial es estricta y normalizada
+4. Un bloque:
+    - Puede referenciar votaciones
+    - Confirma votos
+    - Puede evidenciar registros de auditoría
+5. La jerarquía territorial es estricta y normalizada
 
 
 ## 7. Normalización
