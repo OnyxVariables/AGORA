@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PartidoCard from "./Main";
 import "./Main.css";
@@ -20,8 +20,57 @@ function generarCodigo() {
 
 function Partidos() {
   const navigate = useNavigate();
-  const { partidos, loading } = useParties();
+  const [activeVotation, setActiveVotation] = useState(null);
+  const [votationLoading, setVotationLoading] = useState(true);
+  const { partidos, loading } = useParties(activeVotation?.id ?? false);
   const [selection, setSelection] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadActiveVotation = async () => {
+      try {
+        const res = await fetch(API_CONFIG.endpoints.VOTATION_ACTIVE, {
+          credentials: "include",
+        });
+        if (cancelled) return;
+        if (res.status === 404) {
+          // 404 indica explícitamente "sin votación activa": redirigimos a /home
+          // para evitar dejar al usuario en una página sin acción posible.
+          Popup.fire({
+            icon: "info",
+            title: "No hay votación activa disponible",
+            text: "Te llevamos a la página principal.",
+            timer: 2200,
+            showConfirmButton: false,
+          }).finally(() => {
+            navigate("/home", { replace: true });
+          });
+          setVotationLoading(false);
+          return;
+        }
+        if (!res.ok) {
+          popupError("No se pudo obtener la votación activa");
+          setVotationLoading(false);
+          return;
+        }
+        const data = await res.json();
+        setActiveVotation(data);
+      } catch (err) {
+        console.log(err);
+        if (!cancelled) {
+          popupError("Servicio no disponible");
+        }
+      } finally {
+        if (!cancelled) {
+          setVotationLoading(false);
+        }
+      }
+    };
+    void loadActiveVotation();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const toggleSelection = (currentValue) => {
     setSelection((previousValue) =>
@@ -74,17 +123,12 @@ function Partidos() {
     }
 
 
-    // Cojo la votación activa
-    const resVotation = await fetch(API_CONFIG.endpoints.VOTATION_ACTIVE, {
-      credentials: "include",
-    });
-    if (!resVotation.ok) {
-      popupError("No se pudo obtener la votación activa");
+    if (!activeVotation) {
+      popupError("No hay votación activa disponible");
       return;
     }
-    const votationData = await resVotation.json();
 
-    const votationId = Number(votationData.id);
+    const votationId = Number(activeVotation.id);
     const partido = partidos.find((p) => p.value === selection);
     if (!partido) {
       popupError("Partido no válido");
@@ -164,6 +208,14 @@ function Partidos() {
     }
   };
 
+  if (votationLoading) {
+    return <main className="background voting-page">Cargando votación...</main>;
+  }
+
+  if (!activeVotation) {
+    return <main className="background voting-page">No hay votación activa disponible</main>;
+  }
+
   if (loading) {
     return <main className="background voting-page">Cargando partidos...</main>;
   }
@@ -191,18 +243,23 @@ function Partidos() {
           disableRotation={true}
         />
       </div>
-      <div className="grid-partidos voting-page__grid">
-        {partidos.map((partido) => (
-          <PartidoCard
-            key={partido.value}
-            {...partido}
-            isSelected={selection === partido.value}
-            onSelect={() => {
-              toggleSelection(partido.value);
-            }}
-          />
-        ))}
-      </div>
+      {partidos.length === 0 && (
+        <p className="voting-page__empty">No hay partidos disponibles para esta votación.</p>
+      )}
+      {partidos.length > 0 && (
+        <div className="grid-partidos voting-page__grid">
+          {partidos.map((partido) => (
+            <PartidoCard
+              key={partido.value}
+              {...partido}
+              isSelected={selection === partido.value}
+              onSelect={() => {
+                toggleSelection(partido.value);
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div className="submit voting-page__submit">
         <button className="enviar voting-page__submit-button" onClick={handleSubmit}>
           Enviar

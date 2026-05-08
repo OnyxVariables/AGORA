@@ -370,6 +370,9 @@ class BlockchainService
     /**
      * web3.php usa callbacks asíncronos: hay que esperar al callback
      * o devuelvo directamente success antes de tener respuesta del nodo.
+     *
+     * Devuelve además la versión del cliente RPC para que el monitor
+     * pueda distinguir Hardhat (dev) de Besu (producción).
      */
     public function checkConnection()
     {
@@ -413,9 +416,18 @@ class BlockchainService
                 ];
             }
 
+            $clientVersion = $this->fetchClientVersion();
+            $expectedClient = env('BLOCKCHAIN_EXPECTED_CLIENT'); // ej. "besu" en producción
+            $clientMatches = ($expectedClient && $clientVersion !== null)
+                ? str_contains(strtolower($clientVersion), strtolower($expectedClient))
+                : null;
+
             return [
                 'success' => true,
                 'blockNumber' => $blockNumber,
+                'clientVersion' => $clientVersion,
+                'expectedClient' => $expectedClient,
+                'clientMatches' => $clientMatches,
                 'message' => 'Conectado a blockchain',
             ];
         } catch (\Exception $e) {
@@ -426,6 +438,36 @@ class BlockchainService
                 'message' => 'Error de conexión',
             ];
         }
+    }
+
+    /**
+     * Lectura best-effort de web3_clientVersion. Si el nodo no responde a
+     * tiempo o devuelve un error, devolvemos null para no bloquear la salud.
+     */
+    private function fetchClientVersion(): ?string
+    {
+        $version = null;
+        $completed = false;
+
+        try {
+            $this->web3->clientVersion(function ($err, $result) use (&$version, &$completed) {
+                if ($err === null && $result !== null) {
+                    $version = is_string($result) ? $result : (string) $result;
+                }
+                $completed = true;
+            });
+        } catch (\Throwable $e) {
+            Log::warning("clientVersion error: {$e->getMessage()}");
+            return null;
+        }
+
+        $waitMs = 0;
+        while (!$completed && $waitMs < 2000) {
+            usleep(100000);
+            $waitMs += 100;
+        }
+
+        return $version;
     }
 
     // Verificación extra para asegurar que el bloque (y ancestros necesarios) existan en BD antes de referenciarlos

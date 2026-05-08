@@ -30,8 +30,8 @@ Cada eje del diagrama representa un componente crítico del sistema:
 |---------|-------------|
 | **Seguridad** | Uso de certificados electrónicos, control de acceso y validación de identidad |
 | **Blockchain** | Registro inmutable de votos, consenso y trazabilidad |
-| **Frontend** | Interfaz de usuario, experiencia y accesibilidad |
-| **Backend** | API, lógica de negocio, control de permisos |
+| **Frontend** | Interfaz de usuario, experiencia, accesibilidad y paneles administrativos |
+| **Backend** | API, lógica de negocio, CRUD administrativo y control de permisos |
 | **Escalabilidad** | Capacidad de crecimiento y adaptación del sistema |
 | **Auditoría** | Verificación, transparencia y métricas on-chain |
 
@@ -72,5 +72,5 @@ radar-beta
 ## 5. Interpretación del Diagrama
 1. Seguridad es uno de los ejes más fuertes del sistema, gracias al uso de certificados electrónicos y control de identidad.
 2. Blockchain y auditoría presentan un nivel alto de madurez, garantizando integridad y trazabilidad.
-3. Backend se encuentra bien estructurado, soportando roles, permisos y lógica de negocio.
-4. Frontend y escalabilidad están correctamente definidos, con margen de mejora en UX, balanceo de carga y despliegue distribuido.
+3. Backend se encuentra bien estructurado, soportando roles, permisos, votaciones, partidos y lógica de negocio.
+4. Frontend y escalabilidad están correctamente definidos, incluyendo paneles administrativos para votaciones, partidos, métricas y monitoreo.

@@ -5,6 +5,9 @@ server {
     ssl_certificate /etc/letsencrypt/live/agorachain.es/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/agorachain.es/privkey.pem;
 
+    # Necesario para subir logos de partido (multipart) sin romper en 413.
+    client_max_body_size 8M;
+
     root /var/www/frontend;
     index index.html;
 

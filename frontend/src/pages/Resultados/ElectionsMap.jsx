@@ -10,7 +10,7 @@ import {
   LineChart,
   PieChart,
 } from "../../components/ChartSection/ChartSection";
-import { useParties } from "../../data/partidos";
+import { usePartiesCatalog } from "../../data/partidos";
 import FingerIcon from "../../icons/FingerIcon";
 import {
   ccaaAliasToCanonical,
@@ -253,7 +253,9 @@ export default function ElectionsMap() {
   const [partiesAggregated, setPartiesAggregated] = useState([]);
   const [modalTimeseries, setModalTimeseries] = useState(null);
 
-  const { partidos: partidosCatalog } = useParties();
+  // Catálogo completo (activos + inactivos): /resultados muestra votaciones ya finalizadas 
+  // aunque un partido se haya desactivado posteriormente, su resultado histórico debe aparecer con su nombre y colores reales.
+  const { partidos: partidosCatalog } = usePartiesCatalog();
 
   const finishedVotations = useMemo(
     () => votationSummaries.filter((v) => v.state === "finished"),

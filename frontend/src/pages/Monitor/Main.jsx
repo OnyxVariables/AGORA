@@ -89,13 +89,48 @@ export default function Main() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
       });
 
-      await touch("blockchain", async () => {
+      const blockchainStart = performance.now();
+      try {
         const r = await fetch(
           `${API_CONFIG.baseURL}${API_CONFIG.endpoints.ADMIN_HEALTH_BLOCKCHAIN}`,
           { credentials: "include" },
         );
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      });
+        const lat = performance.now() - blockchainStart;
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          next.blockchain = {
+            status: "down",
+            latencyMs: lat,
+            detail: data?.details?.error || `HTTP ${r.status}`,
+            lastAt: new Date().toISOString(),
+          };
+        } else {
+          // Si el backend marca explícitamente `degraded` (ej. Hardhat en
+          // lugar de Besu) lo respetamos para no engañar al admin en prod.
+          const status = data?.status === "degraded" ? "degraded" : "ok";
+          const details = data?.details || {};
+          const detailParts = [];
+          if (details.clientVersion) detailParts.push(details.clientVersion);
+          if (details.blockNumber !== undefined && details.blockNumber !== null) {
+            detailParts.push(`block #${details.blockNumber}`);
+          }
+          if (status === "degraded" && details.expectedClient) {
+            detailParts.push(`esperado: ${details.expectedClient}`);
+          }
+          next.blockchain = {
+            status,
+            latencyMs: lat,
+            detail: detailParts.length > 0 ? detailParts.join(" · ") : undefined,
+            lastAt: new Date().toISOString(),
+          };
+        }
+      } catch (e) {
+        next.blockchain = {
+          status: "down",
+          detail: e?.message || String(e),
+          lastAt: new Date().toISOString(),
+        };
+      }
 
       await touch("spring", async () => {
         const r = await fetch(`${SPRING_HTTP_BASE}/actuator/health`, {
@@ -114,9 +149,16 @@ export default function Main() {
           const data = await r.json();
           if (!cancelled) {
             setClusterSnap(data);
+            // Si el endpoint REST responde pero la integración con
+            // Kubernetes está deshabilitada, no podemos decir "OK": no hay
+            // un cluster real al que consultar nodos. Lo marco degraded.
+            const k8sEnabled = data?.kubernetesIntegrationEnabled === true;
             next.clusterRest = {
-              status: "ok",
+              status: k8sEnabled ? "ok" : "degraded",
               latencyMs: lat,
+              detail: k8sEnabled
+                ? undefined
+                : data?.message || "Integración con Kubernetes deshabilitada",
               lastAt: new Date().toISOString(),
             };
           }

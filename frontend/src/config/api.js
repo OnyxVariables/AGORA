@@ -11,6 +11,7 @@ export const API_CONFIG = {
     NICKNAME: '/api/nickname',
     VOTATIONS: '/api/votations',
     VOTATIONS_SUMMARY: '/api/votations/summary',
+    VOTATIONS_CONFIG: '/api/votations/config',
     VOTATION_ACTIVE: '/api/votation/active',
     VOTE: '/api/vote',
     VOTE_VERIFY: '/api/vote/verify',
@@ -23,6 +24,10 @@ export const API_CONFIG = {
     VOTATION_RESULTS: (id) => `/api/votations/${id}/results`,
     VOTATION_RESULTS_SUMMARY: (id) => `/api/votations/${id}/results/summary`,
     PARTIES: '/api/parties',
+    PARTIES_CATALOG: '/api/parties/catalog',
+    PARTY_IMAGE: (filename) => `/api/parties/image/${filename}`,
+    ADMIN_PARTIES: '/api/admin/parties',
+    ADMIN_PARTIES_UPLOAD_IMAGE: '/api/admin/parties/upload-image',
     ADMIN_HEALTH_DB: '/api/admin/health/db',
     ADMIN_HEALTH_BLOCKCHAIN: '/api/admin/health/blockchain',
   }

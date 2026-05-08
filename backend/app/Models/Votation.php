@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Votation extends Model
 {
@@ -41,5 +42,10 @@ class Votation extends Model
                 $q->whereNull('endDate')
                     ->orWhere('endDate', '>', now());
             });
+    }
+
+    public function parties(): BelongsToMany
+    {
+        return $this->belongsToMany(Party::class, 'votation_party', 'votationId', 'partyId');
     }
 }

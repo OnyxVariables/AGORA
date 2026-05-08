@@ -73,9 +73,11 @@ erDiagram
     votation ||--o{ vote : genera
     votation ||--o{ seat : produce
     votation ||--o{ vote_intent : prepara
+    votation ||--o{ votation_party : habilita
 
     party ||--o{ vote : recibe
     party ||--o{ seat : obtiene
+    party ||--o{ votation_party : participa
     province ||--o{ seat : tiene
     municipality ||--o{ vote : agrupa
 
@@ -198,9 +200,16 @@ erDiagram
         timestamp createdAt
     }
 
+    votation_party {
+        int id PK
+        int votationId FK
+        int partyId FK
+        timestamp createdAt
+    }
+
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class user,role,auditory,municipality,province,autonomouscommunity,block,votation,participation,vote,party,seat,vote_intent entity
+    class user,role,auditory,municipality,province,autonomouscommunity,block,votation,participation,vote,party,seat,vote_intent,votation_party entity
 ```
 
 
@@ -423,6 +432,9 @@ Representa las candidaturas políticas participantes. Se utiliza para:
 - Conteo de votos
 - Asignación de escaños
 - Visualización del programa, imagen y colores en frontend
+- Gestión administrativa del catálogo de partidos
+- Control de visibilidad pública mediante el campo `active`
+- Asociación con votaciones concretas mediante `votation_party`
 ```mermaid
 ---
 config:
@@ -434,6 +446,7 @@ erDiagram
     %% RELACIONES
     party ||--o{ vote : recibe
     party ||--o{ seat : obtiene
+    party ||--o{ votation_party : participa
 
     %% TABLAS
     party {
@@ -449,7 +462,7 @@ erDiagram
 
     %% ESTILOS
     classDef entity fill:#261a58,stroke-width:2px
-    class vote,party,seat, votation entity
+    class vote,party,seat,votation,votation_party entity
 ```
 
 ### 4.8 Escaños (seat)
@@ -604,6 +617,36 @@ erDiagram
     class user, votation, vote_intent entity
 ```
 
+### 4.12 Asignación de partidos a votaciones (votation_party)
+Entidad intermedia que:
+- Relaciona partidos con votaciones concretas
+- Permite que una votación tenga un subconjunto de partidos habilitados
+- Evita borrar partidos con histórico, ya que el panel administrativo desactiva en lugar de eliminar físicamente
+```mermaid
+---
+config:
+  look: handDrawn
+---
+erDiagram
+    direction LR
+
+    %% RELACIONES
+    votation ||--o{ votation_party : habilita
+    party ||--o{ votation_party : participa
+
+    %% TABLAS
+    votation_party {
+        int id PK
+        int votationId FK
+        int partyId FK
+        timestamp createdAt
+    }
+
+    %% ESTILOS
+    classDef entity fill:#261a58,stroke-width:2px
+    class votation, party, votation_party entity
+```
+
 
 ## 5. Resumen de relaciones
 - usuarios (1) → (N) auditoria
@@ -616,9 +659,11 @@ erDiagram
 - usuarios (1) → (N) participaciones
 - votacion (1) → (N) participaciones
 - votacion (1) → (N) intenciones de voto temporales
+- votacion (1) → (N) asignaciones de partido
 - votacion (1) → (N) escaños
 - escaños (N) → (1) provincia
 - escaños (N) → (1) partido
+- partido (1) → (N) asignaciones a votaciones
 - votos (N) ← (1) partido
 - votacion (1) → (N) votos
 - bloques (1) ← (N) votos
@@ -645,6 +690,7 @@ erDiagram
 3. Un partido:
     - Recibe votos
     - Obtiene escaños
+    - Puede estar habilitado en múltiples votaciones
 4. Un bloque:
     - Puede referenciar votaciones
     - Confirma votos

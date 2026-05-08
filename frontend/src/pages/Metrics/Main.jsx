@@ -11,7 +11,7 @@ import { useWebSocket } from "../../hooks/useWebSocket";
 import { API_CONFIG } from "../../config/api";
 import { popupError, toastTiny } from "../../services/alerts";
 import { formatDate } from "../../utils/date";
-import { useParties } from "../../data/partidos";
+import { usePartiesCatalog } from "../../data/partidos";
 import {
   downloadTextFile,
   fetchFullMetricsBundleForExport,
@@ -68,7 +68,10 @@ export default function Main() {
   const [blocksQuery, setBlocksQuery] = useState("");
   const [debouncedBlocksQuery, setDebouncedBlocksQuery] = useState("");
 
-  const { partidos } = useParties();
+  // Catálogo completo (activos + inactivos): así, si un partido se desactiva
+  // tras finalizar una votación, sus métricas históricas se siguen mostrando
+  // con su nombre y colores reales en lugar de un fallback genérico.
+  const { partidos } = usePartiesCatalog();
 
   const partyNameById = useMemo(() => {
     const map = {};

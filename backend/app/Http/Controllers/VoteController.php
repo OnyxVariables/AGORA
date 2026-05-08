@@ -12,6 +12,7 @@ use App\Services\BlockchainService;
 use kornrunner\Keccak;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class VoteController extends Controller
@@ -70,6 +71,27 @@ class VoteController extends Controller
             return response()->json([
                 'error' => 'La votación ha finalizado'
             ], 400);
+        }
+
+        $party = Party::query()
+            ->whereKey($data['partyId'])
+            ->where('active', true)
+            ->first();
+
+        if (!$party) {
+            return response()->json([
+                'error' => 'Partido no válido'
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $hasConfiguredParties = DB::table('votation_party')
+            ->where('votationId', $votation->id)
+            ->exists();
+
+        if ($hasConfiguredParties && !$party->votations()->where('votation.id', $votation->id)->exists()) {
+            return response()->json([
+                'error' => 'El partido no está habilitado para esta votación'
+            ], 400, [], JSON_UNESCAPED_UNICODE);
         }
 
         $connection = $this->blockchainService->checkConnection();

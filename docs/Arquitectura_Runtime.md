@@ -4,8 +4,8 @@ Este documento describe **cómo está montado el sistema en el código actual**:
 ## Componentes principales
 | Componente | Rol |
 |------------|-----|
-| **Frontend (React + Vite)** | UI ciudadano y administración; consume API Laravel; métricas en tiempo real vía WebSocket contra Spring Boot. |
-| **API Laravel (PHP)** | CRUD de votaciones, usuarios, votos, métricas agregadas; **envía transacciones** al nodo EVM (Hardhat/Besu) con cuenta admin; autenticación Sanctum; **scheduler** que activa/finaliza votaciones en cadena. |
+| **Frontend (React + Vite)** | UI ciudadano y administración; incluye CRUD de votaciones, CRUD de partidos, métricas y monitoreo; consume API Laravel; métricas en tiempo real vía WebSocket contra Spring Boot. |
+| **API Laravel (PHP)** | CRUD de votaciones, CRUD de partidos, usuarios, votos, métricas agregadas; **envía transacciones** al nodo EVM (Hardhat/Besu) con cuenta admin; autenticación Sanctum; **scheduler** que activa/finaliza votaciones en cadena. |
 | **Spring Boot (Java)** | Escucha **eventos** del contrato vía Web3j; persiste estado en MariaDB; **no envía** transacciones de creación de votación/voto (eso lo hace Laravel). Tras evento de votación finalizada, ejecuta **Ley D’Hondt** leyendo votos desde **MariaDB** y escribe la tabla `seat`. Expone **WebSocket STOMP** para difundir métricas de votos. |
 | **MariaDB** | Fuente de verdad relacional: usuarios, votaciones, votos, provincias/municipios, escaños calculados, bloques referenciados. |
 | **Nodo EVM (Hardhat en dev / Besu en prod)** | Contrato `SimpleVoting.sol`: registro auditable de votos y ciclo de vida de votaciones (`createVotation`, `finishVotation`, etc.). |
@@ -31,6 +31,13 @@ Variables relevantes: `VITE_API_URL`, `VITE_SPRING_WS_URL` (p. ej. `ws://localho
 5. **Cierre** — El scheduler llama `finishVotation` cuando `endDate <= now()` y la votación está **activa en BD** o en transición antigua (`pending` con `txHash` ya guardado). Tras receipt, Laravel pone **`state = finished`** y `endBlockHash`. Spring recibe `VotationFinished`, puede reconfirmar **finished** y ejecuta **D’Hondt** sobre votos en BD → tabla `seat`.
 6. **Resultados** — Endpoints públicos Laravel `GET /api/votations/{id}/results` (y `/results/summary`) sirven datos cuando `state = finished`. El frontend `/resultados` consume estos datos.
 
+## Gestión administrativa de partidos
+1. **Listado público** — `GET /api/parties` devuelve solo partidos activos para ciudadano, votación, resultados y métricas.
+2. **CRUD admin** — `GET/POST/PUT/DELETE /api/admin/parties` está protegido por Sanctum y rol administrador.
+3. **Asignación a votaciones** — La tabla `votation_party` permite decidir qué partidos están habilitados en cada votación. Si una votación aún no tiene asignaciones, el sistema mantiene compatibilidad usando todos los partidos activos.
+4. **Campos gestionados** — `name`, `code`, `description`, `image`, `color_background`, `color_title`, `active` y votaciones asociadas.
+5. **Borrado lógico** — La acción de eliminar desde el panel marca `active = false`; no borra físicamente la fila para conservar relaciones históricas con `vote` y `seat`.
+
 ## Operación en desarrollo
 - **Scheduler Laravel**: la agenda **no se ejecuta sola** con solo levantar PHP-FPM o `artisan serve`. Hace falta `php artisan schedule:work` (o cron con `schedule:run` cada minuto), o en Docker dev el servicio **`scheduler`** de `compose.dev.yml`. Sin esto, las votaciones se quedan en `pending` aunque haya pasado `startDate`.
 - **Contrato desplegado**: el stack dev espera a Hardhat saludable y al artefacto del contrato en el backend (véase healthcheck en `compose.dev.yml`).
@@ -42,6 +49,7 @@ Variables relevantes: `VITE_API_URL`, `VITE_SPRING_WS_URL` (p. ej. `ws://localho
 ## Referencias de código (orientativas)
 - Scheduler: `backend/app/Console/Commands/ProcessVotationLifecycle.php`, `bootstrap/app.php` (`withSchedule`).
 - API votaciones: `backend/app/Http/Controllers/VotationController.php`.
+- API partidos: `backend/app/Http/Controllers/PartyController.php`, `frontend/src/pages/CRUDParties/`.
 - Envío a cadena: `backend/app/Services/BlockchainService.php`.
 - Listener y D’Hondt: `votations/.../BlockchainListenerService.java`, `DHondtCalculationService.java`.
 - Contrato: `blockchain/contracts/SimpleVoting.sol`.

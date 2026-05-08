@@ -21,7 +21,7 @@ import {
 
 import { Pie, Bar, Line } from "react-chartjs-2";
 import "./ChartSection.css";
-import { useParties } from "../../data/partidos";
+import { usePartiesCatalog } from "../../data/partidos";
 import SpainMap from "../SpainMap/SpainMap";
 import { votesForMapProvince } from "../../utils/spainNames";
 import { formatBucketLabel } from "../../utils/date";
@@ -443,7 +443,8 @@ function buildSeedFromTimeseries(partidos, timeseries) {
 }
 
 export default function ChartSection({ voteMetrics, timeseries }) {
-  const { partidos, loading } = useParties();
+  // Catálogo completo (activos + inactivos): los gráficos representan datos históricos
+  const { partidos, loading } = usePartiesCatalog();
   const deferredProvinceVotes = useDeferredValue(voteMetrics?.votesByProvinceName);
   const [liveLine, setLiveLine] = useState({
     votationId: null,
