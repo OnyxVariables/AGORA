@@ -22,13 +22,25 @@ class AdminHealthController extends Controller
     public function blockchain(BlockchainService $blockchain): JsonResponse
     {
         $details = $blockchain->checkConnection();
-        $ok = ($details['success'] ?? false) === true;
+        $reachable = ($details['success'] ?? false) === true;
+        $clientMatches = $details['clientMatches'] ?? null;
+
+        // Si conecto pero el cliente no es el esperado (ej. Hardhat en lugar
+        // de Besu) lo marcamos como `degraded`: sirve para no fallar en dev y
+        // a la vez avisar en prod cuando hay un nodo inesperado.
+        $status = match (true) {
+            !$reachable => 'error',
+            $clientMatches === false => 'degraded',
+            default => 'ok',
+        };
+
+        $httpStatus = $reachable ? 200 : 503;
 
         return response()->json([
             'service' => 'blockchain',
-            'status' => $ok ? 'ok' : 'error',
+            'status' => $status,
             'details' => $details,
             'timestamp' => now()->toIso8601String(),
-        ], $ok ? 200 : 503);
+        ], $httpStatus);
     }
 }

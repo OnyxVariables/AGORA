@@ -45,9 +45,15 @@ class DemoCastVotes extends Command
         $partyOption = $this->option('party');
         $partyIds = array_map('intval', array_filter((array) $partyOption, fn ($id) => $id !== ''));
         if ($partyIds === []) {
-            $partyIds = Party::query()
+            $partyQuery = Party::query()
                 ->where('active', true)
-                ->orderBy('id')
+                ->orderBy('id');
+
+            if ($votation->parties()->exists()) {
+                $partyQuery->whereHas('votations', fn ($q) => $q->where('votation.id', $votationId));
+            }
+
+            $partyIds = $partyQuery
                 ->pluck('id')
                 ->all();
         }
@@ -63,6 +69,16 @@ class DemoCastVotes extends Command
             $this->error('Partido inexistente: '.implode(', ', $missing));
 
             return self::FAILURE;
+        }
+
+        if ($votation->parties()->exists()) {
+            $allowedPartyIds = $votation->parties()->pluck('party.id')->all();
+            $notAllowed = array_diff($partyIds, $allowedPartyIds);
+            if ($notAllowed !== []) {
+                $this->error('Partido no habilitado para la votación '.$votationId.': '.implode(', ', $notAllowed));
+
+                return self::FAILURE;
+            }
         }
 
         if (!$dryRun) {
