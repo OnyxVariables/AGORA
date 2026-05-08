@@ -10,3 +10,5 @@ export { default as MetricsIcon } from "./MetricsIcon";
 export { default as CRUDVotationIcon } from "./CRUDVotationIcon";
 export { default as ExportIcon } from "./ExportIcon";
 export { default as MonitorIcon } from "./MonitorIcon";
+export { default as PartyIcon } from "./PartyIcon";
+export { default as LockIcon } from "./LockIcon";
