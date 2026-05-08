@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
 
 class Party extends Model
@@ -19,4 +20,13 @@ class Party extends Model
         'color_title',
         'active',
     ];
+
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
+    public function votations(): BelongsToMany
+    {
+        return $this->belongsToMany(Votation::class, 'votation_party', 'partyId', 'votationId');
+    }
 }
