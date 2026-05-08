@@ -19,8 +19,43 @@ class VotationController extends Controller
     ) {
     }
 
-    private const VOTATION_DURATION_HOURS = 12;
-    # private const VOTATION_DURATION_MINUTES = 5;
+    /**
+     * Duración fija (en minutos) de una votación. Se lee desde
+     * config/agora.php (variable de entorno VOTATION_DURATION_MINUTES) para
+     * que admin y frontend usen el mismo valor sin duplicarlo.
+     */
+    private function durationMinutes(): int
+    {
+        $minutes = (int) config('agora.votation.duration_minutes', 5);
+
+        return $minutes > 0 ? $minutes : 5;
+    }
+
+    /**
+     * Devuelve un texto legible y los componentes (horas/minutos) de la
+     * duración configurada para mostrarlos en mensajes y tooltips.
+     */
+    private function durationDescriptor(): array
+    {
+        $minutes = $this->durationMinutes();
+        $hours = intdiv($minutes, 60);
+        $remainingMinutes = $minutes % 60;
+
+        $parts = [];
+        if ($hours > 0) {
+            $parts[] = $hours . ' ' . ($hours === 1 ? 'hora' : 'horas');
+        }
+        if ($remainingMinutes > 0) {
+            $parts[] = $remainingMinutes . ' ' . ($remainingMinutes === 1 ? 'minuto' : 'minutos');
+        }
+
+        return [
+            'minutes' => $minutes,
+            'hours' => $hours,
+            'remainingMinutes' => $remainingMinutes,
+            'label' => implode(' y ', $parts) ?: '0 minutos',
+        ];
+    }
 
     private function hasOverlappingVotation(Carbon $start, Carbon $end, ?int $excludeId = null): bool
     {
@@ -60,11 +95,12 @@ class VotationController extends Controller
         ]);
 
         $start = Carbon::parse($data['startDate']);
-        #$end = $start->copy()->addMinutes(self::VOTATION_DURATION_MINUTES);
+        $duration = $this->durationDescriptor();
+        $end = $start->copy()->addMinutes($duration['minutes']);
 
         if ($this->hasOverlappingVotation($start, $end, null)) {
             return response()->json([
-                'error' => 'Ya existe una votación pendiente o activa que solapa con este horario (misma ventana de 12 h).',
+                'error' => "Ya existe una votación pendiente o activa que solapa con este horario (ventana de {$duration['label']}).",
             ], 422);
         }
 
@@ -126,9 +162,8 @@ class VotationController extends Controller
         ]);
 
         $start = Carbon::parse($data['startDate']);
-        $end = $start->copy()->addHours(self::VOTATION_DURATION_HOURS);
-        # $end = $start->copy()->addMinutes(self::VOTATION_DURATION_MINUTES);
-        
+        $end = $start->copy()->addMinutes($this->durationMinutes());
+
         if ($this->hasOverlappingVotation($start, $end, (int) $votation->id)) {
             return response()->json([
                 'error' => 'Ya existe otra votación que solapa con este horario.',
@@ -250,6 +285,18 @@ class VotationController extends Controller
 
             return response()->json(['error' => 'Error cancelando votación'], 500);
         }
+    }
+
+    /**
+     * Configuración pública (no necesita auth) para que el frontend pueda
+     * mostrar la duración exacta en formularios y tooltips sin duplicar el
+     * valor en .env del frontend.
+     */
+    public function config()
+    {
+        return response()->json([
+            'duration' => $this->durationDescriptor(),
+        ]);
     }
 
     // OBTENER VOTACIÓN ACTIVA (para frontend)
