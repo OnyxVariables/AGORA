@@ -45,6 +45,7 @@ graph LR
 
     %% Casos de Uso: Administrador
     UC_CRUD(Gestión CRUD votaciones):::primario
+    UC_CRUDPartidos(Gestión CRUD partidos):::primario
     UC_Metricas(Visualizar métricas):::primario
     UC_Monitor(Visualizar servicios operativos):::primario
     UC_Exportar(Exportar datos):::extendido
@@ -67,11 +68,13 @@ graph LR
 
     %% Relaciones Administrador
     Administrador --- UC_CRUD
+    Administrador --- UC_CRUDPartidos
     Administrador --- UC_Metricas
     Administrador --- UC_Monitor
     Administrador --- UC_Salir
 
     UC_CRUD -.->|include| UC_Login
+    UC_CRUDPartidos -.->|include| UC_Login
     UC_Metricas -.->|include| UC_Login
     UC_Monitor -.->|include| UC_Login
     UC_Exportar -.->|extend| UC_Metricas
@@ -280,6 +283,28 @@ graph LR
     Administrador --> UC_CRUD[Gestión CRUD votaciones]:::primario
     UC_CRUD -.->|include| UC_Login[Iniciar sesión]:::soporte
 ``` 
+
+### Caso de uso: Gestionar partidos
+- **Tipo**: Primario 🔵
+- **Incluye**: Iniciar sesión
+- **Descripción**: Permite al administrador crear, leer, actualizar y desactivar partidos desde el panel de gestión. El formulario cubre los campos de la tabla `party`: nombre, código, descripción, imagen, color de fondo, color de título, estado activo y votaciones asociadas.
+- **Flujo principal**:
+  1. El administrador inicia sesión.
+  2. Selecciona “Partidos”.
+  3. El sistema muestra el listado completo de partidos, incluyendo activos e inactivos.
+  4. El administrador crea o edita los datos del partido y selecciona en qué votaciones estará habilitado.
+  5. El sistema valida los campos y guarda los cambios.
+  6. Si se elimina un partido desde el panel, el sistema lo desactiva para preservar relaciones históricas con votos y escaños.
+```mermaid
+graph LR
+    classDef actor fill:#fff8d9,stroke:#ffd20e,stroke-width:2px,color:#000
+    classDef primario fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+    classDef soporte fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,color:#000
+
+    Administrador((<b>Administrador</b>)):::actor
+    Administrador --> UC_CRUDPartidos[Gestión CRUD partidos]:::primario
+    UC_CRUDPartidos -.->|include| UC_Login[Iniciar sesión]:::soporte
+```
 
 ### Caso de uso: Visualizar métricas on-chain
 - **Tipo**: Primario 🔵

@@ -115,7 +115,7 @@ La información registrada en la blockchain es:
 | Rol | Permisos |
 |----|---------|
 | Ciudadano | Votar, consultar resultados |
-| Administrador | Crear votaciones, auditar |
+| Administrador | Crear votaciones, gestionar partidos, monitorear servicios y auditar |
 | Sistema | Procesos automáticos |
 
 ### 5.2 Principio de Mínimo Privilegio
@@ -128,6 +128,7 @@ AGORA implementa un sistema de auditoría completo:
   - Acciones del usuario
   - Eventos críticos
   - Cambios de estado
+  - Operaciones administrativas sobre votaciones y partidos
 - Los logs:
   - No son modificables
   - Están separados del voto

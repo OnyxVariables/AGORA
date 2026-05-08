@@ -41,9 +41,10 @@ El sistema se estructura en tres grandes capas:
 ### 3.1 Capa de Presentación
 - Interfaz web desarrollada en **React**.
 - Acceso seguro mediante HTTPS.
+- Panel de administración para votaciones, partidos, métricas y monitoreo.
 
 ### 3.2 Capa de Aplicación
-- **Laravel API**: lógica principal de negocio, autenticación y validación.
+- **Laravel API**: lógica principal de negocio, autenticación, validación y CRUD administrativo de votaciones y partidos.
 - **Spring Boot**: servicio independiente para cálculos electorales avanzados.
 
 ### 3.3 Capa Blockchain y Persistencia
@@ -57,7 +58,7 @@ La plataforma de aplicación se despliega mediante **Docker**, con los siguiente
 |--------|--------|
 | Nginx | Proxy inverso y servidor HTTPS |
 | React Frontend | Interfaz de usuario |
-| Laravel API | Gestión de votaciones y autenticación |
+| Laravel API | Gestión de votaciones, partidos y autenticación |
 | Spring Boot | Cálculo electoral (Ley D’Hondt) |
 | MariaDB | Persistencia relacional |
 | Certbot | Gestión automática de certificados SSL |

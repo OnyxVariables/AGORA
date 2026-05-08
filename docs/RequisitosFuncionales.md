@@ -33,6 +33,7 @@ El sistema AGORA permite:
 - Cálculo automático de resultados electorales
 - Consulta pública de resultados
 - Monitoreo operativo de servicios críticos
+- Gestión administrativa de votaciones y partidos políticos
 - Auditoría completa del proceso
 - Administración del sistema por personal autorizado
 
@@ -84,6 +85,22 @@ El administrador debe poder:
 
 ### RF-07 Gestión de partidos políticos
 El sistema debe permitir la creación y gestión de partidos participantes.
+
+**Campos gestionados:**
+- Nombre
+- Código único
+- Descripción o programa electoral
+- Imagen
+- Color de fondo
+- Color de título
+- Estado activo/inactivo
+- Votaciones en las que el partido está habilitado
+
+**Restricciones:**
+- El código del partido debe ser único
+- La desactivación debe preservar votos y escaños históricos asociados al partido
+- Los ciudadanos solo deben ver partidos activos en las pantallas públicas
+- Si una votación tiene partidos asociados, solo esos partidos pueden recibir votos en esa votación
 
 ### RF-08 Supervisión del sistema
 El administrador debe poder consultar:
@@ -139,7 +156,7 @@ El sistema debe registrar acciones relevantes como:
 - Inicio de sesión
 - Emisión de voto
 - Cálculo de resultados
-- Operaciones administrativas
+- Operaciones administrativas sobre votaciones y partidos
 
 ### RF-17 Consulta de auditoría
 El administrador debe poder consultar los registros de auditoría.
@@ -150,6 +167,7 @@ El administrador debe poder consultar los registros de auditoría.
 - Un voto no puede eliminarse ni modificarse
 - Una votación cerrada no puede reabrirse
 - El cálculo electoral solo se ejecuta cuando la votación finaliza
+- Un partido con relaciones históricas no se elimina físicamente desde el panel; se desactiva
 
 
 ## 10. Trazabilidad de Requisitos

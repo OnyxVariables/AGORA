@@ -27,6 +27,7 @@ El diagrama de secuencia tiene como objetivos principales:
   - Emisión y cancelación del voto.
   - Registro del voto en la Blockchain.
   - Monitoreo de servicios operativos.
+  - Gestión del catálogo de partidos.
   - Gestión administrativa del sistema.
 - Servir como documentación técnica para:
   - Desarrollo backend y frontend.
@@ -97,6 +98,9 @@ sequenceDiagram
     Administrador->>+Sistema: CRUD votaciones
     Sistema-->>-Administrador: Operación completada
 
+    Administrador->>+Sistema: CRUD partidos
+    Sistema-->>-Administrador: Partido creado, actualizado o desactivado
+
     Administrador->>+Sistema: Visualizar métricas on-chain
 
     alt Administrador decide exportar datos <<extend>>
@@ -121,7 +125,7 @@ El flujo de interacción del **Ciudadano** se desarrolla de la siguiente manera:
 4. Una vez autenticado, el ciudadano puede:
    - Visualizar los programas electorales.
    - Ponerse un nickname para verificar posteriormente su voto con nickname + código.
-   - Votar a un partido política cuando haya una votación activa.
+   - Votar a un partido político cuando haya una votación activa.
    - Consultar los resultados cuando la votación haya finalizado o buscar por nickname + código para comprobar a quién fue dirigido su voto.
    - Salir y cerrar sesión.
 5. Si decide votar:
@@ -185,6 +189,7 @@ El flujo de interacción del **Administrador** es el siguiente:
 3. El sistema valida los permisos asociados al rol.
 4. Una vez autenticado, el administrador puede:
    - Consultar el estado de las votaciones, CRUD de votaciones.
+   - Gestionar partidos, incluyendo nombre, código, descripción, imagen, colores y estado activo.
    - Visualizar métricas almacenadas en la Blockchain.
    - Visualizar qué servicios están operativos desde la página de Monitoreo.
    - Salir y cerrar sesión.
@@ -203,6 +208,9 @@ sequenceDiagram
 
     Administrador->>+Sistema: CRUD votaciones
     Sistema-->>-Administrador: Operación completada
+
+    Administrador->>+Sistema: CRUD partidos
+    Sistema-->>-Administrador: Partido creado, actualizado o desactivado
 
     Administrador->>+Sistema: Visualizar métricas on-chain
 
@@ -228,6 +236,7 @@ El diagrama de secuencia está directamente relacionado con los casos de uso def
 - **Cancelar voto**
 - **Ver resultados**
 - **Gestionar votaciones**
+- **Gestionar partidos**
 - **Consultar métricas**
 - **Visualizar servicios operativos**
 - **Exportar métricas**

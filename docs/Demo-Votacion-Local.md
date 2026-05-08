@@ -24,7 +24,7 @@ Antes de nada, confirma cada punto:
 | 2 | `APP_ENV=local` en el `.env` del backend | Obligatorio para `demo:seed-citizens` y `demo:cast-votes`. Si usas `production`, los comandos **no** se ejecutan. |
 | 3 | Base de datos cargada con al menos un **municipio** | `demo:seed-citizens` necesita un `municipalityId` válido (por defecto toma el primero de la tabla). |
 | 4 | Votación creada y **votable** por ciudadanos | Ver [sección 8](#8-criterios-que-debe-cumplir-la-votación). |
-| 5 | Partidos en BD con `active = true` (si vas a votar) | Necesario para reparto automático de partidos o para `--party=`. |
+| 5 | Partidos en BD con `active = true` (si vas a votar) | Necesario para reparto automático de partidos o para `--party=`. Si la votación tiene asignaciones en `votation_party`, los partidos también deben estar habilitados para esa votación. |
 | 6 | Para votos reales (no `--dry-run`) | Blockchain accesible: `BESU_RPC_URL`, `SIMPLE_VOTING_ADDRESS`, `BLOCKCHAIN_ADMIN_ADDRESS` correctos en `.env`. |
 | 7 | PHP y Composer instalados donde ejecutas Artisan | Comandos: `php artisan demo:...`. |
 | 8 | Script Python (opcional) | Python 3.10+ y `pip install requests eth-hash`. |
@@ -130,7 +130,7 @@ php artisan demo:cast-votes {votationId} [--party=ID] [--dry-run]
 ### Requisitos para que el comando no falle al inicio
 1. `APP_ENV=local`.
 2. La votación existe y cumple el scope `votableForCitizens` (ver [sección 8](#8-criterios-que-debe-cumplir-la-votación)).
-3. Hay al menos un partido válido: o bien activos en BD, o los que pasas en `--party`.
+3. Hay al menos un partido válido: o bien activos en BD, o los que pasas en `--party`. Si la votación tiene partidos asociados, solo se aceptan esos partidos.
 4. Existe al menos un usuario con `roleId = 2`, `isActive = true` y `nicknamePassword LIKE 'agora_demo_%'`.
 5. Sin `--dry-run`: la blockchain responde correctamente al chequeo de conexión.
 

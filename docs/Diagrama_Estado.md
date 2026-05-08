@@ -20,7 +20,7 @@ Mientras que los diagramas de secuencia representan **la interacción temporal**
 - Representar **transiciones críticas** como:
   - Inicio y cierre de sesión.
   - Emisión y cancelación de votos.
-  - Gestión CRUD, monitoreo de servicios y exportación de métricas.
+  - Gestión CRUD de votaciones y partidos, monitoreo de servicios y exportación de métricas.
 - Garantizar la **coherencia del flujo** y la trazabilidad de las acciones.
 - Facilitar la comprensión de los procesos para desarrolladores y auditores.
 
@@ -55,6 +55,7 @@ stateDiagram
   Inactivo --> Autenticación_Admin:Administrador inicia sesión
   Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
+  Admin_Activo --> CRUD_Partidos:CRUD partidos
   Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
   Admin_Activo --> Visualizar_Servicios_Operativos:Visualizar servicios operativos
   Visualizar_Métricas --> Exportar_Datos:Exportar datos
@@ -107,6 +108,7 @@ stateDiagram
 3. Certificado válido → **Admin_Activo**.  
 4. Acciones disponibles en **Admin_Activo**:
    - `CRUD_Votaciones` → gestión de votaciones (crear, leer, actualizar, eliminar).  
+   - `CRUD_Partidos` → gestión de partidos (crear, leer, actualizar y desactivar).
    - `Visualizar_Metricas` → consulta de métricas on-chain.
    - `Visualizar_Servicios_Operativos` → consulta del estado de Laravel, MariaDB, Blockchain RPC, Spring Boot, WebSocket y cluster Besu/Kubernetes.
    - `Exportar_Datos` → flujo opcional de exportación de métricas.  
@@ -122,6 +124,7 @@ stateDiagram
   Inactivo --> Autenticación_Admin:Administrador inicia sesión
   Autenticación_Admin --> Admin_Activo:Certificado válido
   Admin_Activo --> CRUD_Votaciones:CRUD votaciones
+  Admin_Activo --> CRUD_Partidos:CRUD partidos
   Admin_Activo --> Visualizar_Métricas:Visualizar métricas on-chain
   Admin_Activo --> Visualizar_Servicios_Operativos:Visualizar servicios operativos
   Visualizar_Métricas --> Exportar_Datos:Exportar datos
@@ -137,6 +140,7 @@ stateDiagram
   - Votar / Enviar voto / Cancelar voto  
   - Ver resultados  
   - CRUD votaciones  
+  - CRUD partidos
   - Visualizar servicios operativos
   - Visualizar métricas / Exportar datos  
 
