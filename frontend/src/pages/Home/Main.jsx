@@ -1,10 +1,12 @@
 import Particles from "../../components/Particles/Particles";
+import Tooltip from "../../components/Tooltip/Tooltip";
 import Partido from "./Partido";
 import "./Main.css";
-import { useParties } from "../../data/partidos";
+import { usePartiesCatalog } from "../../data/partidos";
 
 function Main() {
-  const { partidos, loading } = useParties();
+  const { partidos, loading } = usePartiesCatalog();
+
   return (
     <main className="main-partidos parties-list">
       {/* FONDO PARTICLES */}
@@ -29,19 +31,26 @@ function Main() {
         />
       </div>
 
-      {!loading && partidos.map((p) => (
-        <Partido
-          key={p.id}
-          nombre={p.nombre}
-          descripcion={p.descripcion}
-          img={p.imagen}
-          estilos={{
-            fondo: p.colores.fondo,
-            titulo: p.colores.titulo,
-          }}
-        />
-      ))}
+      {loading && <p className="parties-list__status">Cargando partidos…</p>}
 
+      {!loading && partidos.length === 0 && (
+        <p className="parties-list__status">No hay partidos registrados.</p>
+      )}
+
+      {!loading &&
+        partidos.map((p) => (
+          <Partido
+            key={p.id}
+            nombre={p.nombre}
+            descripcion={p.descripcion}
+            img={p.imagen}
+            estilos={{
+              fondo: p.colores.fondo,
+              titulo: p.colores.titulo,
+            }}
+            inactive={!p.active}
+          />
+        ))}
     </main>
   );
 }
