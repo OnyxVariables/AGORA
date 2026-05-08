@@ -8,7 +8,12 @@ import {
   ButtonDelete,
 } from "../../components/Button/Button";
 import { formatDate } from "../../utils/date";
-import { popupError, toastSuccess, toastTiny } from "../../services/alerts";
+import {
+  popupDeleteConfirm,
+  popupError,
+  toastSuccess,
+  toastTiny,
+} from "../../services/alerts";
 import { getXsrfToken } from "../../services/xsrf";
 import { API_CONFIG } from "../../config/api";
 
@@ -138,9 +143,16 @@ export default function App() {
       .catch((err) => console.error(err));
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("¿Eliminar esta votación?")) return;
+  const handleDelete = async (votation) => {
+    const confirmed = await popupDeleteConfirm({
+      entityType: "votación",
+      entityName: votation?.title,
+      warning:
+        "Esta acción no se puede deshacer. Solo se eliminan votaciones en estado 'pending'",
+    });
+    if (!confirmed) return;
 
+    const id = votation.id;
     const xsrfToken = await getXsrfToken();
     if (!xsrfToken) {
       popupError("No se pudo eliminar la votación");
@@ -251,7 +263,7 @@ export default function App() {
           />
           <ButtonDelete
             disabled={votation.state === "active" || votation.state === "finished" || votation.state === "cancelled"}
-            onClick={() => handleDelete(votation.id)}
+            onClick={() => handleDelete(votation)}
           />
         </div>
       ),
