@@ -10,6 +10,7 @@ import Votar from "./pages/Votar/Votar";
 import Resultados from "./pages/Resultados/Resultados";
 import Error404 from "./pages/error404/error404";
 import CRUDVotations from "./pages/CRUDVotations/CRUDVotations";
+import CRUDParties from "./pages/CRUDParties/CRUDParties";
 import Metrics from "./pages/Metrics/Metrics";
 import Monitor from "./pages/Monitor/Monitor";
 
@@ -40,6 +41,7 @@ function App() {
             {/* Rutas admin */}
             <Route element={<PrivateRoute roleRequired={1} />}>
               <Route path="/CRUDVotations" element={<CRUDVotations />} />
+              <Route path="/crudparties" element={<CRUDParties />} />
               <Route path="/metrics" element={<Metrics />} />
               <Route path="/admin/monitor" element={<Monitor />} />
             </Route>
