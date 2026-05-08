@@ -8,6 +8,7 @@ import {
   CRUDVotationIcon,
   ExportIcon,
   MonitorIcon,
+  PartyIcon,
 } from "../icons";
 
 //Logica que controla la navegacion / botones / svg
@@ -42,20 +43,30 @@ export const NAV_ITEMS = {
 
   crudvotations: [
     { to: "/metrics", label: "MÉTRICAS", icon: MetricsIcon },
+    { to: "/crudparties", label: "PARTIDOS", icon: PartyIcon },
     { to: "/admin/monitor", label: "MONITOR", icon: MonitorIcon },
     { to: "#", label: "SALIR", icon: LogoutIcon },
   ],
 
   metrics: [
     { to: "/metrics", label: "EXPORTAR", icon: ExportIcon },
-    { to: "/crudvotations", label: "CRUDVOTACIONES", icon: CRUDVotationIcon },
+    { to: "/crudvotations", label: "VOTACIONES", icon: CRUDVotationIcon },
+    { to: "/crudparties", label: "PARTIDOS", icon: PartyIcon },
     { to: "/admin/monitor", label: "MONITOR", icon: MonitorIcon },
     { to: "#", label: "SALIR", icon: LogoutIcon },
   ],
 
   monitor: [
     { to: "/metrics", label: "MÉTRICAS", icon: MetricsIcon },
-    { to: "/crudvotations", label: "CRUDVOTACIONES", icon: CRUDVotationIcon },
+    { to: "/crudvotations", label: "VOTACIONES", icon: CRUDVotationIcon },
+    { to: "/crudparties", label: "PARTIDOS", icon: PartyIcon },
+    { to: "#", label: "SALIR", icon: LogoutIcon },
+  ],
+
+  crudparties: [
+    { to: "/metrics", label: "MÉTRICAS", icon: MetricsIcon },
+    { to: "/crudvotations", label: "VOTACIONES", icon: CRUDVotationIcon },
+    { to: "/admin/monitor", label: "MONITOR", icon: MonitorIcon },
     { to: "#", label: "SALIR", icon: LogoutIcon },
   ],
 };
