@@ -15,6 +15,18 @@
     margin-top: 9.5em;
 }
 
+.voting-page__empty {
+    width: 90%;
+    margin: 9.5em auto 1em;
+    padding: 1rem;
+    border: 3px solid var(--color-border-dark);
+    border-radius: var(--radius-md);
+    background: var(--color-text-light);
+    color: var(--color-brand-mid);
+    font-weight: 700;
+    text-align: center;
+}
+
 /* TARJETA BASE */
 .vote-card,
 .card {
