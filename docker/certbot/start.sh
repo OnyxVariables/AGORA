@@ -2,18 +2,35 @@
 
 # LE debe poder hacer HTTP-01 a la IP pública:80. Si certbot arranca antes que nginx,
 # falla con "connection refused" (común en docker compose up paralelo).
+# Comprueba TCP 80 al contenedor nginx (Compose DNS: nombre del servicio y container_name).
+probe_port80() {
+    host="$1"
+    if command -v curl >/dev/null 2>&1; then
+        curl -4sf --max-time 3 "http://${host}:80/" >/dev/null 2>&1 && return 0
+    fi
+    if command -v wget >/dev/null 2>&1; then
+        wget -q -T 3 -O /dev/null "http://${host}:80/" 2>/dev/null && return 0
+    fi
+    return 1
+}
+
 wait_for_nginx_http() {
-    echo "Esperando a nginx (servicio server) en el puerto 80..."
+    echo "Esperando a nginx en la red Docker (puerto 80)..."
     i=0
     while [ "$i" -lt 90 ]; do
-        if curl -sf --max-time 2 "http://server:80/" >/dev/null 2>&1; then
-            echo "Nginx responde en http://server:80 — listo para ACME."
-            return 0
+        for host in server agora_server; do
+            if probe_port80 "$host"; then
+                echo "OK: nginx responde en http://${host}:80 — listo para ACME."
+                return 0
+            fi
+        done
+        if [ "$i" -eq 0 ]; then
+            echo "(Si esto tarda: mismo proyecto compose + red agora; imagen con curl tras rebuild.)"
         fi
         i=$((i + 1))
         sleep 2
     done
-    echo "WARN: nginx no respondió en 3 min; certbot puede fallar. Revisa agora_server."
+    echo "WARN: nginx no respondió en 3 min en server/agora_server:80."
     return 0
 }
 
