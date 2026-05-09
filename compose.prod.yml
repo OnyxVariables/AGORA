@@ -54,7 +54,8 @@ services:
     environment:
       # https://stackoverflow.com/a/64418443
       SESSION_DOMAIN: ${SESSION_DOMAIN}
-      SANCTUM_STATEFUL_DOMAINS: ${SESSION_DOMAIN},${SESSION_DOMAIN_AUTH}
+      # Hosts reales (sin punto inicial). No uses SESSION_DOMAIN aquí: Sanctum compara el header Host.
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-agorachain.es,www.agorachain.es,auth.agorachain.es}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_CONNECTION: ${DB_CONNECTION}
@@ -66,6 +67,8 @@ services:
       SIMPLE_VOTING_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
       WEB3_PROVIDER_URL: ${WEB3_PROVIDER_URL}
       BLOCKCHAIN_EXPECTED_CLIENT: ${BLOCKCHAIN_EXPECTED_CLIENT:-}
+      # CORS: login-cert en auth.* desde SPA en www o apex (lista separada por comas).
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-}
     volumes:
       - backend_data:/var/www/html
     networks:
@@ -82,7 +85,8 @@ services:
       dockerfile: ./docker/php/Dockerfile
     environment:
       SESSION_DOMAIN: ${SESSION_DOMAIN}
-      SANCTUM_STATEFUL_DOMAINS: ${SESSION_DOMAIN},${SESSION_DOMAIN_AUTH}
+      # Hosts reales (sin punto inicial). No uses SESSION_DOMAIN aquí: Sanctum compara el header Host.
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-agorachain.es,www.agorachain.es,auth.agorachain.es}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_CONNECTION: ${DB_CONNECTION}

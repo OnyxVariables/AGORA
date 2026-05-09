@@ -10,25 +10,58 @@ use Illuminate\Support\Facades\Log;
 
 class BlockchainService
 {
-    private $web3;
-    private $simpleVoting;
+    private ?Web3 $web3 = null;
 
-    public function __construct()
+    private ?Contract $simpleVoting = null;
+
+    // RPC siempre disponible sin artefacto ABI (útil para salud / blockNumber)
+    private function getWeb3(): Web3
     {
+        if ($this->web3 !== null) {
+            return $this->web3;
+        }
+
         $rpc = env('BESU_RPC_URL', 'http://localhost:8545');
-        // Timeout de 5 segundos para requests HTTP
         $provider = new HttpProvider($rpc, 5);
         $this->web3 = new Web3($provider);
 
-        $abiJson = json_decode(file_get_contents(storage_path('app/SimpleVoting.json')));
-        $this->simpleVoting = new Contract($this->web3->provider, $abiJson->abi);
+        return $this->web3;
+    }
+
+    /**
+     * Contrato SimpleVoting: requiere ABI en disco y SIMPLE_VOTING_ADDRESS.
+     * Ruta por defecto: storage/app/SimpleVoting.json (copiar artefacto Hardhat).
+     */
+    private function getContract(): Contract
+    {
+        if ($this->simpleVoting !== null) {
+            return $this->simpleVoting;
+        }
+
+        $path = env('SIMPLE_VOTING_ABI_PATH', storage_path('app/SimpleVoting.json'));
+        if (!is_readable($path)) {
+            throw new \RuntimeException(
+                "ABI del contrato no encontrado: {$path}. "
+                .'Copie blockchain/artifacts/.../SimpleVoting.json tras `npx hardhat compile` '
+                .'o defina SIMPLE_VOTING_ABI_PATH.',
+            );
+        }
+
+        $abiJson = json_decode(file_get_contents($path));
+        if ($abiJson === null || !isset($abiJson->abi)) {
+            throw new \RuntimeException("ABI inválido o vacío: {$path}");
+        }
+
+        $this->simpleVoting = new Contract($this->getWeb3()->provider, $abiJson->abi);
 
         $contractAddress = env('SIMPLE_VOTING_ADDRESS');
         if (!$contractAddress) {
-            throw new \Exception("SIMPLE_VOTING_ADDRESS no configurado");
+            throw new \RuntimeException('SIMPLE_VOTING_ADDRESS no configurado');
         }
 
         $this->simpleVoting->at($contractAddress);
+
+        return $this->simpleVoting;
     }
 
     // Obtengo dirección admin obligatoria
@@ -59,7 +92,7 @@ class BlockchainService
             $completed = true;
         };
 
-        $this->web3->eth->getBlockByHash($blockHash, false, $callback);
+        $this->getWeb3()->eth->getBlockByHash($blockHash, false, $callback);
 
         $waitStart = time();
         while (!$completed && (time() - $waitStart) < 5) {
@@ -100,7 +133,7 @@ class BlockchainService
             $callbackResult = null;
 
             try {
-                $this->web3->eth->getTransactionReceipt($txHash, function ($err, $r) use (&$callbackCompleted, &$callbackError, &$callbackResult) {
+                $this->getWeb3()->eth->getTransactionReceipt($txHash, function ($err, $r) use (&$callbackCompleted, &$callbackError, &$callbackResult) {
                     if ($err !== null) {
                         $callbackError = $err;
                     } else {
@@ -170,7 +203,7 @@ class BlockchainService
 
                 // Preparar argumentos: método, params individuales, opciones, callback
                 $args = array_merge([$method], $params, [['from' => $from, 'gas' => '0x' . dechex($gas)], $callback]);
-                call_user_func_array([$this->simpleVoting, 'send'], $args);
+                call_user_func_array([$this->getContract(), 'send'], $args);
 
                 // Esperar a que el callback se ejecute (max 10 segundos)
                 $waitStart = time();
@@ -381,7 +414,7 @@ class BlockchainService
             $rpcError = null;
             $completed = false;
 
-            $this->web3->eth->blockNumber(function ($err, $bn) use (&$blockNumber, &$rpcError, &$completed) {
+            $this->getWeb3()->eth->blockNumber(function ($err, $bn) use (&$blockNumber, &$rpcError, &$completed) {
                 if ($err !== null) {
                     $rpcError = $err;
                 } elseif ($bn !== null) {
@@ -450,7 +483,7 @@ class BlockchainService
         $completed = false;
 
         try {
-            $this->web3->clientVersion(function ($err, $result) use (&$version, &$completed) {
+            $this->getWeb3()->clientVersion(function ($err, $result) use (&$version, &$completed) {
                 if ($err === null && $result !== null) {
                     $version = is_string($result) ? $result : (string) $result;
                 }

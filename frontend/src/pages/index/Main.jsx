@@ -15,6 +15,10 @@ export default function Main() {
       const res = await fetch(AUTH_CONFIG.endpoints.CERTIFICATE, {
         method: "GET",
         credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
       });
 
       //Error respuesta mala

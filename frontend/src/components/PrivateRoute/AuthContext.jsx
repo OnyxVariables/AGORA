@@ -33,20 +33,29 @@ export const AuthProvider = ({ children }) => {
           },
         );
         if (cancelled) return;
-        const ct = res.headers.get("content-type") || "";
-        if (!ct.includes("application/json")) {
+        const raw = await res.text();
+        if (cancelled) return;
+        // Evita SyntaxError si nginx/Laravel devuelve HTML (500, SPA fallback, redirect).
+        if (raw.trimStart().startsWith("<")) {
           console.debug(
-            "Sesión: respuesta no JSON (¿redirect login?). Status:",
+            "Sesión: respuesta HTML en lugar de JSON. Revisar nginx /api y logs Laravel. Status:",
             res.status,
           );
           return;
         }
-        if (res.ok) {
-          const data = await res.json();
-          const rid = data.roleId;
-          if (rid === 1 || rid === 2) {
-            setUserRole(Number(rid));
-          }
+        if (!res.ok) {
+          return;
+        }
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          console.debug("No se pudo restaurar sesión:", e);
+          return;
+        }
+        const rid = data.roleId;
+        if (rid === 1 || rid === 2) {
+          setUserRole(Number(rid));
         }
       } catch (e) {
         console.debug("No se pudo restaurar sesión:", e);
