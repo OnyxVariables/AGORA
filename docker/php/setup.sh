@@ -46,7 +46,9 @@ if [ ! -f .env ] || ! grep -qE '^APP_KEY=base64:[A-Za-z0-9+/]{40,}={0,2}$' .env 
   echo "APP_KEY generated successfully"
 fi
 
-php artisan migrate
+# php artisan migrate
+# In production, migrations require --force to avoid interactive confirmation.
+php artisan migrate --force --no-interaction
 
 # To optimize Laravel
 php artisan config:clear

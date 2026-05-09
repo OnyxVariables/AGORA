@@ -4,6 +4,9 @@ WORKDIR /agora
 
 COPY ./frontend/package*.json ./
 
+# Keep Cypress as a dev dependency for local tests, but skip downloading its heavy binary in image builds.
+ENV CYPRESS_INSTALL_BINARY=0
+
 # Force install esbuild for alpine/linux platform
 RUN npm install && npm rebuild esbuild --platform=linux --arch=x64 --force
 

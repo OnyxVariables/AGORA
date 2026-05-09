@@ -1,8 +1,21 @@
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
+/**
+ * Base URL para Laravel API.
+ * - Vacío → rutas relativas (`/api/...`): mismo host/puerto/protocolo que la SPA (recomendado en prod detrás de nginx).
+ * - URL absoluta solo si la API está en otro origen (entonces definir VITE_API_URL en el build).
+ */
+function resolveApiBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL;
+  if (typeof raw === "string") {
+    const t = raw.trim();
+    if (t !== "" && t !== "undefined") {
+      return t.replace(/\/$/, "");
+    }
+  }
+  return "";
+}
 
 export const API_CONFIG = {
-  baseURL: API_BASE_URL,
+  baseURL: resolveApiBaseUrl(),
   endpoints: {
     LOGIN: '/api/login-cert',
     LOGOUT: '/api/logout',
