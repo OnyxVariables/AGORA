@@ -8,23 +8,12 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * No crear la tabla Laravel `users`: AGORA usa la tabla `user` (seed SQL en docker/mariadb).
+     * Crear `users` aquí provoca 1050 si ya existe por intentos previos o por otro dump.
      */
     public function up(): void
     {
-        // Bases ya pobladas o restauradas sin filas en `migrations`: evita 1050 "already exists"
-        // y permite crear sobre todo `sessions` si SESSION_DRIVER=database (sin tabla → 500 en login).
-        if (! Schema::hasTable('users')) {
-            Schema::create('users', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('email')->unique();
-                $table->timestamp('email_verified_at')->nullable();
-                $table->string('password');
-                $table->rememberToken();
-                $table->timestamps();
-            });
-        }
-
         if (! Schema::hasTable('password_reset_tokens')) {
             Schema::create('password_reset_tokens', function (Blueprint $table) {
                 $table->string('email')->primary();
@@ -51,7 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
