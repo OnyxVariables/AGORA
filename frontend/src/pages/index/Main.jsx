@@ -11,12 +11,10 @@ export default function Main() {
 
   const handleLogin = async () => {
     try {
+      // FIX: Content-Type en GET: fuerza preflight CORS y suele romper cross-origin (agorachain.es → auth.agorachain.es).
       const res = await fetch(AUTH_CONFIG.endpoints.CERTIFICATE, {
         method: "GET",
-        credentials: "include", // para sesion
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
       });
 
       //Error respuesta mala
@@ -43,6 +41,7 @@ export default function Main() {
       // Redirigo según rol
       role === 1 ? navigate("/CRUDVotations") : navigate("/Home");
     } catch (err) {
+      console.error("login-cert:", err);
       popupError("Servicio no disponible");
     }
   };
