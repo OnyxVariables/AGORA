@@ -24,9 +24,23 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await fetch(
           `${API_CONFIG.baseURL}${API_CONFIG.endpoints.ME}`,
-          { credentials: "include" },
+          {
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+            },
+          },
         );
         if (cancelled) return;
+        const ct = res.headers.get("content-type") || "";
+        if (!ct.includes("application/json")) {
+          console.debug(
+            "Sesión: respuesta no JSON (¿redirect login?). Status:",
+            res.status,
+          );
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           const rid = data.roleId;
