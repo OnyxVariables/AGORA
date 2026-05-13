@@ -25,6 +25,6 @@ if (window.location.hostname === "localhost" && !import.meta.env.VITE_AUTH_URL?.
 export const AUTH_CONFIG = {
   baseURL: AUTH_BASE_URL,
   endpoints: {
-    CERTIFICATE: `${AUTH_BASE_URL}/api/login-cert`,
+    CERTIFICATE: `${AUTH_BASE_URL}/cert`,
   },
 };
