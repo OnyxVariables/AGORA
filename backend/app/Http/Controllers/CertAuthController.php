@@ -13,7 +13,7 @@ class CertAuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         // Para AWS
-        // if (env('CERT_AUTH') === 'true') {
+        if (env('CERT_AUTH') === 'true') {
 
             $sslVerified = $request->server('SSL_CLIENT_VERIFY') ?? $request->header('X-SSL-Verified');
             $dn = $request->server('SSL_CLIENT_S_DN') ?? $request->header('X-SSL-Client-S-DN');
@@ -43,12 +43,12 @@ class CertAuthController extends Controller
 
             $dni = strtoupper(trim($dni));
 
-        // } else {
-        //     // DESARROLLO LOCAL: usa un dni de pruebas
-        //     //$dni = '60840966D'; // citizen
-        //     $dni = '38660052L'; // admin
-        //     Log::info('CertAuth: modo desarrollo. DNI usado', ['dni' => $dni]);
-        // }
+        } else {
+            // DESARROLLO LOCAL: usa un dni de pruebas
+            //$dni = '60840966D'; // citizen
+            $dni = '38660052L'; // admin
+            Log::info('CertAuth: modo desarrollo. DNI usado', ['dni' => $dni]);
+        }
 
        
         $user = User::whereRaw('UPPER(dni) = ?', [strtoupper($dni)])

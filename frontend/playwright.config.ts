@@ -1,0 +1,24 @@
+import { defineConfig, devices } from "@playwright/test";
+
+/**
+ * E2E contra Vite (`npm run dev`). Arranca backend Laravel y frontend antes de ejecutar.
+ * @see docs/Test_Plan_Manual.md
+ */
+export default defineConfig({
+  testDir: "./tests/e2e",
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: process.env.CI ? "github" : "list",
+  use: {
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173",
+    trace: "on-first-retry",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+});
