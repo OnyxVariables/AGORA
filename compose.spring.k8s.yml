@@ -1,0 +1,14 @@
+# Extensión opcional: montar el kubeconfig del cluster K3s dentro del contenedor Spring.
+# Necesario si KUBERNETES_ENABLED=true en .env.spring (página /monitor → nodos Besu).
+#
+# Preparación en la VM Spring:
+#   mkdir -p kube
+#   scp usuario@MASTER:/etc/rancher/k3s/k3s.yaml kube/config
+#   # Editar kube/config: sustituir 127.0.0.1:6443 por la IP privada del master (o la que use el API server).
+#
+# Arranque:
+#   docker compose -f compose.spring.yml -f compose.spring.k8s.yml --env-file .env.spring up -d --build
+services:
+  springboot:
+    volumes:
+      - ./kube/config:/root/.kube/config:ro

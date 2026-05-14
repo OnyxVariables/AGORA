@@ -1,3 +1,5 @@
+# Producción AGORA: PHP/Laravel, MariaDB, nginx, frontend. Spring Boot va en compose.spring.yml
+# (ver docs/ManualDespliegueAWS.md y .env.prod.example).
 services:
   db:
     container_name: agora_db
@@ -13,6 +15,9 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
       - agora
+    ports:
+      # Necesario si Spring Boot corre en otra VM (misma VPC / SG). Quitar o restringir si todo va en un solo host.
+      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     restart: unless-stopped
@@ -49,13 +54,21 @@ services:
     environment:
       # https://stackoverflow.com/a/64418443
       SESSION_DOMAIN: ${SESSION_DOMAIN}
-      SANCTUM_STATEFUL_DOMAINS: ${SESSION_DOMAIN},${SESSION_DOMAIN_AUTH}
+      # Hosts reales (sin punto inicial). No uses SESSION_DOMAIN aquí: Sanctum compara el header Host.
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-agorachain.es,www.agorachain.es,auth.agorachain.es}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_CONNECTION: ${DB_CONNECTION}
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      BESU_RPC_URL: ${BESU_RPC_URL}
+      BLOCKCHAIN_ADMIN_ADDRESS: ${BLOCKCHAIN_ADMIN_ADDRESS}
+      SIMPLE_VOTING_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
+      WEB3_PROVIDER_URL: ${WEB3_PROVIDER_URL}
+      BLOCKCHAIN_EXPECTED_CLIENT: ${BLOCKCHAIN_EXPECTED_CLIENT:-}
+      # CORS: login-cert en auth.* desde SPA en www o apex (lista separada por comas).
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-}
     volumes:
       - backend_data:/var/www/html
     networks:
@@ -72,21 +85,24 @@ services:
       dockerfile: ./docker/php/Dockerfile
     environment:
       SESSION_DOMAIN: ${SESSION_DOMAIN}
-      SANCTUM_STATEFUL_DOMAINS: ${SESSION_DOMAIN},${SESSION_DOMAIN_AUTH}
+      # Hosts reales (sin punto inicial). No uses SESSION_DOMAIN aquí: Sanctum compara el header Host.
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-agorachain.es,www.agorachain.es,auth.agorachain.es}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_CONNECTION: ${DB_CONNECTION}
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      BESU_RPC_URL: ${BESU_RPC_URL}
+      BLOCKCHAIN_ADMIN_ADDRESS: ${BLOCKCHAIN_ADMIN_ADDRESS}
+      SIMPLE_VOTING_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
+      WEB3_PROVIDER_URL: ${WEB3_PROVIDER_URL}
     volumes:
       - backend_data:/var/www/html
     networks:
       - agora
     depends_on:
       db:
-        condition: service_healthy
-      hardhat:
         condition: service_healthy
     restart: unless-stopped
     command: ["php", "artisan", "schedule:work"]
@@ -96,6 +112,12 @@ services:
     build:
       context: ./
       dockerfile: ./docker/node/Dockerfile
+      args:
+        VITE_AUTH_URL: ${VITE_AUTH_URL:-}
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_SPRING_HTTP_URL: ${VITE_SPRING_HTTP_URL:-}
+        VITE_SPRING_WS_URL: ${VITE_SPRING_WS_URL:-}
+        VITE_VOTATIONS_ADMIN_TOKEN: ${VITE_VOTATIONS_ADMIN_TOKEN:-}
     networks:
       - agora
     volumes:
@@ -108,8 +130,14 @@ services:
     build:
       context: ./
       dockerfile: ./docker/nginx/Dockerfile
+    environment:
+      SPRING_PRIVATE_IP: ${SPRING_PRIVATE_IP:-127.0.0.1}
+    # Compatibilidad: compose antiguos no aceptan depends_on.condition. Para forzar dist fresco tras cambios:
+    #   docker compose -f compose.prod.yml --env-file .env run --rm frontend
+    #   docker compose -f compose.prod.yml --env-file .env up -d server
     depends_on:
       - backend
+      - frontend
     ports:
       - "80:80"
       - "443:443"
@@ -124,6 +152,32 @@ services:
       - agora
     restart: unless-stopped
 
+  springboot:
+    container_name: agora_springboot
+    build:
+      context: ./
+      dockerfile: ./docker/springboot/Dockerfile
+    env_file:
+      - ./.env.spring
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:${DB_CONNECTION}://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: "false"
+      WEB3J_CLIENT_URL: ${BESU_RPC_URL}
+      WEB3J_CONTRACT_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      SERVER_PORT: ${SPRING_PORT}
+      SPRING_MAIN_LAZY_INITIALIZATION: "true"
+      VOTATIONS_ADMIN_TOKEN: ${VOTATIONS_ADMIN_TOKEN:-}
+      KUBERNETES_ENABLED: ${KUBERNETES_ENABLED:-false}
+      KUBERNETES_NAMESPACE: ${KUBERNETES_NAMESPACE:-besu}
+      WEBSOCKET_ALLOWED_ORIGIN_PATTERNS: ${WEBSOCKET_ALLOWED_ORIGIN_PATTERNS:-https://agorachain.es,https://www.agorachain.es}
+    ports:
+      - "${SPRING_PORT}:${SPRING_PORT}"
+    restart: unless-stopped
+
   certbot:
     container_name: agora_certbot
     build:
@@ -131,29 +185,8 @@ services:
     volumes:
       - certbot_data:/var/www/certbot
       - letsencrypt_data:/etc/letsencrypt
-    restart: unless-stopped
-
-  springboot:
-    container_name: agora_springboot
-    build:
-      context: ./
-      dockerfile: ./docker/springboot/Dockerfile
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:${DB_CONNECTION}://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      SPRING_JPA_SHOW_SQL: "false"
-      WEB3J_CLIENT_URL: ${BESU_RPC_URL:-http://hardhat:8545}
-      WEB3J_CONTRACT_ADDRESS: ${SIMPLE_VOTING_ADDRESS:-}
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
-      SERVER_PORT: ${SPRING_PORT}
-      SPRING_MAIN_LAZY_INITIALIZATION: true
     depends_on:
-      db:
-        condition: service_healthy
-      hardhat:
-        condition: service_healthy
+      - server
     networks:
       - agora
     restart: unless-stopped

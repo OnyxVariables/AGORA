@@ -25,11 +25,4 @@ export default defineConfig({
   build: {
     outDir: 'dist'
   },
-
-  define: {
-    'process.env': {
-      VITE_API_URL: JSON.stringify(process.env.VITE_API_URL),
-      VITE_AUTH_URL: JSON.stringify(process.env.VITE_AUTH_URL),
-    }
-  }
 })

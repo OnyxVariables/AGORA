@@ -1,3 +1,9 @@
+# Upstream Spring Boot (VM dedicada). @@SPRING_PRIVATE_IP@@ se sustituye en start.sh (SPRING_PRIVATE_IP).
+upstream spring_votations {
+    server @@SPRING_PRIVATE_IP@@:8081;
+    keepalive 8;
+}
+
 server {
     listen 443 ssl;
     server_name agorachain.es www.agorachain.es;
@@ -15,26 +21,39 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    location /api/ {
-        alias /var/www/html/public/;
-        index index.php;
-
-        try_files $uri $uri/ @laravel;
-
-        location ~ \.php$ {
-            fastcgi_pass backend:9000;
-            fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
-            include fastcgi_params;
-
-            fastcgi_param HTTPS on;
-            fastcgi_param REQUEST_URI $request_uri;
-        }
+    # Spring Boot en otra máquina: mismo origen HTTPS para evitar mixed content en el navegador.
+    location ^~ /ws {
+        proxy_pass http://spring_votations;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
     }
 
-    location @laravel {
+    location ^~ /api/admin/cluster {
+        proxy_pass http://spring_votations;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location ^~ /actuator/ {
+        proxy_pass http://spring_votations;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # Todo /api/* al front controller (alias+try_files rompe rutas tipo /api/me → 502).
+    location ^~ /api/ {
         fastcgi_pass backend:9000;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
+        fastcgi_param DOCUMENT_ROOT /var/www/html/public;
         fastcgi_param HTTPS on;
         fastcgi_param REQUEST_URI $request_uri;
     }
@@ -51,6 +70,22 @@ server {
     ssl_client_certificate /etc/nginx/certs/fnmt-chain.pem;
     ssl_verify_client optional;
     ssl_verify_depth 2;
+
+    # Laravel API en este host: el navegador presenta el certificado cliente aquí (ssl_verify_*).
+    # Sin este bloque, /api/* caía en "location /" → 204 y el botón INGRESAR fallaba.
+    location ^~ /api/ {
+        fastcgi_pass backend:9000;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
+        fastcgi_param DOCUMENT_ROOT /var/www/html/public;
+        fastcgi_param HTTPS on;
+        fastcgi_param REQUEST_URI $request_uri;
+
+        fastcgi_param SSL_CLIENT_VERIFY   $ssl_client_verify;
+        fastcgi_param SSL_CLIENT_S_DN     $ssl_client_s_dn;
+        fastcgi_param SSL_CLIENT_SERIAL   $ssl_client_serial;
+        fastcgi_param SSL_CLIENT_CERT     $ssl_client_escaped_cert;
+    }
 
     location /cert {
         add_header 'Access-Control-Allow-Origin' 'https://agorachain.es' always;

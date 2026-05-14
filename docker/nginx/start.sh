@@ -29,7 +29,8 @@ while :; do
     if [ ! -f "$SSL_DEST" ]; then
       echo "Certificados detectados. Aplicando configuración SSL..."
       if [ -f "$SSL_TEMPLATE_SRC" ]; then
-        cp "$SSL_TEMPLATE_SRC" "$SSL_DEST"
+        SPRING_IP="${SPRING_PRIVATE_IP:-127.0.0.1}"
+        sed "s/@@SPRING_PRIVATE_IP@@/${SPRING_IP}/g" "$SSL_TEMPLATE_SRC" > "$SSL_DEST"
       else
         echo "Plantilla SSL no encontrada en $SSL_TEMPLATE_SRC"
       fi
