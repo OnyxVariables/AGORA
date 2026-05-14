@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getXsrfToken } from "../../services/xsrf";
 import { popupError, toastSuccess } from "../../services/alerts";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_CONFIG } from "../../config/api";
+import { AUTH_DISABLED, resolveRoleFromPathname } from "../../config/runtime";
 
 const AuthContext = createContext();
 const SESSION_STORAGE_KEYS_TO_CLEAR = [
@@ -17,8 +18,16 @@ export const AuthProvider = ({ children }) => {
   // Evita redirigir a / antes de restaurar la sesión Sanctum tras un F5
   const [authReady, setAuthReady] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const derivedRole = AUTH_DISABLED ? resolveRoleFromPathname(location.pathname) : userRole;
+  const ready = AUTH_DISABLED ? true : authReady;
 
   useEffect(() => {
+    if (AUTH_DISABLED) {
+      return undefined;
+    }
+
     let cancelled = false;
     const restoreSession = async () => {
       try {
@@ -28,7 +37,6 @@ export const AuthProvider = ({ children }) => {
             credentials: "include",
             headers: {
               Accept: "application/json",
-              "X-Requested-With": "XMLHttpRequest",
             },
           },
         );
@@ -69,9 +77,23 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = (role) => setUserRole(role);
+  const login = (role) => {
+    if (!AUTH_DISABLED) {
+      setUserRole(role);
+    }
+  };
 
   const logout = async () => {
+    SESSION_STORAGE_KEYS_TO_CLEAR.forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
+    if (AUTH_DISABLED) {
+      toastSuccess("Modo inseguro activo");
+      navigate("/");
+      return;
+    }
+
     try {
       const xsrfToken = await getXsrfToken();
 
@@ -95,9 +117,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      SESSION_STORAGE_KEYS_TO_CLEAR.forEach((key) => {
-        localStorage.removeItem(key);
-      });
       setUserRole(null);
       setAuthReady(true);
       toastSuccess("Sesión cerrada");
@@ -110,7 +129,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ userRole, authReady, login, logout }}>
+    <AuthContext.Provider value={{ userRole: derivedRole, authReady: ready, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

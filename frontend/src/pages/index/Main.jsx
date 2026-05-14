@@ -4,20 +4,25 @@ import { useNavigate } from "react-router-dom";
 import { popupError, toastSuccess } from "../../services/alerts";
 import { useAuth } from "../../components/PrivateRoute/AuthContext";
 import { AUTH_CONFIG } from "../../config/auth";
+import { AUTH_DISABLED } from "../../config/runtime";
 
 export default function Main() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async () => {
+    if (AUTH_DISABLED) {
+      toastSuccess("Modo sin autenticación activo");
+      navigate("/home");
+      return;
+    }
+
     try {
-      // FIX: Content-Type en GET: fuerza preflight CORS y suele romper cross-origin (agorachain.es → auth.agorachain.es).
       const res = await fetch(AUTH_CONFIG.endpoints.CERTIFICATE, {
         method: "GET",
         credentials: "include",
         headers: {
           Accept: "application/json",
-          "X-Requested-With": "XMLHttpRequest",
         },
       });
 
@@ -84,7 +89,11 @@ export default function Main() {
       {/* section 2 */}
       <section className="section2 landing__access">
         <h2>¿Listo para votar?</h2>
-        <p>Ingrese su certificado digital</p>
+        <p>
+          {AUTH_DISABLED
+            ? "Acceso temporal sin certificado ni sesión"
+            : "Ingrese su certificado digital"}
+        </p>
         <button type="button" onClick={handleLogin}>
           INGRESAR
         </button>

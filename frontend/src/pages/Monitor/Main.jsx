@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { API_CONFIG, SPRING_HTTP_BASE } from "../../config/api";
+import { API_CONFIG, SPRING_HTTP_BASE, SPRING_WS_BASE } from "../../config/api";
 import { useWebSocket } from "../../hooks/useWebSocket";
 
 import "./Main.css";
@@ -39,7 +39,7 @@ export default function Main() {
   const [checks, setChecks] = useState({});
   const [clusterSnap, setClusterSnap] = useState(null);
 
-  const wsUrl = import.meta.env.VITE_SPRING_WS_URL || "ws://localhost:8081/ws";
+  const wsUrl = SPRING_WS_BASE;
 
   const onClusterNodes = useCallback((payload) => {
     setClusterSnap(payload);

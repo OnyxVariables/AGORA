@@ -45,7 +45,7 @@ class VoteController extends Controller
             ], 401, [], JSON_UNESCAPED_UNICODE);
         }
 
-        if (!$user->isActive) {
+        if (!config('agora.insecure_mode') && !$user->isActive) {
             return response()->json([
                 'error' => 'Ya has votado'
             ], 403, [], JSON_UNESCAPED_UNICODE);

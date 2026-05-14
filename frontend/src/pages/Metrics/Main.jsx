@@ -8,7 +8,7 @@ import VotationStatusBadge from "../../components/VotationPicker/VotationStatusB
 import ChartSection from "../../components/ChartSection/ChartSection";
 import Pagination from "../../components/Pagination/Pagination";
 import { useWebSocket } from "../../hooks/useWebSocket";
-import { API_CONFIG } from "../../config/api";
+import { API_CONFIG, SPRING_WS_BASE } from "../../config/api";
 import { popupError, toastTiny } from "../../services/alerts";
 import { formatDate } from "../../utils/date";
 import { usePartiesCatalog } from "../../data/partidos";
@@ -451,7 +451,7 @@ export default function Main() {
     [selectedVotation],
   );
 
-  const wsUrl = import.meta.env.VITE_SPRING_WS_URL || "ws://localhost:8081/ws";
+  const wsUrl = SPRING_WS_BASE;
   useWebSocket(wsUrl, handleVoteReceived);
 
   const votationSummaryRows = useMemo(() => {

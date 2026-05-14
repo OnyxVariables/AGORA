@@ -15,6 +15,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Modo inseguro temporal
+    |--------------------------------------------------------------------------
+    |
+    | Si AGORA_INSECURE_MODE=true, la API deja de depender de sesiones/Sanctum
+    | para las rutas protegidas y usa usuarios fijos de la base de datos para
+    | representar al ciudadano y al administrador.
+    |
+    */
+    'insecure_mode' => filter_var(env('AGORA_INSECURE_MODE', false), FILTER_VALIDATE_BOOL),
+    'insecure_admin_user_id' => env('AGORA_INSECURE_ADMIN_USER_ID')
+        ? (int) env('AGORA_INSECURE_ADMIN_USER_ID')
+        : null,
+    'insecure_citizen_user_id' => env('AGORA_INSECURE_CITIZEN_USER_ID')
+        ? (int) env('AGORA_INSECURE_CITIZEN_USER_ID')
+        : null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Duración fija de las votaciones
     |--------------------------------------------------------------------------
     |
