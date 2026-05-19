@@ -26,6 +26,12 @@ done
 
 echo "Database is up"
 
+# Scheduler comparte backend_data con backend: no debe borrar route:cache ni competir con migrate.
+if [ "${AGORA_SKIP_MIGRATE:-false}" = "true" ]; then
+  echo "Setup reducido (scheduler): omitiendo migraciones y artisan *:cache."
+  exec "$@"
+fi
+
 # ABI del contrato: la imagen trae /opt/agora/SimpleVoting.json (compilado en el build).
 # SIMPLE_VOTING_ABI_PATH solo cambia dónde lo lee Laravel, no copia desde el host.
 install_contract_abi() {
@@ -99,11 +105,28 @@ run_migrations() {
 
 run_migrations
 
-# To optimize Laravel
-php artisan config:clear
-php artisan route:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Solo backend (el scheduler sale antes). Asegura bootstrap/cache/routes-v7.php.
+optimize_laravel_caches() {
+  mkdir -p bootstrap/cache storage/framework/cache storage/framework/views
+  chown -R www-data:www-data bootstrap/cache storage 2>/dev/null || true
+
+  php artisan config:clear
+  php artisan route:clear
+  php artisan view:clear
+
+  php artisan config:cache
+  php artisan route:cache
+  php artisan view:cache
+
+  if [ ! -f bootstrap/cache/routes-v7.php ]; then
+    echo "ERROR: route:cache no generó bootstrap/cache/routes-v7.php" >&2
+    php artisan route:list --columns=method,uri 2>&1 | head -5 || true
+    exit 1
+  fi
+
+  echo "Cachés Laravel generadas (routes-v7.php presente)."
+}
+
+optimize_laravel_caches
 
 exec "$@"
