@@ -39,7 +39,7 @@ class BlockchainService
             return $this->simpleVoting;
         }
 
-        $path = env('SIMPLE_VOTING_ABI_PATH', storage_path('app/SimpleVoting.json'));
+        $path = (string) config('agora.simple_voting_abi_path');
         if (!is_readable($path)) {
             throw new \RuntimeException(
                 "ABI del contrato no encontrado: {$path}. "
