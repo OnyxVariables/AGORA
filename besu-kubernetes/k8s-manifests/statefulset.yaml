@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: besu
+  namespace: besu
 spec:
   serviceName: "besu-service"
   replicas: 4
@@ -64,6 +65,7 @@ spec:
             --metrics-enabled=true \
             --metrics-host=0.0.0.0 \
             --metrics-port=9545 \
+            --min-gas-price=0 \
             --profile=ENTERPRISE
         ports:
         - containerPort: 30303

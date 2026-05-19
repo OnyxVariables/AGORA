@@ -22,8 +22,10 @@ module.exports = {
       chainId: 1337,
       accounts: process.env.BESU_PRIVATE_KEY ? [process.env.BESU_PRIVATE_KEY] : [],
       gas: 5000000,
-      gasPrice: 20000000000
-    }
+      gasPrice: 0,
+      // HH108 suele ser "no hay TCP al RPC"; si el nodo está lejos o lento.
+      timeout: 120_000,
+    },
   },
   paths: {
     sources: "./contracts",

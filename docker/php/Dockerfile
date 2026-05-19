@@ -1,3 +1,12 @@
+# Artefacto Hardhat (ABI) embebido en la imagen; no está en git (blockchain/artifacts está ignorado).
+FROM node:20-alpine AS contract-artifact
+WORKDIR /build
+COPY blockchain/package.json blockchain/package-lock.json ./
+RUN npm ci
+COPY blockchain/contracts ./contracts
+COPY blockchain/hardhat.config.js ./
+RUN npx hardhat compile
+
 FROM php:8.3-fpm-alpine
 
 RUN apk add --no-cache \
@@ -8,7 +17,8 @@ RUN apk add --no-cache \
     icu-dev \
     libzip-dev \
     oniguruma-dev \
-    openssl-dev
+    openssl-dev \
+    gmp-dev
 
 RUN docker-php-ext-install \
     pdo \
@@ -16,7 +26,8 @@ RUN docker-php-ext-install \
     intl \
     zip \
     opcache \
-    bcmath
+    bcmath \
+    gmp
 
 COPY ./docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
@@ -36,6 +47,10 @@ RUN composer install \
     --no-scripts
 
 COPY backend ./
+
+COPY --from=contract-artifact \
+    /build/artifacts/contracts/SimpleVoting.sol/SimpleVoting.json \
+    /opt/agora/SimpleVoting.json
 
 RUN chown -R www-data:www-data \
     storage \

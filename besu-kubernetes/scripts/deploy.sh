@@ -24,10 +24,10 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --set grafana.service.nodePort=30000 \
   --wait
 
-kubectl apply -f ../k8s-manifests/besu-servicemonitor.yaml
+kubectl apply -n besu -f ../k8s-manifests/besu-servicemonitor.yaml
 
 echo "Instalando Quorum Explorer..."
-kubectl apply -f ../k8s-manifests/quorum-explorer.yaml
+kubectl apply -n besu -f ../k8s-manifests/quorum-explorer.yaml
 
 echo "Esperando a que Quorum Explorer esté listo..."
 kubectl wait --for=condition=ready pod -l app=quorum-explorer -n besu --timeout=120s

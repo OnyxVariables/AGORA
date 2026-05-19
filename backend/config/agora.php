@@ -30,4 +30,18 @@ return [
         'duration_minutes' => (int) env('VOTATION_DURATION_MINUTES', 5),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | ABI del contrato SimpleVoting (Hardhat artifact)
+    |--------------------------------------------------------------------------
+    |
+    | Si SIMPLE_VOTING_ABI_PATH está vacío en .env/Compose, usar el path por
+    | defecto bajo storage/app (setup.sh lo copia desde la imagen en prod).
+    |
+    */
+    'simple_voting_abi_path' => (($configuredAbiPath = env('SIMPLE_VOTING_ABI_PATH')) !== null
+        && trim((string) $configuredAbiPath) !== '')
+        ? trim((string) $configuredAbiPath)
+        : storage_path('app/SimpleVoting.json'),
+
 ];

@@ -3,6 +3,8 @@
 .env
 .env.*
 !.env.example
+!.env.prod.example
+!.env.spring.example
 blockchain.env
 
 # CURSOR
@@ -10,5 +12,8 @@ blockchain.env
 .agents/
 skills-lock.json
 tools/*.sql
+
+# Kubeconfig copiado del master K3s para Spring (monitor /cluster)
+kube/config
 
 !requirements.txt

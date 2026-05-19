@@ -1,0 +1,35 @@
+# Spring Boot en una VM separada (menos carga en la máquina del compose principal)
+# Requisitos: red VPC/SG permite MariaDB (3306) desde esta VM hacia la VM del compose,
+# y RPC Besu (30001 u otro) desde esta VM hacia el master K8s
+#
+# Uso (en la VM Spring, con el repo clonado):
+#   cp .env.spring.example .env.spring   # y editar IPs / secretos
+#   docker compose -f compose.spring.yml --env-file .env.spring up -d --build
+#
+# Monitor K8s (/monitor, nodos Besu): ver compose.spring.k8s.yml y docs/ManualDespliegueAWS.md
+services:
+  springboot:
+    container_name: agora_springboot
+    build:
+      context: ./
+      dockerfile: ./docker/springboot/Dockerfile
+    env_file:
+      - ./.env.spring
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:${DB_CONNECTION}://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: "false"
+      WEB3J_CLIENT_URL: ${BESU_RPC_URL}
+      WEB3J_CONTRACT_ADDRESS: ${SIMPLE_VOTING_ADDRESS}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
+      SERVER_PORT: ${SPRING_PORT}
+      SPRING_MAIN_LAZY_INITIALIZATION: "true"
+      VOTATIONS_ADMIN_TOKEN: ${VOTATIONS_ADMIN_TOKEN:-}
+      KUBERNETES_ENABLED: ${KUBERNETES_ENABLED:-false}
+      KUBERNETES_NAMESPACE: ${KUBERNETES_NAMESPACE:-besu}
+      WEBSOCKET_ALLOWED_ORIGIN_PATTERNS: ${WEBSOCKET_ALLOWED_ORIGIN_PATTERNS:-https://agorachain.es,https://www.agorachain.es}
+    ports:
+      - "${SPRING_PORT}:${SPRING_PORT}"
+    restart: unless-stopped
