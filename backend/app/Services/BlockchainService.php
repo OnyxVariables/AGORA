@@ -6,6 +6,7 @@ use App\Models\Block;
 use Web3\Web3;
 use Web3\Contract;
 use Web3\Providers\HttpProvider;
+// use Web3p\EthereumTx\Transaction; // No funciona porque aún no funciona el composer require web3p/ethereum-tx
 use Illuminate\Support\Facades\Log;
 
 class BlockchainService
@@ -169,7 +170,7 @@ class BlockchainService
 
         throw new \Exception("Timeout esperando receipt de la transacción");
     }
-    
+
     // Validar formato bytes32 (es mandado desde el frontend)
     private function validateBytes32($value)
     {
@@ -177,67 +178,147 @@ class BlockchainService
             throw new \Exception("Formato inválido para bytes32 (voteHash)");
         }
     }
-    
+
     // Enviar transacción con reintentos
     private function sendTransaction($method, $params, $gas = 300000, $maxRetries = 3)
     {
         $from = $this->getFromAddress();
+        $privateKey = env('BESU_PRIVATE_KEY');
+
+        if (!$privateKey) {
+            throw new \Exception("BESU_PRIVATE_KEY no configurada");
+        }
+
         $attempt = 0;
 
         do {
             try {
-                $txHash = null;
-                $error = null;
 
-                // web3.php requiere callback como último parámetro
-                // Los parámetros deben pasarse individuales, no como array
+                // =========================================
+                // 1. Obtener nonce
+                // =========================================
+
+                $nonce = null;
+                $nonceError = null;
                 $completed = false;
-                $callback = function ($err, $result) use (&$txHash, &$error, &$completed) {
-                    if ($err) {
-                        $error = $err;
-                    } else {
-                        $txHash = $result;
+
+                $this->web3->eth->getTransactionCount(
+                    $from,
+                    'pending',
+                    function ($err, $result) use (&$nonce, &$nonceError, &$completed) {
+                        if ($err !== null) {
+                            $nonceError = $err;
+                        } else {
+                            $nonce = $result;
+                        }
+
+                        $completed = true;
                     }
-                    $completed = true;
-                };
+                );
 
-                // Preparar argumentos: método, params individuales, opciones, callback
-                $args = array_merge([$method], $params, [['from' => $from, 'gas' => '0x' . dechex($gas)], $callback]);
-                call_user_func_array([$this->getContract(), 'send'], $args);
-
-                // Esperar a que el callback se ejecute (max 10 segundos)
                 $waitStart = time();
+
                 while (!$completed && (time() - $waitStart) < 10) {
-                    usleep(100000); // 100ms
+                    usleep(100000);
                 }
 
-                if (!$completed) {
-                    throw new \Exception("Timeout esperando respuesta del nodo");
+                if ($nonceError !== null) {
+                    throw new \Exception($nonceError->getMessage());
                 }
 
-                if ($error !== null) {
-                    throw new \Exception($error->getMessage());
+                if ($nonce === null) {
+                    throw new \Exception("No se pudo obtener nonce");
+                }
+
+                // =========================================
+                // 2. Codificar llamada al contrato
+                // =========================================
+
+                $data = call_user_func_array(
+                    [$this->simpleVoting, 'getData'],
+                    array_merge([$method], $params)
+                );
+
+                // =========================================
+                // 3. Construir transacción
+                // =========================================
+
+                $txParams = [
+                    'nonce' => $nonce,
+                    'from' => $from,
+                    'to' => env('SIMPLE_VOTING_ADDRESS'),
+                    'gas' => '0x' . dechex($gas),
+                    'gasPrice' => '0x0',
+                    'value' => '0x0',
+                    'data' => $data,
+                    'chainId' => (int) env('CHAIN_ID', 1337)
+                ];
+
+                // =========================================
+                // 4. Firmar
+                // =========================================
+
+                $transaction = new Transaction($txParams);
+
+                $signedTx = '0x' . $transaction->sign($privateKey);
+
+                // =========================================
+                // 5. Enviar RAW transaction
+                // =========================================
+
+                $txHash = null;
+                $sendError = null;
+                $completed = false;
+
+                $this->web3->eth->sendRawTransaction(
+                    $signedTx,
+                    function ($err, $result) use (&$txHash, &$sendError, &$completed) {
+
+                        if ($err !== null) {
+                            $sendError = $err;
+                        } else {
+                            $txHash = $result;
+                        }
+
+                        $completed = true;
+                    }
+                );
+
+                $waitStart = time();
+
+                while (!$completed && (time() - $waitStart) < 10) {
+                    usleep(100000);
+                }
+
+                if ($sendError !== null) {
+                    throw new \Exception($sendError->getMessage());
                 }
 
                 if ($txHash === null) {
-                    throw new \Exception("No se obtuvo hash de transacción");
+                    throw new \Exception("No se obtuvo txHash");
                 }
+
+                // =========================================
+                // 6. Esperar receipt
+                // =========================================
 
                 $receipt = $this->waitForReceipt($txHash);
 
-                // Convertir blockNumber a decimal si es hex, por ejemplo 0x1, 0x2, 0x3, etc.
                 $blockNumber = $receipt->blockNumber;
+
                 if (is_string($blockNumber) && str_starts_with($blockNumber, '0x')) {
                     $blockNumber = hexdec(substr($blockNumber, 2));
                 } elseif (is_object($blockNumber) && method_exists($blockNumber, 'toString')) {
                     $blockNumber = (int) $blockNumber->toString();
                 }
 
-                // Obtengo bloque completo para extraer parentHash (previousHash)
                 $blockHash = $receipt->blockHash ?? null;
+
                 $parentHash = null;
+
                 if ($blockHash) {
                     $block = $this->getBlockByHash($blockHash);
+
                     if ($block && isset($block['parentHash'])) {
                         $parentHash = $block['parentHash'];
                     }
@@ -248,19 +329,29 @@ class BlockchainService
                     'blockNumber' => $blockNumber,
                     'blockHash' => $blockHash,
                     'parentHash' => $parentHash,
-                    'gasUsed' => $receipt->gasUsed ? (is_object($receipt->gasUsed) ? $receipt->gasUsed->toString() : $receipt->gasUsed) : null,
+                    'gasUsed' => $receipt->gasUsed
+                    ? (is_object($receipt->gasUsed)
+                    ? $receipt->gasUsed->toString()
+                    : $receipt->gasUsed)
+                    : null,
                     'receipt' => $receipt
                 ];
 
             } catch (\Exception $e) {
+
                 $attempt++;
+
                 Log::warning("Intento $attempt para $method fallido: {$e->getMessage()}");
+
                 sleep(1);
 
                 if ($attempt >= $maxRetries) {
-                    throw new \Exception("Error enviando la transacción tras $maxRetries intentos: " . $e->getMessage());
+                    throw new \Exception(
+                        "Error enviando la transacción tras $maxRetries intentos: " . $e->getMessage()
+                    );
                 }
             }
+
         } while ($attempt < $maxRetries);
     }
 
@@ -586,3 +677,4 @@ class BlockchainService
         ];
     }
 }
+
