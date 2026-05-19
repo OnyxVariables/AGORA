@@ -101,6 +101,8 @@ services:
     env_file:
       - ./.env
     environment:
+      # Mismas migraciones que backend (mismo volumen); evita carrera al crear tabla migrations.
+      AGORA_SKIP_MIGRATE: "true"
       APP_ENV: ${APP_ENV}
       APP_DEBUG: ${APP_DEBUG}
       APP_URL: ${APP_URL}

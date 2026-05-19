@@ -68,9 +68,36 @@ if [ ! -f .env ] || ! grep -qE '^APP_KEY=base64:[A-Za-z0-9+/]{40,}={0,2}$' .env 
   echo "APP_KEY generated successfully"
 fi
 
-# php artisan migrate
-# In production, migrations require --force to avoid interactive confirmation.
-php artisan migrate --force --no-interaction
+# backend y scheduler comparten backend_data y arrancan setup.sh a la vez: sin esto
+# ambos intentan crear la tabla `migrations` y uno falla con SQLSTATE 42S01.
+run_migrations() {
+  if [ "${AGORA_SKIP_MIGRATE:-false}" = "true" ]; then
+    echo "Migraciones omitidas (AGORA_SKIP_MIGRATE=true; p. ej. contenedor scheduler)."
+    return 0
+  fi
+
+  set +e
+  OUTPUT=$(php artisan migrate --force --no-interaction 2>&1)
+  CODE=$?
+  set -e
+
+  if [ "$CODE" -eq 0 ]; then
+    echo "$OUTPUT"
+    return 0
+  fi
+
+  if echo "$OUTPUT" | grep -qi "table 'migrations' already exists"; then
+    echo "Migraciones: otro contenedor creó la tabla migrations; reintentando..."
+    sleep 2
+    php artisan migrate --force --no-interaction
+    return $?
+  fi
+
+  echo "$OUTPUT" >&2
+  return "$CODE"
+}
+
+run_migrations
 
 # To optimize Laravel
 php artisan config:clear
