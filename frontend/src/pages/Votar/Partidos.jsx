@@ -8,6 +8,7 @@ import { useParties } from "../../data/partidos";
 import { getXsrfToken } from "../../services/xsrf";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { API_CONFIG } from "../../config/api";
+import { copyTextToClipboard } from "../../utils/clipboard";
 
 // Genera 256 bits seguros
 function generarCodigo() {
@@ -165,6 +166,8 @@ function Partidos() {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
           "X-XSRF-TOKEN": xsrfToken,
         },
         body: JSON.stringify({
@@ -175,10 +178,22 @@ function Partidos() {
         }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data = {};
+      if (raw.trimStart().startsWith("<")) {
+        console.error("POST /api/vote devolvió HTML:", res.status, raw.slice(0, 200));
+        popupError("Error del servidor al registrar el voto");
+        return;
+      }
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        popupError("Respuesta inválida del servidor");
+        return;
+      }
 
       if (!res.ok) {
-        popupError(data.error);
+        popupError(data.error || data.message || "No se pudo registrar el voto");
         return;
       }
 
@@ -195,10 +210,14 @@ function Partidos() {
         confirmButtonColor: "#3d0091",
         allowOutsideClick: false,
         allowEscapeKey: false,
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          navigator.clipboard.writeText(codigo);
-          toastTiny("Copiado");
+          const copied = await copyTextToClipboard(codigo);
+          if (copied) {
+            toastTiny("Copiado");
+          } else {
+            popupError("No se pudo copiar; guarda el código manualmente");
+          }
         }
       });
       toastSuccess(data.message);

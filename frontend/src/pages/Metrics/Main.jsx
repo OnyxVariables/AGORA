@@ -11,6 +11,7 @@ import { useWebSocket } from "../../hooks/useWebSocket";
 import { API_CONFIG, SPRING_WS_BASE } from "../../config/api";
 import { popupError, toastTiny } from "../../services/alerts";
 import { formatDate } from "../../utils/date";
+import { copyTextToClipboard } from "../../utils/clipboard";
 import { usePartiesCatalog } from "../../data/partidos";
 import {
   downloadTextFile,
@@ -97,10 +98,11 @@ export default function Main() {
 
   const CopyButton = useCallback(({ text }) => {
     if (!text) return null;
-    const handleCopy = () => {
-      navigator.clipboard.writeText(text).then(() => {
+    const handleCopy = async () => {
+      const copied = await copyTextToClipboard(text);
+      if (copied) {
         toastTiny("Copiado");
-      }).catch(() => {});
+      }
     };
     return (
       <button
