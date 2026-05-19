@@ -159,6 +159,8 @@ services:
     networks:
       - agora
     restart: unless-stopped
+    volumes:
+      - ./kube/config:/root/.kube/config:ro
 
   frontend:
     container_name: agora_frontend
