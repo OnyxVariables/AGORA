@@ -26,6 +26,28 @@ done
 
 echo "Database is up"
 
+# ABI del contrato: la imagen trae /opt/agora/SimpleVoting.json (compilado en el build).
+# SIMPLE_VOTING_ABI_PATH solo cambia dónde lo lee Laravel, no copia desde el host.
+install_contract_abi() {
+  BUNDLED=/opt/agora/SimpleVoting.json
+  DEST="${SIMPLE_VOTING_ABI_PATH:-/var/www/html/storage/app/SimpleVoting.json}"
+
+  if [ ! -f "$BUNDLED" ]; then
+    echo "AVISO: no hay ABI embebido en $BUNDLED (reconstruye la imagen backend)."
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$DEST")"
+
+  if [ "${AGORA_FORCE_ABI_SYNC:-false}" = "true" ] || [ ! -f "$DEST" ]; then
+    cp "$BUNDLED" "$DEST"
+    chown www-data:www-data "$DEST" 2>/dev/null || true
+    echo "ABI SimpleVoting instalado en $DEST"
+  fi
+}
+
+install_contract_abi
+
 # Rebuild package manifest from vendor/ (image uses composer --no-dev; stale
 # bootstrap/cache/packages.php must not reference dev-only packages like laravel/pail).
 php artisan package:discover --ansi
