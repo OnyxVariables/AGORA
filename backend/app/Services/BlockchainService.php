@@ -6,7 +6,7 @@ use App\Models\Block;
 use Web3\Web3;
 use Web3\Contract;
 use Web3\Providers\HttpProvider;
-// use Web3p\EthereumTx\Transaction; // No funciona porque aún no funciona el composer require web3p/ethereum-tx
+use Web3p\EthereumTx\Transaction;
 use Illuminate\Support\Facades\Log;
 
 class BlockchainService
@@ -171,6 +171,40 @@ class BlockchainService
         throw new \Exception("Timeout esperando receipt de la transacción");
     }
 
+    /** Convierte cantidades RPC (hex / BigNumber) a hex con prefijo 0x para ethereum-tx. */
+    private function toHexQuantity(mixed $value): string
+    {
+        if (is_object($value) && method_exists($value, 'toString')) {
+            $value = $value->toString();
+        }
+
+        if (is_int($value)) {
+            return '0x' . dechex($value);
+        }
+
+        $value = (string) $value;
+        if ($value === '') {
+            return '0x0';
+        }
+
+        if (str_starts_with(strtolower($value), '0x')) {
+            return $value;
+        }
+
+        if (ctype_digit($value)) {
+            return '0x' . dechex((int) $value);
+        }
+
+        return $value;
+    }
+
+    private function normalizePrivateKey(string $key): string
+    {
+        $key = trim($key);
+
+        return str_starts_with($key, '0x') ? $key : '0x' . $key;
+    }
+
     // Validar formato bytes32 (es mandado desde el frontend)
     private function validateBytes32($value)
     {
@@ -189,6 +223,10 @@ class BlockchainService
             throw new \Exception("BESU_PRIVATE_KEY no configurada");
         }
 
+        $privateKey = $this->normalizePrivateKey($privateKey);
+        $web3 = $this->getWeb3();
+        $contract = $this->getContract();
+
         $attempt = 0;
 
         do {
@@ -202,7 +240,7 @@ class BlockchainService
                 $nonceError = null;
                 $completed = false;
 
-                $this->web3->eth->getTransactionCount(
+                $web3->eth->getTransactionCount(
                     $from,
                     'pending',
                     function ($err, $result) use (&$nonce, &$nonceError, &$completed) {
@@ -235,7 +273,7 @@ class BlockchainService
                 // =========================================
 
                 $data = call_user_func_array(
-                    [$this->simpleVoting, 'getData'],
+                    [$contract, 'getData'],
                     array_merge([$method], $params)
                 );
 
@@ -244,14 +282,14 @@ class BlockchainService
                 // =========================================
 
                 $txParams = [
-                    'nonce' => $nonce,
+                    'nonce' => $this->toHexQuantity($nonce),
                     'from' => $from,
                     'to' => env('SIMPLE_VOTING_ADDRESS'),
                     'gas' => '0x' . dechex($gas),
                     'gasPrice' => '0x0',
                     'value' => '0x0',
                     'data' => $data,
-                    'chainId' => (int) env('CHAIN_ID', 1337)
+                    'chainId' => (int) env('CHAIN_ID', 1337),
                 ];
 
                 // =========================================
@@ -270,7 +308,7 @@ class BlockchainService
                 $sendError = null;
                 $completed = false;
 
-                $this->web3->eth->sendRawTransaction(
+                $web3->eth->sendRawTransaction(
                     $signedTx,
                     function ($err, $result) use (&$txHash, &$sendError, &$completed) {
 

@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     icu-dev \
     libzip-dev \
     oniguruma-dev \
-    openssl-dev
+    openssl-dev \
+    gmp-dev
 
 RUN docker-php-ext-install \
     pdo \
@@ -16,7 +17,8 @@ RUN docker-php-ext-install \
     intl \
     zip \
     opcache \
-    bcmath
+    bcmath \
+    gmp
 
 COPY ./docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
