@@ -144,15 +144,15 @@ public class BlockchainListenerService {
         log.debug("Procesando {} logs en bloques {}-{}", results.size(), fromBlock, toBlock);
 
         for (EthLog.LogResult<?> result : results) {
-            if (!(result.get() instanceof Log log)) {
+            if (!(result.get() instanceof Log chainLog)) {
                 continue;
             }
-            dispatchLog(log);
+            dispatchLog(chainLog);
         }
     }
 
-    private void dispatchLog(Log log) {
-        List<String> topics = log.getTopics();
+    private void dispatchLog(Log chainLog) {
+        List<String> topics = chainLog.getTopics();
         if (topics == null || topics.isEmpty()) {
             return;
         }
@@ -161,7 +161,7 @@ public class BlockchainListenerService {
         try {
             if (TOPIC_VOTE_SUBMITTED.equals(topic0)) {
                 SimpleVoting.VoteSubmittedEventResponse event =
-                        SimpleVoting.getVoteSubmittedEventFromLog(log);
+                        SimpleVoting.getVoteSubmittedEventFromLog(chainLog);
                 log.info(
                         "VoteSubmitted (poll) voteId={}, votationId={}",
                         event.voteId,
@@ -172,28 +172,28 @@ public class BlockchainListenerService {
             }
             if (TOPIC_VOTATION_CREATED.equals(topic0)) {
                 SimpleVoting.VotationCreatedEventResponse event =
-                        SimpleVoting.getVotationCreatedEventFromLog(log);
+                        SimpleVoting.getVotationCreatedEventFromLog(chainLog);
                 log.info("VotationCreated (poll) id={}", event.votationId);
                 votationService.updateStatus(event.votationId.longValue(), "ACTIVE");
                 return;
             }
             if (TOPIC_VOTATION_UPDATED.equals(topic0)) {
                 SimpleVoting.VotationUpdatedEventResponse event =
-                        SimpleVoting.getVotationUpdatedEventFromLog(log);
+                        SimpleVoting.getVotationUpdatedEventFromLog(chainLog);
                 log.info("VotationUpdated (poll) id={}", event.votationId);
                 votationService.updateStatus(event.votationId.longValue(), "ACTIVE");
                 return;
             }
             if (TOPIC_VOTATION_CANCELLED.equals(topic0)) {
                 SimpleVoting.VotationCancelledEventResponse event =
-                        SimpleVoting.getVotationCancelledEventFromLog(log);
+                        SimpleVoting.getVotationCancelledEventFromLog(chainLog);
                 log.info("VotationCancelled (poll) id={}", event.votationId);
                 votationService.updateStatus(event.votationId.longValue(), "CANCELLED");
                 return;
             }
             if (TOPIC_VOTATION_FINISHED.equals(topic0)) {
                 SimpleVoting.VotationFinishedEventResponse event =
-                        SimpleVoting.getVotationFinishedEventFromLog(log);
+                        SimpleVoting.getVotationFinishedEventFromLog(chainLog);
                 log.info("VotationFinished (poll) id={}", event.votationId);
                 votationService.updateStatus(event.votationId.longValue(), "FINISHED");
                 dHondtCalculationService.calculateAndStore(event.votationId.intValue());
@@ -201,8 +201,8 @@ public class BlockchainListenerService {
         } catch (Exception e) {
             log.error(
                     "Error procesando log tx={} idx={}: {}",
-                    log.getTransactionHash(),
-                    log.getLogIndex(),
+                    chainLog.getTransactionHash(),
+                    chainLog.getLogIndex(),
                     e.getMessage(),
                     e
             );
