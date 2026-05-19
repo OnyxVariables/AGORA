@@ -26,6 +26,34 @@ done
 
 echo "Database is up"
 
+# Scheduler comparte backend_data con backend: no debe borrar route:cache ni competir con migrate.
+if [ "${AGORA_SKIP_MIGRATE:-false}" = "true" ]; then
+  echo "Setup reducido (scheduler): omitiendo migraciones y artisan *:cache."
+  exec "$@"
+fi
+
+# ABI del contrato: la imagen trae /opt/agora/SimpleVoting.json (compilado en el build).
+# SIMPLE_VOTING_ABI_PATH solo cambia dónde lo lee Laravel, no copia desde el host.
+install_contract_abi() {
+  BUNDLED=/opt/agora/SimpleVoting.json
+  DEST="${SIMPLE_VOTING_ABI_PATH:-/var/www/html/storage/app/SimpleVoting.json}"
+
+  if [ ! -f "$BUNDLED" ]; then
+    echo "AVISO: no hay ABI embebido en $BUNDLED (reconstruye la imagen backend)."
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$DEST")"
+
+  if [ "${AGORA_FORCE_ABI_SYNC:-false}" = "true" ] || [ ! -f "$DEST" ]; then
+    cp "$BUNDLED" "$DEST"
+    chown www-data:www-data "$DEST" 2>/dev/null || true
+    echo "ABI SimpleVoting instalado en $DEST"
+  fi
+}
+
+install_contract_abi
+
 # Rebuild package manifest from vendor/ (image uses composer --no-dev; stale
 # bootstrap/cache/packages.php must not reference dev-only packages like laravel/pail).
 php artisan package:discover --ansi
@@ -46,13 +74,59 @@ if [ ! -f .env ] || ! grep -qE '^APP_KEY=base64:[A-Za-z0-9+/]{40,}={0,2}$' .env 
   echo "APP_KEY generated successfully"
 fi
 
-php artisan migrate
+# backend y scheduler comparten backend_data y arrancan setup.sh a la vez: sin esto
+# ambos intentan crear la tabla `migrations` y uno falla con SQLSTATE 42S01.
+run_migrations() {
+  if [ "${AGORA_SKIP_MIGRATE:-false}" = "true" ]; then
+    echo "Migraciones omitidas (AGORA_SKIP_MIGRATE=true; p. ej. contenedor scheduler)."
+    return 0
+  fi
 
-# To optimize Laravel
-php artisan config:clear
-php artisan route:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+  set +e
+  OUTPUT=$(php artisan migrate --force --no-interaction 2>&1)
+  CODE=$?
+  set -e
+
+  if [ "$CODE" -eq 0 ]; then
+    echo "$OUTPUT"
+    return 0
+  fi
+
+  if echo "$OUTPUT" | grep -qi "table 'migrations' already exists"; then
+    echo "Migraciones: otro contenedor creó la tabla migrations; reintentando..."
+    sleep 2
+    php artisan migrate --force --no-interaction
+    return $?
+  fi
+
+  echo "$OUTPUT" >&2
+  return "$CODE"
+}
+
+run_migrations
+
+# Solo backend (el scheduler sale antes). Asegura bootstrap/cache/routes-v7.php.
+optimize_laravel_caches() {
+  mkdir -p bootstrap/cache storage/framework/cache storage/framework/views
+  chown -R www-data:www-data bootstrap/cache storage 2>/dev/null || true
+
+  php artisan config:clear
+  php artisan route:clear
+  php artisan view:clear
+
+  php artisan config:cache
+  php artisan route:cache
+  php artisan view:cache
+
+  if [ ! -f bootstrap/cache/routes-v7.php ]; then
+    echo "ERROR: route:cache no generó bootstrap/cache/routes-v7.php" >&2
+    php artisan route:list --columns=method,uri 2>&1 | head -5 || true
+    exit 1
+  fi
+
+  echo "Cachés Laravel generadas (routes-v7.php presente)."
+}
+
+optimize_laravel_caches
 
 exec "$@"

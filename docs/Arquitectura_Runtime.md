@@ -26,7 +26,7 @@ Variables relevantes: `VITE_API_URL`, `VITE_SPRING_WS_URL` (p. ej. `ws://localho
 ## Flujo de una votación (alto nivel)
 1. **Alta (admin)** — `POST /api/votations`: solo **MariaDB** (`state = pending`, `endDate = startDate + 12 h`). No se llama aún al contrato.
 2. **Activación programada** — Comando Artisan `votations:process-lifecycle` (registrado en el **scheduler** de Laravel, cada minuto). Cuando llega `startDate` y aún no hay `txHash`, Laravel llama `createVotation` en cadena y, **tras receipt confirmado**, guarda `txHash`, bloque de inicio y **`state = active`**. En el contrato, `createVotation` ya deja la votación en `Active`; la BD debe alinearse aquí **sin depender** de que Spring Boot haya procesado el evento (si el listener va retrasado o caído, antes la fila podía quedar en `pending` y el scheduler no encontraba filas para finalizar).
-3. **Sincronía de estado (Spring)** — Spring Boot sigue escuchando `VotationCreated` y puede marcar **active** (idempotente si Laravel ya actualizó). No es la única fuente de verdad para ese paso.
+3. **Sincronía de estado (Spring)** — Spring Boot sondea logs del contrato con **`eth_getLogs`** (Besu no soporta bien `eth_newFilter` de web3j). Puede marcar **active** al ver `VotationCreated` (idempotente si Laravel ya actualizó). No es la única fuente de verdad para ese paso.
 4. **Votación** — El ciudadano vota vía Laravel; Laravel envía `submitVote` al contrato; Spring procesa el evento `VoteSubmitted` y persiste el voto en MariaDB.
 5. **Cierre** — El scheduler llama `finishVotation` cuando `endDate <= now()` y la votación está **activa en BD** o en transición antigua (`pending` con `txHash` ya guardado). Tras receipt, Laravel pone **`state = finished`** y `endBlockHash`. Spring recibe `VotationFinished`, puede reconfirmar **finished** y ejecuta **D’Hondt** sobre votos en BD → tabla `seat`.
 6. **Resultados** — Endpoints públicos Laravel `GET /api/votations/{id}/results` (y `/results/summary`) sirven datos cuando `state = finished`. El frontend `/resultados` consume estos datos.
@@ -39,7 +39,8 @@ Variables relevantes: `VITE_API_URL`, `VITE_SPRING_WS_URL` (p. ej. `ws://localho
 5. **Borrado lógico** — La acción de eliminar desde el panel marca `active = false`; no borra físicamente la fila para conservar relaciones históricas con `vote` y `seat`.
 
 ## Operación en desarrollo
-- **Scheduler Laravel**: la agenda **no se ejecuta sola** con solo levantar PHP-FPM o `artisan serve`. Hace falta `php artisan schedule:work` (o cron con `schedule:run` cada minuto), o en Docker dev el servicio **`scheduler`** de `compose.dev.yml`. Sin esto, las votaciones se quedan en `pending` aunque haya pasado `startDate`.
+- **Scheduler Laravel**: la agenda **no se ejecuta sola** con solo levantar PHP-FPM o `artisan serve`. Hace falta `php artisan schedule:work` (o cron con `schedule:run` cada minuto), o en Docker el servicio **`scheduler`** (`compose.dev.yml` / `compose.prod.yml`). Sin esto, las votaciones se quedan en `pending` aunque haya pasado `startDate`.
+- **Spring + Besu**: en logs no debe aparecer `Logs filter not found`. Tras el fix, busca `VoteSubmitted (poll)` en `docker logs agora_springboot`.
 - **Contrato desplegado**: el stack dev espera a Hardhat saludable y al artefacto del contrato en el backend (véase healthcheck en `compose.dev.yml`).
 
 ## Contraste con documentación genérica

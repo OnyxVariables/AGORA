@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\InsecureUserResolver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,8 +11,23 @@ use Illuminate\Support\Facades\Log;
 
 class CertAuthController extends Controller
 {
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, InsecureUserResolver $insecureUsers): JsonResponse
     {
+        if ($insecureUsers->enabled()) {
+            $user = $insecureUsers->resolveCitizen();
+
+            if (!$user) {
+                return response()->json([
+                    'error' => $insecureUsers->describeMissingUser('citizen'),
+                ], 503, [], JSON_UNESCAPED_UNICODE);
+            }
+
+            return response()->json([
+                'roleId' => (int) $user->roleId,
+                'dni' => $user->dni,
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
         // Para AWS
         // if (env('CERT_AUTH') === 'true') {
 
@@ -74,6 +90,10 @@ class CertAuthController extends Controller
 
     public function logout(Request $request)
     {
+        if (config('agora.insecure_mode')) {
+            return response()->json(['message' => 'Modo inseguro: no hay sesión que cerrar'], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

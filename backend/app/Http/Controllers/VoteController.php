@@ -45,7 +45,7 @@ class VoteController extends Controller
             ], 401, [], JSON_UNESCAPED_UNICODE);
         }
 
-        if (!$user->isActive) {
+        if (!config('agora.insecure_mode') && !$user->isActive) {
             return response()->json([
                 'error' => 'Ya has votado'
             ], 403, [], JSON_UNESCAPED_UNICODE);
@@ -141,11 +141,18 @@ class VoteController extends Controller
                 ], 500);
             }
 
-            $this->blockchainService->ensureBlockExists(
-                $tx['blockHash'] ?? null,
-                $tx['blockNumber'] ?? null,
-                $tx['parentHash'] ?? null
-            );
+            try {
+                $this->blockchainService->ensureBlockExists(
+                    $tx['blockHash'] ?? null,
+                    $tx['blockNumber'] ?? null,
+                    $tx['parentHash'] ?? null
+                );
+            } catch (\Throwable $blockSyncError) {
+                Log::warning('Vote on chain but block sync failed', [
+                    'tx_hash' => $tx['transactionHash'] ?? null,
+                    'message' => $blockSyncError->getMessage(),
+                ]);
+            }
 
             // Esto Laravel lo escucha, en principio sabe el usuario y el voto asociado durante
             // unos instantes, pero luego se elimina.
@@ -164,11 +171,19 @@ class VoteController extends Controller
                 'txHash' => $tx['transactionHash']
             ]);
 
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Vote send failed', [
+                'user_id' => $user->id ?? null,
+                'votation_id' => $data['votationId'] ?? null,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             $intent->delete();
 
-            return response()->json(['error' => 'Error interno'], 500, [], JSON_UNESCAPED_UNICODE);
+            return response()->json([
+                'error' => 'Error interno al registrar el voto',
+                'details' => config('app.debug') ? $e->getMessage() : null,
+            ], 500, [], JSON_UNESCAPED_UNICODE);
         }
     }
 

@@ -6,29 +6,63 @@ use App\Models\Block;
 use Web3\Web3;
 use Web3\Contract;
 use Web3\Providers\HttpProvider;
+use Web3p\EthereumTx\Transaction;
 use Illuminate\Support\Facades\Log;
 
 class BlockchainService
 {
-    private $web3;
-    private $simpleVoting;
+    private ?Web3 $web3 = null;
 
-    public function __construct()
+    private ?Contract $simpleVoting = null;
+
+    // RPC siempre disponible sin artefacto ABI (útil para salud / blockNumber)
+    private function getWeb3(): Web3
     {
+        if ($this->web3 !== null) {
+            return $this->web3;
+        }
+
         $rpc = env('BESU_RPC_URL', 'http://localhost:8545');
-        // Timeout de 5 segundos para requests HTTP
         $provider = new HttpProvider($rpc, 5);
         $this->web3 = new Web3($provider);
 
-        $abiJson = json_decode(file_get_contents(storage_path('app/SimpleVoting.json')));
-        $this->simpleVoting = new Contract($this->web3->provider, $abiJson->abi);
+        return $this->web3;
+    }
+
+    /**
+     * Contrato SimpleVoting: requiere ABI en disco y SIMPLE_VOTING_ADDRESS.
+     * Ruta por defecto: storage/app/SimpleVoting.json (copiar artefacto Hardhat).
+     */
+    private function getContract(): Contract
+    {
+        if ($this->simpleVoting !== null) {
+            return $this->simpleVoting;
+        }
+
+        $path = (string) config('agora.simple_voting_abi_path');
+        if (!is_readable($path)) {
+            throw new \RuntimeException(
+                "ABI del contrato no encontrado: {$path}. "
+                .'Copie blockchain/artifacts/.../SimpleVoting.json tras `npx hardhat compile` '
+                .'o defina SIMPLE_VOTING_ABI_PATH.',
+            );
+        }
+
+        $abiJson = json_decode(file_get_contents($path));
+        if ($abiJson === null || !isset($abiJson->abi)) {
+            throw new \RuntimeException("ABI inválido o vacío: {$path}");
+        }
+
+        $this->simpleVoting = new Contract($this->getWeb3()->provider, $abiJson->abi);
 
         $contractAddress = env('SIMPLE_VOTING_ADDRESS');
         if (!$contractAddress) {
-            throw new \Exception("SIMPLE_VOTING_ADDRESS no configurado");
+            throw new \RuntimeException('SIMPLE_VOTING_ADDRESS no configurado');
         }
 
         $this->simpleVoting->at($contractAddress);
+
+        return $this->simpleVoting;
     }
 
     // Obtengo dirección admin obligatoria
@@ -59,7 +93,7 @@ class BlockchainService
             $completed = true;
         };
 
-        $this->web3->eth->getBlockByHash($blockHash, false, $callback);
+        $this->getWeb3()->eth->getBlockByHash($blockHash, false, $callback);
 
         $waitStart = time();
         while (!$completed && (time() - $waitStart) < 5) {
@@ -100,7 +134,7 @@ class BlockchainService
             $callbackResult = null;
 
             try {
-                $this->web3->eth->getTransactionReceipt($txHash, function ($err, $r) use (&$callbackCompleted, &$callbackError, &$callbackResult) {
+                $this->getWeb3()->eth->getTransactionReceipt($txHash, function ($err, $r) use (&$callbackCompleted, &$callbackError, &$callbackResult) {
                     if ($err !== null) {
                         $callbackError = $err;
                     } else {
@@ -136,7 +170,41 @@ class BlockchainService
 
         throw new \Exception("Timeout esperando receipt de la transacción");
     }
-    
+
+    /** Convierte cantidades RPC (hex / BigNumber) a hex con prefijo 0x para ethereum-tx. */
+    private function toHexQuantity(mixed $value): string
+    {
+        if (is_object($value) && method_exists($value, 'toString')) {
+            $value = $value->toString();
+        }
+
+        if (is_int($value)) {
+            return '0x' . dechex($value);
+        }
+
+        $value = (string) $value;
+        if ($value === '') {
+            return '0x0';
+        }
+
+        if (str_starts_with(strtolower($value), '0x')) {
+            return $value;
+        }
+
+        if (ctype_digit($value)) {
+            return '0x' . dechex((int) $value);
+        }
+
+        return $value;
+    }
+
+    private function normalizePrivateKey(string $key): string
+    {
+        $key = trim($key);
+
+        return str_starts_with($key, '0x') ? $key : '0x' . $key;
+    }
+
     // Validar formato bytes32 (es mandado desde el frontend)
     private function validateBytes32($value)
     {
@@ -144,67 +212,151 @@ class BlockchainService
             throw new \Exception("Formato inválido para bytes32 (voteHash)");
         }
     }
-    
+
     // Enviar transacción con reintentos
     private function sendTransaction($method, $params, $gas = 300000, $maxRetries = 3)
     {
         $from = $this->getFromAddress();
+        $privateKey = env('BESU_PRIVATE_KEY');
+
+        if (!$privateKey) {
+            throw new \Exception("BESU_PRIVATE_KEY no configurada");
+        }
+
+        $privateKey = $this->normalizePrivateKey($privateKey);
+        $web3 = $this->getWeb3();
+        $contract = $this->getContract();
+
         $attempt = 0;
 
         do {
             try {
-                $txHash = null;
-                $error = null;
 
-                // web3.php requiere callback como último parámetro
-                // Los parámetros deben pasarse individuales, no como array
+                // =========================================
+                // 1. Obtener nonce
+                // =========================================
+
+                $nonce = null;
+                $nonceError = null;
                 $completed = false;
-                $callback = function ($err, $result) use (&$txHash, &$error, &$completed) {
-                    if ($err) {
-                        $error = $err;
-                    } else {
-                        $txHash = $result;
+
+                $web3->eth->getTransactionCount(
+                    $from,
+                    'pending',
+                    function ($err, $result) use (&$nonce, &$nonceError, &$completed) {
+                        if ($err !== null) {
+                            $nonceError = $err;
+                        } else {
+                            $nonce = $result;
+                        }
+
+                        $completed = true;
                     }
-                    $completed = true;
-                };
+                );
 
-                // Preparar argumentos: método, params individuales, opciones, callback
-                $args = array_merge([$method], $params, [['from' => $from, 'gas' => '0x' . dechex($gas)], $callback]);
-                call_user_func_array([$this->simpleVoting, 'send'], $args);
-
-                // Esperar a que el callback se ejecute (max 10 segundos)
                 $waitStart = time();
+
                 while (!$completed && (time() - $waitStart) < 10) {
-                    usleep(100000); // 100ms
+                    usleep(100000);
                 }
 
-                if (!$completed) {
-                    throw new \Exception("Timeout esperando respuesta del nodo");
+                if ($nonceError !== null) {
+                    throw new \Exception($nonceError->getMessage());
                 }
 
-                if ($error !== null) {
-                    throw new \Exception($error->getMessage());
+                if ($nonce === null) {
+                    throw new \Exception("No se pudo obtener nonce");
+                }
+
+                // =========================================
+                // 2. Codificar llamada al contrato
+                // =========================================
+
+                $data = call_user_func_array(
+                    [$contract, 'getData'],
+                    array_merge([$method], $params)
+                );
+
+                // =========================================
+                // 3. Construir transacción
+                // =========================================
+
+                $txParams = [
+                    'nonce' => $this->toHexQuantity($nonce),
+                    'from' => $from,
+                    'to' => env('SIMPLE_VOTING_ADDRESS'),
+                    'gas' => '0x' . dechex($gas),
+                    'gasPrice' => '0x0',
+                    'value' => '0x0',
+                    'data' => $data,
+                    'chainId' => (int) env('CHAIN_ID', 1337),
+                ];
+
+                // =========================================
+                // 4. Firmar
+                // =========================================
+
+                $transaction = new Transaction($txParams);
+
+                $signedTx = '0x' . $transaction->sign($privateKey);
+
+                // =========================================
+                // 5. Enviar RAW transaction
+                // =========================================
+
+                $txHash = null;
+                $sendError = null;
+                $completed = false;
+
+                $web3->eth->sendRawTransaction(
+                    $signedTx,
+                    function ($err, $result) use (&$txHash, &$sendError, &$completed) {
+
+                        if ($err !== null) {
+                            $sendError = $err;
+                        } else {
+                            $txHash = $result;
+                        }
+
+                        $completed = true;
+                    }
+                );
+
+                $waitStart = time();
+
+                while (!$completed && (time() - $waitStart) < 10) {
+                    usleep(100000);
+                }
+
+                if ($sendError !== null) {
+                    throw new \Exception($sendError->getMessage());
                 }
 
                 if ($txHash === null) {
-                    throw new \Exception("No se obtuvo hash de transacción");
+                    throw new \Exception("No se obtuvo txHash");
                 }
+
+                // =========================================
+                // 6. Esperar receipt
+                // =========================================
 
                 $receipt = $this->waitForReceipt($txHash);
 
-                // Convertir blockNumber a decimal si es hex, por ejemplo 0x1, 0x2, 0x3, etc.
                 $blockNumber = $receipt->blockNumber;
+
                 if (is_string($blockNumber) && str_starts_with($blockNumber, '0x')) {
                     $blockNumber = hexdec(substr($blockNumber, 2));
                 } elseif (is_object($blockNumber) && method_exists($blockNumber, 'toString')) {
                     $blockNumber = (int) $blockNumber->toString();
                 }
 
-                // Obtengo bloque completo para extraer parentHash (previousHash)
                 $blockHash = $receipt->blockHash ?? null;
+
                 $parentHash = null;
+
                 if ($blockHash) {
                     $block = $this->getBlockByHash($blockHash);
+
                     if ($block && isset($block['parentHash'])) {
                         $parentHash = $block['parentHash'];
                     }
@@ -215,19 +367,29 @@ class BlockchainService
                     'blockNumber' => $blockNumber,
                     'blockHash' => $blockHash,
                     'parentHash' => $parentHash,
-                    'gasUsed' => $receipt->gasUsed ? (is_object($receipt->gasUsed) ? $receipt->gasUsed->toString() : $receipt->gasUsed) : null,
+                    'gasUsed' => $receipt->gasUsed
+                    ? (is_object($receipt->gasUsed)
+                    ? $receipt->gasUsed->toString()
+                    : $receipt->gasUsed)
+                    : null,
                     'receipt' => $receipt
                 ];
 
             } catch (\Exception $e) {
+
                 $attempt++;
+
                 Log::warning("Intento $attempt para $method fallido: {$e->getMessage()}");
+
                 sleep(1);
 
                 if ($attempt >= $maxRetries) {
-                    throw new \Exception("Error enviando la transacción tras $maxRetries intentos: " . $e->getMessage());
+                    throw new \Exception(
+                        "Error enviando la transacción tras $maxRetries intentos: " . $e->getMessage()
+                    );
                 }
             }
+
         } while ($attempt < $maxRetries);
     }
 
@@ -381,7 +543,7 @@ class BlockchainService
             $rpcError = null;
             $completed = false;
 
-            $this->web3->eth->blockNumber(function ($err, $bn) use (&$blockNumber, &$rpcError, &$completed) {
+            $this->getWeb3()->eth->blockNumber(function ($err, $bn) use (&$blockNumber, &$rpcError, &$completed) {
                 if ($err !== null) {
                     $rpcError = $err;
                 } elseif ($bn !== null) {
@@ -450,7 +612,7 @@ class BlockchainService
         $completed = false;
 
         try {
-            $this->web3->clientVersion(function ($err, $result) use (&$version, &$completed) {
+            $this->getWeb3()->clientVersion(function ($err, $result) use (&$version, &$completed) {
                 if ($err === null && $result !== null) {
                     $version = is_string($result) ? $result : (string) $result;
                 }
@@ -553,3 +715,4 @@ class BlockchainService
         ];
     }
 }
+

@@ -8,6 +8,7 @@ import {
   ButtonDelete,
 } from "../../components/Button/Button";
 import { formatDate } from "../../utils/date";
+import { copyTextToClipboard } from "../../utils/clipboard";
 import {
   popupDeleteConfirm,
   popupError,
@@ -210,10 +211,11 @@ export default function App() {
 
     const CopyButton = ({ text }) => {
       if (!text) return null;
-      const handleCopy = () => {
-        navigator.clipboard.writeText(text).then(() => {
+      const handleCopy = async () => {
+        const copied = await copyTextToClipboard(text);
+        if (copied) {
           toastTiny("Copiado");
-        }).catch(() => {});
+        }
       };
       return (
         <button

@@ -94,11 +94,13 @@ besu-kubernetes/
 ## 5. Despliegue de la Red Blockchain
 1. Preparar Secretos: Las claves privadas deben estar en Base64 dentro de secrets.yaml. Para ello ejecutar con cada clave privada:
     - `echo -n "clave_sin_0x" | base64`
+   - Si una de esas cuentas va a desplegar contratos o enviar transacciones, hay que darle saldo en `network-config/genesis.json` dentro de `alloc` o fallará por falta de saldo.
 
 2. Ejecutar el script automatizado (script.sh):
     - `cd ~/besu-kubernetes/scripts`
     - `chmod +x deploy.sh`
     - `./deploy.sh`
+   - Si cambias el `genesis.json` de una red ya inicializada, no basta con `rollout restart`: hay que borrar el StatefulSet y sus PVC para que Besu regenere el chain data con el nuevo génesis.
 
 ### ¿Qué hace deploy.sh?
 El script automatiza la creación del **ConfigMap** desde los archivos JSON, despliega el stack de monitoreo Kube-Prometheus-Stack mediante Helm para recolectar métricas de BESU y aplica los manifiestos en el orden correcto: **ConfigMap → Secrets → Service → StatefulSet → Besu-servicemonitor**
@@ -152,7 +154,15 @@ Si tras reiniciar pierdes acceso, ejecutar `source ~/.bashrc` o verificar que el
 Generalmente causado por un error de sintaxis en el **StatefulSet** o IPs mal resueltas. Revisar con `kubectl logs besu-0`.
 
 3. **peerCount** en **0x0**:  
-Revisar que el puerto **UDP 30303** esté abierto en AWS. 
+Revisar que el puerto **UDP 30303** esté abierto en AWS.
+
+4. **Hardhat `HH108: Cannot connect to the network besu`**:  
+   Hardhat no puede abrir TCP a `BESU_RPC_URL` (no es un fallo de clave ni de chainId). En la **misma máquina** donde ejecutas `npm run deploy-simple:besu` debe funcionar:
+   - `curl -sS -m 5 -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' "$BESU_RPC_URL"`
+   Comprueba: IP/puerto correctos (`NodePort` 30001 en el nodo donde escucha kube-proxy), security group / firewall hacia esa IP, VPN (p. ej. Tailscale) activa si usas IP 100.x, y que `kubectl get pods -n besu` esté **Running**. El servicio `besu-rpc-public` debe existir (`kubectl get svc -n besu`).
+
+5. **`ECONNREFUSED` en `:30001` pero el servicio existe**:  
+   Los pods de Besu deben estar en el **mismo namespace** que `besu-rpc-public` (`besu`). Si ves `besu-0` con `kubectl get pods` **sin** `-n besu`, el StatefulSet quedó en `default` y el NodePort no tiene endpoints. Borra el StatefulSet en `default` y vuelve a aplicar los manifiestos con `kubectl apply -n besu -f ...` (los YAML del repo incluyen `metadata.namespace: besu`).
 
 > [!IMPORTANT]
 > Sin UDP no hay descubrimiento de nodos entre diferentes instancias.

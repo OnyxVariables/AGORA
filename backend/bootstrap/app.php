@@ -4,7 +4,6 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful; //Se supone que esto hace que puedas iniciar sesión con cookies y no con tokens como está por defecto en Laravel
 //Para ello tengo que instalar Sanctum de la siguiente forma:
     // composer require laravel/sanctum
     // php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
@@ -21,11 +20,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'insecure.user' => \App\Http\Middleware\InsecureUserMiddleware::class,
         ]);
 
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
+        if (!filter_var(env('AGORA_INSECURE_MODE', false), FILTER_VALIDATE_BOOL)) {
+            $middleware->api(prepend: [
+                \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            ]);
+        }
     })
 
     ->withExceptions(function (Exceptions $exceptions): void {

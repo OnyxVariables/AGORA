@@ -1,8 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../PrivateRoute/AuthContext";
+import { AUTH_DISABLED } from "../../config/runtime";
 
 const PrivateRoute = ({ roleRequired }) => {
   const { userRole, authReady } = useAuth();
+
+  if (AUTH_DISABLED) {
+    return <Outlet />;
+  }
 
   if (!authReady) {
     return (

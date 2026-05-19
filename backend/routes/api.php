@@ -9,6 +9,10 @@ use App\Http\Controllers\PartyController;
 use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\AdminHealthController;
 
+$insecureMode = (bool) config('agora.insecure_mode', false);
+$citizenMiddleware = $insecureMode ? ['insecure.user:citizen'] : ['auth:sanctum'];
+$adminMiddleware = $insecureMode ? ['insecure.user:admin'] : ['auth:sanctum', 'role:1'];
+
 Route::get('/login-cert', [CertAuthController::class, 'login']);
 Route::get('/parties', [PartyController::class, 'index']);
 Route::get('/parties/catalog', [PartyController::class, 'publicCatalog']);
@@ -24,7 +28,7 @@ Route::get('/votations/{id}/results/summary', [VotationController::class, 'resul
 Route::get('/votations/{id}/votes-timeseries', [MetricsController::class, 'votationTimeseriesPublic']);
 
 // Ruta protegida por Sanctum donde solo puede acceder usuario autenticado
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware($citizenMiddleware)->group(function () {
     Route::get('/me', [UserController::class, 'me']);
     Route::post('/nickname', [UserController::class, 'setNickname']);
     Route::post('/vote', [VoteController::class, 'send']);
@@ -33,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
     
     // Ruta protegida por Sanctum donde solo puede acceder usuario autenticado
-Route::middleware('auth:sanctum', 'role:1')->group(function () {
+Route::middleware($adminMiddleware)->group(function () {
     Route::get('/votations', [VotationController::class, 'index']);
     Route::post('/votations', [VotationController::class, 'store']);
     Route::put('/votations/{id}', [VotationController::class, 'update']);

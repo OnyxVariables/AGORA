@@ -13,9 +13,10 @@ CERT_DIR="/etc/letsencrypt/live/agorachain.es"
 FULLCHAIN="$CERT_DIR/fullchain.pem"
 PRIVKEY="$CERT_DIR/privkey.pem"
 RELOAD_MARKER="/var/www/certbot/reload_nginx"
+SPRING_IP="${SPRING_PRIVATE_IP:-127.0.0.1}"
 
 if [ -f "$HTTP_SRC" ]; then
-  cp "$HTTP_SRC" "$HTTP_DEST"
+  sed "s/@@SPRING_PRIVATE_IP@@/${SPRING_IP}/g" "$HTTP_SRC" > "$HTTP_DEST"
 fi
 
 # Coge HTTP para que sirva ACME challenges
@@ -29,7 +30,7 @@ while :; do
     if [ ! -f "$SSL_DEST" ]; then
       echo "Certificados detectados. Aplicando configuración SSL..."
       if [ -f "$SSL_TEMPLATE_SRC" ]; then
-        cp "$SSL_TEMPLATE_SRC" "$SSL_DEST"
+        sed "s/@@SPRING_PRIVATE_IP@@/${SPRING_IP}/g" "$SSL_TEMPLATE_SRC" > "$SSL_DEST"
       else
         echo "Plantilla SSL no encontrada en $SSL_TEMPLATE_SRC"
       fi

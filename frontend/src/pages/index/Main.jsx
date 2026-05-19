@@ -4,18 +4,25 @@ import { useNavigate } from "react-router-dom";
 import { popupError, toastSuccess } from "../../services/alerts";
 import { useAuth } from "../../components/PrivateRoute/AuthContext";
 import { AUTH_CONFIG } from "../../config/auth";
+import { AUTH_DISABLED } from "../../config/runtime";
 
 export default function Main() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async () => {
+    if (AUTH_DISABLED) {
+      toastSuccess("Modo sin autenticación activo");
+      navigate("/home");
+      return;
+    }
+
     try {
       const res = await fetch(AUTH_CONFIG.endpoints.CERTIFICATE, {
         method: "GET",
-        credentials: "include", // para sesion
+        credentials: "include",
         headers: {
-          "Content-Type": "application/json",
+          Accept: "application/json",
         },
       });
 
@@ -43,6 +50,7 @@ export default function Main() {
       // Redirigo según rol
       role === 1 ? navigate("/CRUDVotations") : navigate("/Home");
     } catch (err) {
+      console.error("login-cert:", err);
       popupError("Servicio no disponible");
     }
   };
@@ -81,7 +89,11 @@ export default function Main() {
       {/* section 2 */}
       <section className="section2 landing__access">
         <h2>¿Listo para votar?</h2>
-        <p>Ingrese su certificado digital</p>
+        <p>
+          {AUTH_DISABLED
+            ? "Acceso temporal sin certificado ni sesión"
+            : "Ingrese su certificado digital"}
+        </p>
         <button type="button" onClick={handleLogin}>
           INGRESAR
         </button>
